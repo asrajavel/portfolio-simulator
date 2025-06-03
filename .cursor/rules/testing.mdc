@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Whenever we are updating something, if there is a related test, you need to update that and also run that to see if that passes. If that fails, iteratively update the test and check if it is working. Always use the command npm test.
+
+If you feel there is some idea that can be implemented, just go ahead and implement it instead of asking whether you should implement it.
