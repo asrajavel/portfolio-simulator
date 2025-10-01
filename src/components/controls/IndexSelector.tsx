@@ -1,8 +1,8 @@
 import React from 'react';
 import { Block } from 'baseui/block';
 import { Select } from 'baseui/select';
-import { Instrument } from '../types/instrument';
-import { useIndices } from '../hooks/useIndices';
+import { Instrument } from '../../types/instrument';
+import { useIndices } from '../../hooks/useIndices';
 
 interface IndexSelectorProps {
   onSelect: (instrument: Instrument) => void;

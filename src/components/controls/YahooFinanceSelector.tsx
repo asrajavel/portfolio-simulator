@@ -3,7 +3,7 @@ import { Input } from 'baseui/input';
 import { Block } from 'baseui/block';
 import { StatefulTooltip } from 'baseui/tooltip';
 import { LabelSmall } from 'baseui/typography';
-import { Instrument } from '../types/instrument';
+import { Instrument } from '../../types/instrument';
 import { Alert } from 'baseui/icon';
 
 interface YahooFinanceSelectorProps {

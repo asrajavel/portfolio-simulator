@@ -1,7 +1,7 @@
 import React from 'react';
 import { Block } from 'baseui/block';
 import { Select } from 'baseui/select';
-import { InstrumentType } from '../types/instrument';
+import { InstrumentType } from '../../types/instrument';
 
 interface InstrumentTypeDropdownProps {
   value: InstrumentType;

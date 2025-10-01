@@ -4,9 +4,9 @@ import { Input } from 'baseui/input';
 import { Checkbox } from 'baseui/checkbox';
 import { Block } from 'baseui/block';
 import { FormControl } from 'baseui/form-control';
-import { InstrumentTypeDropdown } from './InstrumentTypeDropdown';
-import { InstrumentDropdown } from './InstrumentDropdown';
-import { InstrumentType, Instrument } from '../types/instrument';
+import { InstrumentTypeDropdown } from '../controls/InstrumentTypeDropdown';
+import { InstrumentDropdown } from '../controls/InstrumentDropdown';
+import { InstrumentType, Instrument } from '../../types/instrument';
 
 interface FundControlsProps {
   selectedInstruments: (Instrument | null)[];

@@ -3,9 +3,9 @@ import { Block } from 'baseui/block';
 import { Button } from 'baseui/button';
 import { LabelLarge, LabelSmall } from 'baseui/typography';
 import { FundControls } from './FundControls';
-import { mfapiMutualFund } from '../types/mfapiMutualFund';
-import { Portfolio } from '../types/portfolio';
-import { Instrument } from '../types/instrument';
+import { mfapiMutualFund } from '../../types/mfapiMutualFund';
+import { Portfolio } from '../../types/portfolio';
+import { Instrument } from '../../types/instrument';
 
 interface PortfolioListProps {
   portfolios: Portfolio[];

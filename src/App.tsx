@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { Container } from './components/Container';
+import { Container } from './components/common/Container';
 import { useMutualFunds } from './hooks/useMutualFunds';
 import { useNavData } from './hooks/useNavData';
-import { LoadingOverlay } from './components/LoadingOverlay';
-import { ChartArea } from './components/ChartArea';
+import { LoadingOverlay } from './components/common/LoadingOverlay';
+import { ChartArea } from './components/layout/ChartArea';
 import { usePlotState } from './hooks/usePlotState';
 import { usePortfolios } from './hooks/usePortfolios';
 import { usePortfolioPlot } from './hooks/usePortfolioPlot';
 import { Block } from 'baseui/block';
-import { LoadingErrorStates } from './components/LoadingErrorStates';
-import { PortfolioList } from './components/PortfolioList';
-import { ControlsPanel } from './components/ControlsPanel';
+import { LoadingErrorStates } from './components/common/LoadingErrorStates';
+import { PortfolioList } from './components/portfolio/PortfolioList';
+import { ControlsPanel } from './components/controls/ControlsPanel';
 import { HeadingLarge } from 'baseui/typography';
 import { Button } from 'baseui/button';
-import { PortfolioSipHelpModal } from './components/PortfolioSipHelpModal';
+import { PortfolioSipHelpModal } from './components/portfolio/PortfolioSipHelpModal';
 
 const DEFAULT_SCHEME_CODE = 120716;
 

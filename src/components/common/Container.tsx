@@ -1,7 +1,7 @@
 import React from 'react';
 import { Block } from 'baseui/block';
-import { TopPanel } from './TopPanel';
-import { LeftPanel } from './LeftPanel';
+import { TopPanel } from '../layout/TopPanel';
+import { LeftPanel } from '../layout/LeftPanel';
 
 interface ContainerProps {
   children: React.ReactNode;

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Input } from 'baseui/input';
 import { StatefulMenu } from 'baseui/menu';
 import { Block } from 'baseui/block';
-import { Instrument } from '../types/instrument';
+import { Instrument } from '../../types/instrument';
 
 interface MutualFundSelectorProps {
   funds: { schemeCode: number; schemeName: string }[];

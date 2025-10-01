@@ -1,8 +1,8 @@
 import React from 'react';
-import { MultiFundCharts } from './MultiFundCharts';
-import { mfapiMutualFund } from '../types/mfapiMutualFund';
-import { Portfolio } from '../types/portfolio';
-import { LoadingSpinner } from './LoadingSpinner';
+import { MultiFundCharts } from '../charts/MultiFundCharts';
+import { mfapiMutualFund } from '../../types/mfapiMutualFund';
+import { Portfolio } from '../../types/portfolio';
+import { LoadingSpinner } from '../common/LoadingSpinner';
 import { Block } from 'baseui/block';
 import { LabelMedium } from 'baseui/typography';
 

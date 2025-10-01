@@ -1,5 +1,5 @@
 import React from 'react';
-import { InstrumentType, Instrument } from '../types/instrument';
+import { InstrumentType, Instrument } from '../../types/instrument';
 import { MutualFundSelector } from './MutualFundSelector';
 import { IndexSelector } from './IndexSelector';
 import { YahooFinanceSelector } from './YahooFinanceSelector';

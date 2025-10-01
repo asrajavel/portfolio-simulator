@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
-import { mfapiMutualFund } from '../types/mfapiMutualFund';
-import { Portfolio } from '../types/portfolio';
+import { mfapiMutualFund } from '../../types/mfapiMutualFund';
+import { Portfolio } from '../../types/portfolio';
 import { Block } from 'baseui/block';
 import { Button } from 'baseui/button';
 import { HeadingMedium, LabelLarge, LabelMedium, LabelSmall } from 'baseui/typography';
-import { TransactionModal } from './TransactionModal';
+import { TransactionModal } from '../modals/TransactionModal';
 
 function formatDate(date: Date): string {
   return date.toISOString().slice(0, 10);
