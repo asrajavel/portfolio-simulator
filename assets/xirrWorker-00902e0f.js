@@ -1,1 +1,0 @@
-self.onmessage=async function(a){const{navDataList:s,years:e,allocations:l,rebalancingEnabled:n,rebalancingThreshold:o}=a.data,t=(await import("./sipRollingXirr-32070833.js")).calculateSipRollingXirr(s,e,l,n,o);self.postMessage(t)};
