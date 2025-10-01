@@ -41,7 +41,7 @@ describe('calculateSipRollingXirr', () => {
       const last = result[result.length - 1];
 
       // Log all transactions for inspection
-      console.log('All transactions:', last.transactions);
+      // Debug: All transactions logged for test verification
 
       // Hardcoded expected transactions in the actual output order
       const expectedTransactions = [
@@ -106,7 +106,7 @@ describe('calculateSipRollingXirr', () => {
       });
 
       // Log the XIRR value before asserting
-      console.log('Produced XIRR (multi-fund, custom allocation):', last.xirr);
+      // Debug: XIRR result for test verification
       expect(last.xirr).toBeCloseTo(0.46847172, 8);
     });
   });

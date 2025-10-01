@@ -1,5 +1,6 @@
 // Date utility functions for NAV and lump sum rolling XIRR calculations
 import { NavEntry } from '../../types/navData';
+import { MILLISECONDS_PER_DAY } from '../../constants';
 
 export function areDatesContinuous(navData: NavEntry[]): boolean {
   if (navData.length < 2) return true;
@@ -7,7 +8,7 @@ export function areDatesContinuous(navData: NavEntry[]): boolean {
   for (let i = 1; i < sorted.length; i++) {
     const prev = sorted[i - 1].date;
     const curr = sorted[i].date;
-    const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
+    const diff = (curr.getTime() - prev.getTime()) / MILLISECONDS_PER_DAY;
     if (diff !== 1) return false;
   }
   return true;

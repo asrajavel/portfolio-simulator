@@ -14,8 +14,7 @@ import { ControlsPanel } from './components/controls/ControlsPanel';
 import { HeadingLarge } from 'baseui/typography';
 import { Button } from 'baseui/button';
 import { PortfolioSipHelpModal } from './components/portfolio/PortfolioSipHelpModal';
-
-const DEFAULT_SCHEME_CODE = 120716;
+import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from './constants';
 
 const App: React.FC = () => {
   const { funds, loading, error } = useMutualFunds();
@@ -45,7 +44,7 @@ const App: React.FC = () => {
   });
 
   const anyInvalidAlloc = portfolios.some(
-    p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== 100
+    p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
   );
 
   // Helper to invalidate chart

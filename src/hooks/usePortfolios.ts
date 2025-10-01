@@ -3,8 +3,7 @@ import { getQueryParams, setQueryParams } from '../utils/browser/queryParams';
 import { getDefaultAllocations } from '../utils/data/getDefaultAllocations';
 import { Portfolio } from '../types/portfolio';
 import { Instrument } from '../types/instrument';
-
-const DEFAULT_REBALANCING_THRESHOLD = 5;
+import { DEFAULT_REBALANCING_THRESHOLD, ALLOCATION_TOTAL } from '../constants';
 
 export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
   // Initialize portfolios and years from query params
@@ -13,7 +12,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
     initialParams.portfolios && initialParams.portfolios.length > 0
       ? initialParams.portfolios.map((p: any) => ({
           selectedInstruments: p.selectedInstruments || [null],
-          allocations: p.allocations && p.allocations.length > 0 ? p.allocations : [100],
+          allocations: p.allocations && p.allocations.length > 0 ? p.allocations : [ALLOCATION_TOTAL],
           rebalancingEnabled: typeof p.rebalancingEnabled === 'boolean' ? p.rebalancingEnabled : false,
           rebalancingThreshold: typeof p.rebalancingThreshold === 'number' ? p.rebalancingThreshold : DEFAULT_REBALANCING_THRESHOLD,
         }))
@@ -27,7 +26,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
               indexName: 'NIFTY 50',
               displayName: 'NIFTY 50'
             }], 
-            allocations: [100], 
+            allocations: [ALLOCATION_TOTAL], 
             rebalancingEnabled: false, 
             rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD 
           },
@@ -61,7 +60,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
   const handleAddPortfolio = () => {
     setPortfolios(prev => [
       ...prev,
-      { selectedInstruments: [null], allocations: [100], rebalancingEnabled: false, rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD }
+      { selectedInstruments: [null], allocations: [ALLOCATION_TOTAL], rebalancingEnabled: false, rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD }
     ]);
   };
 

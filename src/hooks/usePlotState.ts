@@ -1,10 +1,9 @@
 import { useState, useRef } from 'react';
 import { fillMissingNavDates } from '../utils/data/fillMissingNavDates';
 import { mfapiMutualFund } from '../types/mfapiMutualFund';
+import { DEFAULT_SCHEME_CODE, COLORS } from '../constants';
 
 export function usePlotState(loadNavData: (schemeCode: number) => Promise<any[]>, funds: mfapiMutualFund[]) {
-  const DEFAULT_SCHEME_CODE = 120716;
-  const COLORS = ['#007bff', '#28a745', '#ff9800', '#e91e63', '#9c27b0', '#00bcd4', '#795548', '#607d8b'];
 
   const [selectedSchemes, setSelectedSchemes] = useState<(number | null)[]>([DEFAULT_SCHEME_CODE]);
   const [years, setYears] = useState<number>(1);
