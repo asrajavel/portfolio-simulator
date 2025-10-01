@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { fillMissingNavDates } from '../utils/fillMissingNavDates';
+import { fillMissingNavDates } from '../utils/data/fillMissingNavDates';
 import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 
@@ -102,7 +102,7 @@ export function usePortfolioPlot({
           continue;
         }
         await new Promise<void>((resolve) => {
-          const worker = new Worker(new URL('../utils/xirrWorker.ts', import.meta.url));
+          const worker = new Worker(new URL('../utils/calculations/xirrWorker.ts', import.meta.url));
           worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold });
           worker.onmessage = (event: MessageEvent) => {
             allSipXirrDatas[`Portfolio ${pIdx + 1}`] = event.data;

@@ -1,5 +1,5 @@
 import { calculateSipRollingXirr, Transaction } from './sipRollingXirr';
-import { NavEntry } from '../types/navData';
+import { NavEntry } from '../../types/navData';
 
 // Hardcoded NAV data for two funds, 13 months
 const nav1: NavEntry[] = [

@@ -1,5 +1,5 @@
 import React from 'react';
-import { SipRollingXirrEntry } from '../utils/sipRollingXirr';
+import { SipRollingXirrEntry } from '../../utils/calculations/sipRollingXirr';
 import { TableWithChart } from './TableWithChart';
 
 interface SipRollingXirrTableProps {

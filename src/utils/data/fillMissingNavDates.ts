@@ -1,4 +1,4 @@
-import { NavEntry } from '../types/navData';
+import { NavEntry } from '../../types/navData';
 
 export function fillMissingNavDates(navData: NavEntry[]): NavEntry[] {
   if (navData.length === 0) return [];

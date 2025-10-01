@@ -1,5 +1,5 @@
 // Date utility functions for NAV and lump sum rolling XIRR calculations
-import { NavEntry } from '../types/navData';
+import { NavEntry } from '../../types/navData';
 
 export function areDatesContinuous(navData: NavEntry[]): boolean {
   if (navData.length < 2) return true;

@@ -1,5 +1,5 @@
 import { areDatesContinuous, getNthPreviousMonthDate } from './dateUtils';
-import { NavEntry } from '../types/navData';
+import { NavEntry } from '../../types/navData';
 
 describe('areDatesContinuous', () => {
   it('returns true for continuous dates', () => {

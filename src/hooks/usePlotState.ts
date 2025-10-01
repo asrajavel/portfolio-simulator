@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { fillMissingNavDates } from '../utils/fillMissingNavDates';
+import { fillMissingNavDates } from '../utils/data/fillMissingNavDates';
 import { mfapiMutualFund } from '../types/mfapiMutualFund';
 
 export function usePlotState(loadNavData: (schemeCode: number) => Promise<any[]>, funds: mfapiMutualFund[]) {
@@ -55,7 +55,7 @@ export function usePlotState(loadNavData: (schemeCode: number) => Promise<any[]>
       const startXirrCalculation = () => {
         setLoadingXirr(true);
         xirrLoadingStartRef.current = Date.now();
-        const worker = new Worker(new URL('../utils/xirrWorker.ts', import.meta.url), { type: 'module' });
+        const worker = new Worker(new URL('../utils/calculations/xirrWorker.ts', import.meta.url), { type: 'module' });
         worker.postMessage({ navDataList: filledNavs, years });
         worker.onmessage = (event) => {
           setSipXirrDatas({ portfolio: event.data });

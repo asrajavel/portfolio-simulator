@@ -1,6 +1,6 @@
 import React from 'react';
-import { getQueryParams, setQueryParams } from '../utils/queryParams';
-import { getDefaultAllocations } from '../utils/getDefaultAllocations';
+import { getQueryParams, setQueryParams } from '../utils/browser/queryParams';
+import { getDefaultAllocations } from '../utils/data/getDefaultAllocations';
 import { Portfolio } from '../types/portfolio';
 import { Instrument } from '../types/instrument';
 

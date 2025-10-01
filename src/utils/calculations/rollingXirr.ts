@@ -1,6 +1,6 @@
 import xirr from 'xirr';
-import { NavEntry } from '../types/navData';
-import { areDatesContinuous, getNthPreviousMonthDate } from './dateUtils';
+import { NavEntry } from '../../types/navData';
+import { areDatesContinuous, getNthPreviousMonthDate } from '../date/dateUtils';
 
 export interface RollingXirrEntry {
   date: Date;

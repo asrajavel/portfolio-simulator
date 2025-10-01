@@ -1,5 +1,5 @@
 import { fillMissingNavDates } from './fillMissingNavDates';
-import { NavEntry } from '../types/navData';
+import { NavEntry } from '../../types/navData';
 
 describe('fillMissingNavDates', () => {
   it('returns empty array for empty input', () => {

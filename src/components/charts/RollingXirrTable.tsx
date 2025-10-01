@@ -1,5 +1,5 @@
 import React from 'react';
-import { calculateLumpSumRollingXirr, RollingXirrEntry } from '../utils/lumpSumRollingXirr';
+import { calculateLumpSumRollingXirr, RollingXirrEntry } from '../../utils/calculations/lumpSumRollingXirr';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { TableWithChart } from './TableWithChart';

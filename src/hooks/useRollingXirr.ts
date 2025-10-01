@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { fillMissingNavDates } from '../utils/fillMissingNavDates';
-import { calculateLumpSumRollingXirr, RollingXirrEntry } from '../utils/lumpSumRollingXirr';
-import { calculateSipRollingXirr, SipRollingXirrEntry } from '../utils/sipRollingXirr';
+import { fillMissingNavDates } from '../utils/data/fillMissingNavDates';
+import { calculateLumpSumRollingXirr, RollingXirrEntry } from '../utils/calculations/lumpSumRollingXirr';
+import { calculateSipRollingXirr, SipRollingXirrEntry } from '../utils/calculations/sipRollingXirr';
 import { NavEntry } from '../types/navData';
 
 interface UseRollingXirrResult {
