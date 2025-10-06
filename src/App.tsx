@@ -7,6 +7,7 @@ import { ChartArea } from './components/layout/ChartArea';
 import { usePlotState } from './hooks/usePlotState';
 import { usePortfolios } from './hooks/usePortfolios';
 import { usePortfolioPlot } from './hooks/usePortfolioPlot';
+import { useChartInvalidation } from './hooks/useChartInvalidation';
 import { Block } from 'baseui/block';
 import { LoadingErrorStates } from './components/common/LoadingErrorStates';
 import { PortfolioList } from './components/portfolio/PortfolioList';
@@ -47,48 +48,17 @@ const App: React.FC = () => {
     p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
   );
 
-  // Helper to invalidate chart
-  const invalidateChart = () => {
-    plotState.setHasPlotted(false);
-    plotState.setNavDatas({});
-    plotState.setLumpSumXirrDatas({});
-    plotState.setSipXirrDatas({});
-    plotState.setXirrError(null);
-  };
+  // Use chart invalidation hook to wrap handlers
+  const { invalidateChart, withInvalidation } = useChartInvalidation(plotState);
 
-  // Wrapped handlers to invalidate chart on change
-  const handleAddPortfolioInvalidate = () => {
-    invalidateChart();
-    handleAddPortfolio();
-  };
-  const handleAddFundInvalidate = (pIdx: number) => {
-    invalidateChart();
-    handleAddFund(pIdx);
-  };
-  const handleRemoveFundInvalidate = (pIdx: number, idx: number) => {
-    invalidateChart();
-    handleRemoveFund(pIdx, idx);
-  };
-  const handleAllocationChangeInvalidate = (pIdx: number, idx: number, value: number) => {
-    invalidateChart();
-    handleAllocationChange(pIdx, idx, value);
-  };
-  const handleToggleRebalancingInvalidate = (pIdx: number) => {
-    invalidateChart();
-    handleToggleRebalancing(pIdx);
-  };
-  const handleRebalancingThresholdChangeInvalidate = (pIdx: number, value: number) => {
-    invalidateChart();
-    handleRebalancingThresholdChange(pIdx, value);
-  };
-
-  const handleYearsChange = () => {
-    plotState.setHasPlotted(false);
-    plotState.setNavDatas({});
-    plotState.setLumpSumXirrDatas({});
-    plotState.setSipXirrDatas({});
-    plotState.setXirrError(null);
-  };
+  // Wrap handlers with automatic chart invalidation
+  const handleAddPortfolioInvalidate = withInvalidation(handleAddPortfolio);
+  const handleAddFundInvalidate = withInvalidation(handleAddFund);
+  const handleRemoveFundInvalidate = withInvalidation(handleRemoveFund);
+  const handleAllocationChangeInvalidate = withInvalidation(handleAllocationChange);
+  const handleToggleRebalancingInvalidate = withInvalidation(handleToggleRebalancing);
+  const handleRebalancingThresholdChangeInvalidate = withInvalidation(handleRebalancingThresholdChange);
+  const handleYearsChange = invalidateChart;
 
   const handleHelpClick = () => {
     setIsHelpModalOpen(true);
