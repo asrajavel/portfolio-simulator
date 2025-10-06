@@ -19,7 +19,7 @@ interface TransactionModalProps {
   date: string;
   xirr: number;
   portfolioName: string;
-  funds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' }>;
+  funds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' }>;
 }
 
 // Define the row data type for the DataTable
