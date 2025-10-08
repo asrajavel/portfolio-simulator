@@ -36,7 +36,7 @@ describe('calculateSipRollingXirr - Single Fund', () => {
       const result = calculateSipRollingXirr([steadyGrowthFund], 1, allocations);
       const lastEntry = result[result.length - 1];
 
-      // Expected: 12 buys (12 months) + 1 sell = 13 total
+      // Expected: 12 buys (12 months) + 1 sell = 13 non-nil transactions
       const expectedTransactions = [
         // Month 1: Jan 2023
         { fundIdx: 0, nav: 100, when: new Date('2023-01-01'), units: 1.0000, amount: -100.00, type: 'buy' },
@@ -66,7 +66,7 @@ describe('calculateSipRollingXirr - Single Fund', () => {
         { fundIdx: 0, nav: 160, when: new Date('2024-01-01'), units: 9.5901, amount: 1534.42, type: 'sell' },
       ];
 
-      // Verify transaction count
+      // Verify transaction count (nil transactions not included by default)
       expect(lastEntry.transactions.length).toBe(expectedTransactions.length);
 
       // Verify each transaction

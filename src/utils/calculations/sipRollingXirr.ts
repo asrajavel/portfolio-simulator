@@ -15,7 +15,7 @@ export interface Transaction {
   nav: number;
   units: number;
   amount: number;
-  type: 'buy' | 'sell' | 'rebalance';
+  type: 'buy' | 'sell' | 'rebalance' | 'nil';
   cumulativeUnits: number;
   currentValue: number;
   allocationPercentage?: number;
@@ -26,7 +26,8 @@ export function calculateSipRollingXirr(
   years: number = 1,
   allocations: number[],
   rebalancingEnabled: boolean = false,
-  rebalancingThreshold: number = 5
+  rebalancingThreshold: number = 5,
+  includeNilTransactions: boolean = false
 ): SipRollingXirrEntry[] {
   if (!isValidInput(navDataList)) return [];
 
@@ -37,7 +38,7 @@ export function calculateSipRollingXirr(
   const firstDate = baseDates[0];
 
   return baseDates.flatMap(date =>
-    computeSipXirrForDate(date, fundDateMaps, months, firstDate, allocations, rebalancingEnabled, rebalancingThreshold)
+    computeSipXirrForDate(date, fundDateMaps, months, firstDate, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions)
   );
 }
 
@@ -48,7 +49,8 @@ function computeSipXirrForDate(
   firstDate: Date,
   allocations: number[],
   rebalancingEnabled: boolean,
-  rebalancingThreshold: number
+  rebalancingThreshold: number,
+  includeNilTransactions: boolean
 ): SipRollingXirrEntry[] {
   const { transactions, unitsPerFund } = calculateTransactionsForDate(
     currentDate,
@@ -66,9 +68,10 @@ function computeSipXirrForDate(
 
   const allTransactions = [...transactions, ...sells];
 
-  // Aggregate cashflows by date
+  // Aggregate cashflows by date (exclude nil transactions since they have amount: 0 and just add overhead)
   const aggregatedCashflowsMap = new Map<string, number>();
   for (const tx of allTransactions) {
+    if (tx.type === 'nil') continue; // Skip nil transactions for XIRR calculation
     const dateKey = toDateKey(tx.when);
     const currentAmount = aggregatedCashflowsMap.get(dateKey) || 0;
     aggregatedCashflowsMap.set(dateKey, currentAmount + tx.amount);
@@ -88,10 +91,16 @@ function computeSipXirrForDate(
     // (e.g., < 2 cashflows, all same sign, non-convergence).
     const calculatedXirrValue = xirr(cashflowsForXirr);
 
+    // Filter out nil transactions from the result to reduce memory usage when sending through worker
+    // Nil transactions are useful for testing but cause out-of-memory errors when transferring large datasets
+    const transactionsToReturn = includeNilTransactions 
+      ? allTransactions 
+      : allTransactions.filter(tx => tx.type !== 'nil');
+
     return [{
       date: currentDate,
       xirr: calculatedXirrValue,
-      transactions: allTransactions // Return original, non-aggregated transactions for display
+      transactions: transactionsToReturn
     }];
   } catch (error) {
     console.warn(`XIRR calculation failed for date ${currentDate.toISOString()}:`, error);
@@ -115,103 +124,158 @@ function calculateTransactionsForDate(
   const unitsPerFund = new Array(numFunds).fill(0);
   const cumulativeUnits = new Array(numFunds).fill(0);
 
+  // Pre-generate all SIP dates and find the earliest one
+  const sipDates = new Set<string>();
+  let earliestSipDate: Date | null = null;
+  
   for (let m = months; m >= 1; m--) {
     const sipDate = getNthPreviousMonthDate(currentDate, m);
     if (sipDate < firstDate) return { transactions: null, unitsPerFund };
-
-    const dateKey = toDateKey(sipDate);
-    const transactionsForCurrentSipDate: Transaction[] = [];
-    let totalPortfolioValueAfterSip = 0;
-    const currentFundValuesAfterSip: number[] = new Array(numFunds).fill(0);
-
-    // 1. Process SIP investments for the current sipDate
-    for (let fundIdx = 0; fundIdx < numFunds; fundIdx++) {
-      const navMap = fundDateMaps[fundIdx];
-      const entry = navMap.get(dateKey);
-      if (!entry) return { transactions: null, unitsPerFund };
-
-      const initialAlloc = allocations[fundIdx];
-      const investmentAmount = totalInvestment * (initialAlloc / 100);
-      const units = investmentAmount / entry.nav;
-
-      cumulativeUnits[fundIdx] += units;
-      // unitsPerFund tracks total units for final sale, so add SIP units here
-      unitsPerFund[fundIdx] += units; 
-      const currentFundValue = cumulativeUnits[fundIdx] * entry.nav;
-      currentFundValuesAfterSip[fundIdx] = currentFundValue;
-      totalPortfolioValueAfterSip += currentFundValue;
-      
-      const transaction: Transaction = {
-        fundIdx,
-        nav: entry.nav,
-        when: entry.date,
-        units,
-        amount: -investmentAmount,
-        type: 'buy',
-        cumulativeUnits: cumulativeUnits[fundIdx],
-        currentValue: currentFundValue,
-      };
-      transactionsForCurrentSipDate.push(transaction);
+    
+    sipDates.add(toDateKey(sipDate));
+    if (!earliestSipDate || sipDate < earliestSipDate) {
+      earliestSipDate = sipDate;
     }
+  }
 
-    // 2. Calculate allocation percentages for SIP transactions
-    for (const tx of transactionsForCurrentSipDate) {
-      if (totalPortfolioValueAfterSip > 0) {
-        // For the SIP transaction row, show allocation *before* rebalancing on this date
-        const preRebalanceFundValue = currentFundValuesAfterSip[tx.fundIdx];
-        tx.allocationPercentage = (preRebalanceFundValue / totalPortfolioValueAfterSip) * 100;
-      } else {
-        tx.allocationPercentage = 0;
-      }
-      transactions.push(tx);
-    }
+  if (!earliestSipDate) return { transactions: null, unitsPerFund };
 
-    // 3. Rebalancing Logic for the current sipDate
-    if (rebalancingEnabled) {
-      let needsRebalancing = false;
+  // Loop through each day from earliest SIP date to current date (exclusive)
+  const loopDate = new Date(earliestSipDate);
+  
+  while (loopDate < currentDate) {
+    const dateKey = toDateKey(loopDate);
+    const isSipDate = sipDates.has(dateKey);
+
+    if (isSipDate) {
+      // This is a SIP date - process buy transactions
+      const transactionsForCurrentSipDate: Transaction[] = [];
+      let totalPortfolioValueAfterSip = 0;
+      const currentFundValuesAfterSip: number[] = new Array(numFunds).fill(0);
+
+      // 1. Process SIP investments for the current sipDate
       for (let fundIdx = 0; fundIdx < numFunds; fundIdx++) {
-        const currentAllocation = (currentFundValuesAfterSip[fundIdx] / totalPortfolioValueAfterSip) * 100;
-        const targetAllocation = allocations[fundIdx];
-        if (Math.abs(currentAllocation - targetAllocation) > rebalancingThreshold) {
-          needsRebalancing = true;
-          break;
-        }
+        const navMap = fundDateMaps[fundIdx];
+        const entry = navMap.get(dateKey);
+        if (!entry) return { transactions: null, unitsPerFund };
+
+        const initialAlloc = allocations[fundIdx];
+        const investmentAmount = totalInvestment * (initialAlloc / 100);
+        const units = investmentAmount / entry.nav;
+
+        cumulativeUnits[fundIdx] += units;
+        unitsPerFund[fundIdx] += units; 
+        const currentFundValue = cumulativeUnits[fundIdx] * entry.nav;
+        currentFundValuesAfterSip[fundIdx] = currentFundValue;
+        totalPortfolioValueAfterSip += currentFundValue;
+        
+        const transaction: Transaction = {
+          fundIdx,
+          nav: entry.nav,
+          when: entry.date,
+          units,
+          amount: -investmentAmount,
+          type: 'buy',
+          cumulativeUnits: cumulativeUnits[fundIdx],
+          currentValue: currentFundValue,
+        };
+        transactionsForCurrentSipDate.push(transaction);
       }
 
-      if (needsRebalancing && totalPortfolioValueAfterSip > 0) {
-        const rebalanceTransactionsForSipDate: Transaction[] = [];
+      // 2. Calculate allocation percentages for SIP transactions
+      for (const tx of transactionsForCurrentSipDate) {
+        if (totalPortfolioValueAfterSip > 0) {
+          const preRebalanceFundValue = currentFundValuesAfterSip[tx.fundIdx];
+          tx.allocationPercentage = (preRebalanceFundValue / totalPortfolioValueAfterSip) * 100;
+        } else {
+          tx.allocationPercentage = 0;
+        }
+        transactions.push(tx);
+      }
+
+      // 3. Rebalancing Logic for the current sipDate
+      if (rebalancingEnabled) {
+        let needsRebalancing = false;
         for (let fundIdx = 0; fundIdx < numFunds; fundIdx++) {
-          const navMap = fundDateMaps[fundIdx];
-          const entry = navMap.get(dateKey); // NAV for rebalancing
-          if (!entry) return { transactions: null, unitsPerFund }; // Should not happen if SIP was processed
-
-          const targetFundValue = totalPortfolioValueAfterSip * (allocations[fundIdx] / 100);
-          const rebalanceAmount = targetFundValue - currentFundValuesAfterSip[fundIdx];
-
-          if (Math.abs(rebalanceAmount) > 0.01) { // Only process significant rebalances
-            const rebalanceUnits = rebalanceAmount / entry.nav;
-            
-            cumulativeUnits[fundIdx] += rebalanceUnits; // Update cumulative units with rebalanced units
-            unitsPerFund[fundIdx] += rebalanceUnits;    // Also update unitsPerFund for final sale
-
-            const rebalanceTx: Transaction = {
-              fundIdx,
-              when: sipDate,
-              nav: entry.nav,
-              units: rebalanceUnits, // can be negative
-              amount: -rebalanceAmount, // Store buy as negative, sell as positive
-              type: 'rebalance',
-              cumulativeUnits: cumulativeUnits[fundIdx],
-              currentValue: cumulativeUnits[fundIdx] * entry.nav, // Value after rebalance
-              allocationPercentage: allocations[fundIdx], // Post-rebalance, it should be the target
-            };
-            rebalanceTransactionsForSipDate.push(rebalanceTx);
+          const currentAllocation = (currentFundValuesAfterSip[fundIdx] / totalPortfolioValueAfterSip) * 100;
+          const targetAllocation = allocations[fundIdx];
+          if (Math.abs(currentAllocation - targetAllocation) > rebalancingThreshold) {
+            needsRebalancing = true;
+            break;
           }
         }
-        // Add rebalance transactions to the main list
-        transactions.push(...rebalanceTransactionsForSipDate);
+
+        if (needsRebalancing && totalPortfolioValueAfterSip > 0) {
+          const rebalanceTransactionsForSipDate: Transaction[] = [];
+          for (let fundIdx = 0; fundIdx < numFunds; fundIdx++) {
+            const navMap = fundDateMaps[fundIdx];
+            const entry = navMap.get(dateKey);
+            if (!entry) return { transactions: null, unitsPerFund };
+
+            const targetFundValue = totalPortfolioValueAfterSip * (allocations[fundIdx] / 100);
+            const rebalanceAmount = targetFundValue - currentFundValuesAfterSip[fundIdx];
+
+            if (Math.abs(rebalanceAmount) > 0.01) {
+              const rebalanceUnits = rebalanceAmount / entry.nav;
+              
+              cumulativeUnits[fundIdx] += rebalanceUnits;
+              unitsPerFund[fundIdx] += rebalanceUnits;
+
+              const rebalanceTx: Transaction = {
+                fundIdx,
+                when: new Date(loopDate),
+                nav: entry.nav,
+                units: rebalanceUnits,
+                amount: -rebalanceAmount,
+                type: 'rebalance',
+                cumulativeUnits: cumulativeUnits[fundIdx],
+                currentValue: cumulativeUnits[fundIdx] * entry.nav,
+                allocationPercentage: allocations[fundIdx],
+              };
+              rebalanceTransactionsForSipDate.push(rebalanceTx);
+            }
+          }
+          transactions.push(...rebalanceTransactionsForSipDate);
+        }
+      }
+    } else {
+      // Not a SIP date - create 'nil' transactions showing current holdings
+      let totalPortfolioValue = 0;
+      const nilTransactions: Transaction[] = [];
+
+      for (let fundIdx = 0; fundIdx < numFunds; fundIdx++) {
+        const navMap = fundDateMaps[fundIdx];
+        const entry = navMap.get(dateKey);
+        if (!entry) return { transactions: null, unitsPerFund };
+
+        const currentValue = cumulativeUnits[fundIdx] * entry.nav;
+        totalPortfolioValue += currentValue;
+
+        nilTransactions.push({
+          fundIdx,
+          when: entry.date,
+          nav: entry.nav,
+          units: 0,
+          amount: 0,
+          type: 'nil',
+          cumulativeUnits: cumulativeUnits[fundIdx],
+          currentValue,
+        });
+      }
+
+      // Calculate allocation percentages for nil transactions
+      for (const tx of nilTransactions) {
+        if (totalPortfolioValue > 0) {
+          tx.allocationPercentage = (tx.currentValue / totalPortfolioValue) * 100;
+        } else {
+          tx.allocationPercentage = 0;
+        }
+        transactions.push(tx);
       }
     }
+
+    // Move to next day
+    loopDate.setDate(loopDate.getDate() + 1);
   }
 
   return { transactions, unitsPerFund };

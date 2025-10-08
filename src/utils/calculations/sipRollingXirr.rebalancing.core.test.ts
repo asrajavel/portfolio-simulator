@@ -26,7 +26,7 @@ describe('calculateSipRollingXirr - Core Rebalancing', () => {
 
       const lastEntry = result[result.length - 1];
       
-      // Expected: 24 buys (12 months × 2 funds) + 10 rebalances (5 events × 2 funds) + 2 sells = 36 total
+      // Expected: 24 buys (12 months × 2 funds) + 10 rebalances (5 events × 2 funds) + 2 sells = 36 non-nil transactions
       const expectedTransactions = [
         // Month 1: Jan 2023 - Initial SIP (perfect 50/50 split)
         { fundIdx: 0, nav: 100, when: new Date('2023-01-01'), units: 0.5, amount: -50, type: 'buy' },
@@ -91,7 +91,7 @@ describe('calculateSipRollingXirr - Core Rebalancing', () => {
         { fundIdx: 1, nav: 126.82, when: new Date('2024-01-01'), units: 9.3383, amount: 1184.28, type: 'sell' },
       ];
       
-      // Verify exact transaction count
+      // Verify transaction count (nil transactions not included by default)
       expect(lastEntry.transactions.length).toBe(expectedTransactions.length);
       
       // Verify each transaction matches (with reasonable precision)
