@@ -15,7 +15,7 @@ function formatDate(date: Date): string {
 interface TransactionModalProps {
   visible: boolean;
   onClose: () => void;
-  transactions: { fundIdx: number; nav: number; when: Date; units: number; amount: number; type: 'buy' | 'sell'; allocationPercentage?: number }[];
+  transactions: { fundIdx: number; nav: number; when: Date; units: number; amount: number; type: 'buy' | 'sell' | 'rebalance' | 'nil'; cumulativeUnits: number; currentValue: number; allocationPercentage?: number }[];
   date: string;
   xirr: number;
   portfolioName: string;
@@ -23,7 +23,7 @@ interface TransactionModalProps {
 }
 
 // Define the row data type for the DataTable
-type TransactionRowDataT = [string, string, string, number, number, number, string];
+type TransactionRowDataT = [string, string, string, number, number, number, number, number, string];
 
 export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onClose, transactions, date, xirr, portfolioName, funds }) => {
   const [css] = useStyletron();
@@ -47,12 +47,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
     };
   }, [visible, onClose]);
 
-  // Sort transactions by date, then by type (buy, rebalance, sell), then by fund name
-  const typeOrder = { buy: 0, rebalance: 1, sell: 2 };
+  // Sort transactions by date, then by type (buy, rebalance, sell, nil), then by fund name
+  const typeOrder = { buy: 0, rebalance: 1, sell: 2, nil: 3 };
   const transactionTypeDisplay = {
     buy: 'Buy',
     sell: 'Sell',
-    rebalance: 'Rebalance'
+    rebalance: 'Rebalance',
+    nil: 'Nil'
   };
   const sortedTxs = [...transactions].sort((a, b) => {
     const dateA = a.when.getTime();
@@ -71,7 +72,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
   // Convert transactions to DataTable format
   const rows = sortedTxs.map((tx, idx) => {
     const fundName = funds[tx.fundIdx]?.schemeName || `Fund ${tx.fundIdx + 1}`;
-    const allocationText = ((tx.type as string) === 'buy' || (tx.type as string) === 'rebalance') && tx.allocationPercentage !== undefined 
+    const allocationText = tx.allocationPercentage !== undefined 
       ? `${tx.allocationPercentage.toFixed(2)}%` 
       : '';
     
@@ -84,6 +85,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
         tx.nav,
         tx.units,
         tx.amount,
+        tx.cumulativeUnits,
+        tx.currentValue,
         allocationText,
       ] as TransactionRowDataT,
     };
@@ -145,9 +148,21 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
       mapDataToValue: (data: TransactionRowDataT) => data[5],
       cellBlockAlign: 'end',
     }),
+    NumericalColumn({
+      title: "Cumulative Units",
+      format: formatUnits,
+      mapDataToValue: (data: TransactionRowDataT) => data[6],
+      cellBlockAlign: 'end',
+    }),
+    NumericalColumn({
+      title: "Current Value",
+      format: formatNumber,
+      mapDataToValue: (data: TransactionRowDataT) => data[7],
+      cellBlockAlign: 'end',
+    }),
     StringColumn({
       title: "Allocation %",
-      mapDataToValue: (data: TransactionRowDataT) => data[6],
+      mapDataToValue: (data: TransactionRowDataT) => data[8],
       cellBlockAlign: 'end',
     }),
   ];

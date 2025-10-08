@@ -51,7 +51,7 @@ export function usePlotState(loadNavData: (schemeCode: number) => Promise<any[]>
       
       setLoadingXirr(true);
       const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url), { type: 'module' });
-      worker.postMessage({ navDataList: filledNavs, years });
+      worker.postMessage({ navDataList: filledNavs, years, includeNilTransactions: false });
       worker.onmessage = (event) => {
         setSipXirrDatas({ portfolio: event.data });
         setHasPlotted(true);
