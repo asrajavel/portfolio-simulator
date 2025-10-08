@@ -14,8 +14,6 @@ export function usePlotState(loadNavData: (schemeCode: number) => Promise<any[]>
   const [loadingNav, setLoadingNav] = useState(false);
   const [loadingXirr, setLoadingXirr] = useState(false);
   const [xirrError, setXirrError] = useState<string | null>(null);
-  const navLoadingStartRef = useRef<number | null>(null);
-  const xirrLoadingStartRef = useRef<number | null>(null);
 
   const handleAddFund = () => setSelectedSchemes(schemes => [...schemes, null]);
   const handleRemoveFund = (idx: number) => setSelectedSchemes(schemes => schemes.filter((_, i) => i !== idx));
@@ -31,7 +29,6 @@ export function usePlotState(loadNavData: (schemeCode: number) => Promise<any[]>
 
   const handlePlot = async () => {
     setLoadingNav(true);
-    navLoadingStartRef.current = Date.now();
     setLoadingXirr(false);
     setHasPlotted(false);
     setNavDatas({});
@@ -50,57 +47,26 @@ export function usePlotState(loadNavData: (schemeCode: number) => Promise<any[]>
         filledNavs.push(filled);
       }
       setNavDatas(navs);
-      const navElapsed = Date.now() - (navLoadingStartRef.current || 0);
-      const startXirrCalculation = () => {
-        setLoadingXirr(true);
-        xirrLoadingStartRef.current = Date.now();
-        const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url), { type: 'module' });
-        worker.postMessage({ navDataList: filledNavs, years });
-        worker.onmessage = (event) => {
-          setSipXirrDatas({ portfolio: event.data });
-          setHasPlotted(true);
-          const xirrElapsed = Date.now() - (xirrLoadingStartRef.current || 0);
-          if (xirrElapsed < 1500) {
-            setTimeout(() => setLoadingXirr(false), 1500 - xirrElapsed);
-          } else {
-            setLoadingXirr(false);
-          }
-          worker.terminate();
-        };
-        worker.onerror = (err) => {
-          setXirrError('Error calculating XIRR.');
-          const xirrElapsed = Date.now() - (xirrLoadingStartRef.current || 0);
-          if (xirrElapsed < 1500) {
-            setTimeout(() => setLoadingXirr(false), 1500 - xirrElapsed);
-          } else {
-            setLoadingXirr(false);
-          }
-          worker.terminate();
-        };
+      setLoadingNav(false);
+      
+      setLoadingXirr(true);
+      const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url), { type: 'module' });
+      worker.postMessage({ navDataList: filledNavs, years });
+      worker.onmessage = (event) => {
+        setSipXirrDatas({ portfolio: event.data });
+        setHasPlotted(true);
+        setLoadingXirr(false);
+        worker.terminate();
       };
-      if (navElapsed < 1500) {
-        setTimeout(() => {
-          setLoadingNav(false);
-          startXirrCalculation();
-        }, 1500 - navElapsed);
-      } else {
-        setLoadingNav(false);
-        startXirrCalculation();
-      }
+      worker.onerror = (err) => {
+        setXirrError('Error calculating XIRR.');
+        setLoadingXirr(false);
+        worker.terminate();
+      };
     } catch (e) {
       setXirrError('Error loading or calculating data.');
-      const navElapsed = Date.now() - (navLoadingStartRef.current || 0);
-      if (navElapsed < 1500) {
-        setTimeout(() => setLoadingNav(false), 1500 - navElapsed);
-      } else {
-        setLoadingNav(false);
-      }
-      const xirrElapsed = Date.now() - (xirrLoadingStartRef.current || 0);
-      if (xirrElapsed < 1500) {
-        setTimeout(() => setLoadingXirr(false), 1500 - xirrElapsed);
-      } else {
-        setLoadingXirr(false);
-      }
+      setLoadingNav(false);
+      setLoadingXirr(false);
     }
   };
 

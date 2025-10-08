@@ -74,8 +74,7 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
             }
           }}
         >
-          {loadingNav && <LoadingSpinner text="Fetching NAV data..." />}
-          {loadingXirr && <LoadingSpinner text="Calculating XIRR..." />}
+          <LoadingSpinner text="Loading..." />
         </Block>
       ) : (
         hasPlotted && Object.keys(navDatas).length > 0 && (
