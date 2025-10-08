@@ -1,6 +1,6 @@
-import { calculateLumpSumRollingXirr, RollingXirrEntry } from './lumpSumRollingXirr';
-import { NavEntry } from '../../types/navData';
-import { fillMissingNavDates } from '../data/fillMissingNavDates';
+import { calculateLumpSumRollingXirr, RollingXirrEntry } from '../lumpSumRollingXirr';
+import { NavEntry } from '../../../types/navData';
+import { fillMissingNavDates } from '../../data/fillMissingNavDates';
 
 describe('calculateLumpSumRollingXirr', () => {
   it('calculates lump sum rolling 1-year XIRR for simple NAV data', () => {

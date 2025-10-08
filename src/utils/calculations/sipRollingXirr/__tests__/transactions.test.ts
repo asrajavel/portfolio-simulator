@@ -1,5 +1,5 @@
-import { calculateSipRollingXirr, Transaction } from './sipRollingXirr';
-import { fastGrowingFund, slowGrowingFund } from './sipRollingXirr.fixtures';
+import { calculateSipRollingXirr, Transaction } from '../index';
+import { fastGrowingFund, slowGrowingFund } from '../testFixtures';
 
 /**
  * Transaction integrity tests for SIP Rolling XIRR with Rebalancing

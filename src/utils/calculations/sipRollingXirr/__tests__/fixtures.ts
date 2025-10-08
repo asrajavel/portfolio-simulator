@@ -1,4 +1,4 @@
-import { NavEntry } from '../../types/navData';
+import { NavEntry } from '../../../../types/navData';
 
 /**
  * Shared test data fixtures for SIP Rolling XIRR tests

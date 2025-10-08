@@ -1,5 +1,5 @@
-import { calculateSipRollingXirr } from './sipRollingXirr';
-import { fastGrowingFund, slowGrowingFund, stableFund1, stableFund2 } from './sipRollingXirr.fixtures';
+import { calculateSipRollingXirr } from '../index';
+import { fastGrowingFund, slowGrowingFund, stableFund1, stableFund2 } from '../testFixtures';
 
 /**
  * Core rebalancing tests for SIP Rolling XIRR

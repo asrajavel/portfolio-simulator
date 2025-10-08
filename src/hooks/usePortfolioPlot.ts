@@ -102,7 +102,7 @@ export function usePortfolioPlot({
           continue;
         }
         await new Promise<void>((resolve) => {
-          const worker = new Worker(new URL('../utils/calculations/xirrWorker.ts', import.meta.url));
+          const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url));
           worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold });
           worker.onmessage = (event: MessageEvent) => {
             allSipXirrDatas[`Portfolio ${pIdx + 1}`] = event.data;

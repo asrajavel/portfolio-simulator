@@ -1,6 +1,6 @@
-import { calculateSipRollingXirr, Transaction } from './sipRollingXirr';
-import { NavEntry } from '../../types/navData';
-import { moderateGrowthFund } from './sipRollingXirr.fixtures';
+import { calculateSipRollingXirr, Transaction } from '../index';
+import { NavEntry } from '../../../../types/navData';
+import { moderateGrowthFund } from '../testFixtures';
 
 /**
  * Tests specifically for 'nil' transaction generation and verification

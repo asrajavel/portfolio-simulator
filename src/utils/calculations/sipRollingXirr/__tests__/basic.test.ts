@@ -1,5 +1,5 @@
-import { calculateSipRollingXirr } from './sipRollingXirr';
-import { NavEntry } from '../../types/navData';
+import { calculateSipRollingXirr } from '../index';
+import { NavEntry } from '../../../../types/navData';
 
 /**
  * Basic tests for SIP Rolling XIRR calculation (single fund scenarios)
