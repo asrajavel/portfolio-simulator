@@ -23,9 +23,10 @@ class IndexService {
       // Parse the JSON string inside data.d
       const parsedData = JSON.parse(data.d as any);
       const processedData = parsedData.map((item: any) => {
-        // Convert date format from "06 Jun 2025" to a proper Date object
+        // Convert date format from "06 Jun 2025" to a proper Date object (UTC midnight)
         const dateStr = item.Date;
-        const date = new Date(dateStr);
+        // Parse as UTC to avoid timezone issues
+        const date = new Date(dateStr + ' UTC');
         
         return {
           date: date,

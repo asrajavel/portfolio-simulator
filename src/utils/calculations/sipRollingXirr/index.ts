@@ -3,6 +3,7 @@ import { SipRollingXirrEntry } from './types';
 import { isValidInput, ensureContinuousDates, buildDateMap, getSortedDates } from './core/helpers';
 import { calculateTransactionsForDate } from './core/transactionBuilder';
 import { calculateXirrFromTransactions } from './core/xirrCalculator';
+import { calculateVolatilityForEntry } from './volatility';
 
 // Re-export types for backward compatibility
 export type { SipRollingXirrEntry, Transaction } from './types';
@@ -82,6 +83,9 @@ function computeSipXirrForDate(
   const xirrValue = calculateXirrFromTransactions(allTransactions, currentDate);
   if (xirrValue === null) return [];
 
+  // Calculate volatility from all transactions (includes nil for accurate daily tracking)
+  const volatility = calculateVolatilityForEntry(allTransactions);
+
   // Filter nil transactions if not needed (for memory efficiency)
   const transactionsToReturn = includeNilTransactions
     ? allTransactions
@@ -90,6 +94,7 @@ function computeSipXirrForDate(
   return [{
     date: currentDate,
     xirr: xirrValue,
-    transactions: transactionsToReturn
+    transactions: transactionsToReturn,
+    volatility
   }];
 }

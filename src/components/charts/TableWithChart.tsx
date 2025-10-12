@@ -2,6 +2,7 @@ import React from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
+import { CHART_STYLES } from '../../constants';
 
 interface Column<T> {
   label: string;
@@ -41,14 +42,35 @@ export function TableWithChart<T>({
       <HighchartsReact
         highcharts={Highcharts}
         options={{
-          title: { text: chartTitle },
+          title: { text: chartTitle, style: CHART_STYLES.title },
+          credits: { enabled: false },
+          chart: {
+            backgroundColor: CHART_STYLES.colors.background,
+            borderRadius: 8,
+            spacing: [20, 20, 20, 20],
+            height: 350
+          },
+          legend: { enabled: false },
           xAxis: {
             categories: chartData.map(getChartX),
-            title: { text: columns[0]?.label || 'X' },
-            labels: { rotation: -45 }
+            title: { text: columns[0]?.label || 'X', style: CHART_STYLES.axisTitle },
+            labels: { 
+              rotation: -45,
+              style: CHART_STYLES.axisLabels
+            },
+            gridLineColor: CHART_STYLES.colors.gridLine,
+            lineColor: CHART_STYLES.colors.line
           },
           yAxis: {
-            title: { text: yAxisTitle }
+            title: { text: yAxisTitle, style: CHART_STYLES.axisTitle },
+            labels: { style: CHART_STYLES.axisLabels },
+            gridLineColor: CHART_STYLES.colors.gridLine
+          },
+          plotOptions: {
+            series: {
+              animation: false,
+              marker: { enabled: false }
+            }
           },
           series: [
             {
@@ -58,10 +80,7 @@ export function TableWithChart<T>({
               color: chartColor,
               marker: { enabled: false }
             }
-          ],
-          chart: { height: 350 },
-          credits: { enabled: false },
-          legend: { enabled: false },
+          ]
         }}
       />
     </Block>

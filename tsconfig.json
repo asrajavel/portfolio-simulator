@@ -5,7 +5,8 @@
     "jsx": "react-jsx",
     "moduleResolution": "Node",
     "esModuleInterop": true,
-    "strict": true
+    "strict": true,
+    "sourceMap": true
   },
   "include": ["src"]
 }

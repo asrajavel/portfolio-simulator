@@ -2,6 +2,7 @@ export interface SipRollingXirrEntry {
   date: Date;
   xirr: number;
   transactions: Transaction[];
+  volatility: number; // Annualized volatility percentage
 }
 
 export interface Transaction {
