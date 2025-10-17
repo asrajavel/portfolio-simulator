@@ -35,6 +35,8 @@ const App: React.FC = () => {
     handleAllocationChange,
     handleToggleRebalancing,
     handleRebalancingThresholdChange,
+    handleToggleStepUp,
+    handleStepUpPercentageChange,
   } = usePortfolios(DEFAULT_SCHEME_CODE);
 
   const { handlePlotAllPortfolios } = usePortfolioPlot({
@@ -58,6 +60,8 @@ const App: React.FC = () => {
   const handleAllocationChangeInvalidate = withInvalidation(handleAllocationChange);
   const handleToggleRebalancingInvalidate = withInvalidation(handleToggleRebalancing);
   const handleRebalancingThresholdChangeInvalidate = withInvalidation(handleRebalancingThresholdChange);
+  const handleToggleStepUpInvalidate = withInvalidation(handleToggleStepUp);
+  const handleStepUpPercentageChangeInvalidate = withInvalidation(handleStepUpPercentageChange);
   const handleYearsChange = invalidateChart;
 
   const handleHelpClick = () => {
@@ -128,6 +132,8 @@ const App: React.FC = () => {
                 onAllocationChange={handleAllocationChangeInvalidate}
                 onToggleRebalancing={handleToggleRebalancingInvalidate}
                 onRebalancingThresholdChange={handleRebalancingThresholdChangeInvalidate}
+                onToggleStepUp={handleToggleStepUpInvalidate}
+                onStepUpPercentageChange={handleStepUpPercentageChangeInvalidate}
                 onAddPortfolio={handleAddPortfolioInvalidate}
                 disableControls={plotState.loadingNav || plotState.loadingXirr}
                 COLORS={plotState.COLORS}

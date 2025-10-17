@@ -17,7 +17,9 @@ export function calculateTransactionsForDate(
   firstDate: Date,
   allocations: number[],
   rebalancingEnabled: boolean,
-  rebalancingThreshold: number
+  rebalancingThreshold: number,
+  stepUpEnabled: boolean,
+  stepUpPercentage: number
 ): Transaction[] | null {
   const sipDates = generateSipDates(currentDate, months, firstDate);
   if (!sipDates.earliestDate) {
@@ -33,6 +35,8 @@ export function calculateTransactionsForDate(
     allocations,
     rebalancingEnabled,
     rebalancingThreshold,
+    stepUpEnabled,
+    stepUpPercentage,
     state
   );
 
@@ -67,17 +71,20 @@ function buildDailyTransactions(
   allocations: number[],
   rebalancingEnabled: boolean,
   rebalancingThreshold: number,
+  stepUpEnabled: boolean,
+  stepUpPercentage: number,
   state: TransactionState
 ): Transaction[] | null {
   const transactions: Transaction[] = [];
   const loopDate = new Date(startDate);
+  const firstSipDate = new Date(startDate); // Store first SIP date for step-up calculation
 
   while (loopDate < endDate) {
     const dateKey = toDateKey(loopDate);
     const isSipDate = sipDates.has(dateKey);
 
     const result = isSipDate
-      ? processSipDate(dateKey, loopDate, fundDateMaps, allocations, rebalancingEnabled, rebalancingThreshold, state)
+      ? processSipDate(dateKey, loopDate, fundDateMaps, allocations, rebalancingEnabled, rebalancingThreshold, firstSipDate, stepUpEnabled, stepUpPercentage, state)
       : processNilDate(dateKey, fundDateMaps, state);
 
     if (!result) return null;
@@ -96,9 +103,12 @@ function processSipDate(
   allocations: number[],
   rebalancingEnabled: boolean,
   rebalancingThreshold: number,
+  firstSipDate: Date,
+  stepUpEnabled: boolean,
+  stepUpPercentage: number,
   state: TransactionState
 ): Transaction[] | null {
-  const buyResult = createBuyTransactions(dateKey, fundDateMaps, allocations, state);
+  const buyResult = createBuyTransactions(dateKey, fundDateMaps, allocations, state, loopDate, firstSipDate, stepUpEnabled, stepUpPercentage);
   if (!buyResult) return null;
 
   const rebalanceTransactions = rebalancingEnabled

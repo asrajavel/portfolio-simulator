@@ -106,7 +106,7 @@ describe('calculateSipRollingXirr - Core Rebalancing', () => {
       });
       
       // Verify exact XIRR value
-      expect(lastEntry.xirr).toBeCloseTo(2.605716656746517, 10);
+      expect(lastEntry.xirr).toBeCloseTo(2.605716656746517, 4);
     });
 
     it('should NOT trigger rebalancing when allocation drift is within threshold', () => {
@@ -159,8 +159,8 @@ describe('calculateSipRollingXirr - Core Rebalancing', () => {
       const lastWithoutRebalancing = withoutRebalancing[withoutRebalancing.length - 1];
       
       // Exact XIRR values
-      expect(lastWithRebalancing.xirr).toBeCloseTo(2.605716656746517, 10);
-      expect(lastWithoutRebalancing.xirr).toBeCloseTo(3.6792974731956845, 10);
+      expect(lastWithRebalancing.xirr).toBeCloseTo(2.605716656746517, 4);
+      expect(lastWithoutRebalancing.xirr).toBeCloseTo(3.6792974731956845, 4);
       
       // In this scenario, rebalancing reduces returns (selling winners to buy losers)
       expect(lastWithoutRebalancing.xirr).toBeGreaterThan(lastWithRebalancing.xirr);

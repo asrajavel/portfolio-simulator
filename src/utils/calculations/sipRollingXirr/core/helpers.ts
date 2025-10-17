@@ -54,3 +54,18 @@ export function generateSipDates(
   return { dateSet: sipDates, earliestDate: earliestSipDate };
 }
 
+/**
+ * Calculate which investment year a given date falls into, starting from the first SIP date
+ * Used for step-up SIP calculations where investment amount increases yearly
+ * 
+ * @param currentDate - The date to check
+ * @param firstSipDate - The first SIP date (year 1 starts from this date)
+ * @returns The investment year (1-based: 1 for first year, 2 for second year, etc.)
+ */
+export function getInvestmentYear(currentDate: Date, firstSipDate: Date): number {
+  const yearsDiff = currentDate.getFullYear() - firstSipDate.getFullYear();
+  const monthsDiff = currentDate.getMonth() - firstSipDate.getMonth();
+  const totalYears = yearsDiff + (monthsDiff >= 0 ? 0 : -1);
+  return totalYears + 1; // Return 1-based year
+}
+

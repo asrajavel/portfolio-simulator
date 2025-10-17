@@ -1,5 +1,6 @@
 import { NavEntry } from '../../../../types/navData';
 import { Transaction } from '../types';
+import { getInvestmentYear } from '../core/helpers';
 
 interface BuyTransactionsResult {
   transactions: Transaction[];
@@ -18,9 +19,21 @@ export function createBuyTransactions(
   dateKey: string,
   fundDateMaps: Map<string, NavEntry>[],
   allocations: number[],
-  state: TransactionState
+  state: TransactionState,
+  currentDate: Date,
+  firstSipDate: Date,
+  stepUpEnabled: boolean,
+  stepUpPercentage: number
 ): BuyTransactionsResult | null {
-  const totalInvestment = 100;
+  // Calculate base investment with step-up if enabled
+  const baseInvestment = 100;
+  let totalInvestment = baseInvestment;
+  
+  if (stepUpEnabled && stepUpPercentage > 0) {
+    const investmentYear = getInvestmentYear(currentDate, firstSipDate);
+    // Apply compound step-up: Year 1 = 100, Year 2 = 100 * (1 + r), Year 3 = 100 * (1 + r)^2, etc.
+    totalInvestment = baseInvestment * Math.pow(1 + stepUpPercentage / 100, investmentYear - 1);
+  }
   const transactions: Transaction[] = [];
   let totalPortfolioValue = 0;
   const fundValues: number[] = [];

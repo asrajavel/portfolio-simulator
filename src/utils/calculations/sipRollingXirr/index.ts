@@ -17,6 +17,8 @@ export type { SipRollingXirrEntry, Transaction } from './types';
  * @param rebalancingEnabled - Whether to enable portfolio rebalancing (default: false)
  * @param rebalancingThreshold - Threshold percentage for triggering rebalancing (default: 5)
  * @param includeNilTransactions - Whether to include nil transactions in result (default: false, set true for tests)
+ * @param stepUpEnabled - Whether to enable step-up SIP (default: false)
+ * @param stepUpPercentage - Annual percentage increase for step-up SIP (default: 0)
  * @returns Array of SIP Rolling XIRR entries for each date
  */
 export function calculateSipRollingXirr(
@@ -25,7 +27,9 @@ export function calculateSipRollingXirr(
   allocations: number[],
   rebalancingEnabled: boolean = false,
   rebalancingThreshold: number = 5,
-  includeNilTransactions: boolean = false
+  includeNilTransactions: boolean = false,
+  stepUpEnabled: boolean = false,
+  stepUpPercentage: number = 0
 ): SipRollingXirrEntry[] {
   // Validate input
   if (!isValidInput(navDataList)) return [];
@@ -47,7 +51,9 @@ export function calculateSipRollingXirr(
       allocations,
       rebalancingEnabled,
       rebalancingThreshold,
-      includeNilTransactions
+      includeNilTransactions,
+      stepUpEnabled,
+      stepUpPercentage
     )
   );
 }
@@ -64,7 +70,9 @@ function computeSipXirrForDate(
   allocations: number[],
   rebalancingEnabled: boolean,
   rebalancingThreshold: number,
-  includeNilTransactions: boolean
+  includeNilTransactions: boolean,
+  stepUpEnabled: boolean,
+  stepUpPercentage: number
 ): SipRollingXirrEntry[] {
   // Build all transactions (buy, sell, rebalance, nil)
   const allTransactions = calculateTransactionsForDate(
@@ -74,7 +82,9 @@ function computeSipXirrForDate(
     firstDate,
     allocations,
     rebalancingEnabled,
-    rebalancingThreshold
+    rebalancingThreshold,
+    stepUpEnabled,
+    stepUpPercentage
   );
 
   if (!allTransactions) return [];

@@ -5,4 +5,6 @@ export interface Portfolio {
   allocations: number[];
   rebalancingEnabled: boolean;
   rebalancingThreshold: number;
+  stepUpEnabled: boolean;
+  stepUpPercentage: number;
 } 

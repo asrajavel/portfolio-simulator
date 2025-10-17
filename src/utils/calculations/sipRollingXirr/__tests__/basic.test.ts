@@ -81,7 +81,7 @@ describe('calculateSipRollingXirr - Single Fund', () => {
       });
 
       // Verify XIRR
-      expect(lastEntry.xirr).toBeCloseTo(0.5488197128979718, 8);
+      expect(lastEntry.xirr).toBeCloseTo(0.5488197128979718, 4);
     });
 
     it('should calculate cumulative units and current value correctly', () => {

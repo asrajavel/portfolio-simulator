@@ -21,6 +21,10 @@ interface FundControlsProps {
   onToggleRebalancing: () => void;
   rebalancingThreshold: number;
   onRebalancingThresholdChange: (value: number) => void;
+  stepUpEnabled: boolean;
+  onToggleStepUp: () => void;
+  stepUpPercentage: number;
+  onStepUpPercentageChange: (value: number) => void;
   useInstruments?: boolean;
   defaultSchemeCode?: number;
 }
@@ -38,6 +42,10 @@ export const FundControls: React.FC<FundControlsProps> = ({
   onToggleRebalancing,
   rebalancingThreshold,
   onRebalancingThresholdChange,
+  stepUpEnabled,
+  onToggleStepUp,
+  stepUpPercentage,
+  onStepUpPercentageChange,
   useInstruments = true, // Default to true since we're only using instruments now
   defaultSchemeCode,
 }) => {
@@ -223,6 +231,52 @@ export const FundControls: React.FC<FundControlsProps> = ({
             </Block>
           )}
         </>
+      )}
+      <Checkbox
+        checked={stepUpEnabled}
+        onChange={onToggleStepUp}
+        disabled={disableControls}
+      >
+        Annual Step-up
+      </Checkbox>
+      {stepUpEnabled && (
+        <Block display="flex" alignItems="center" gridGap="scale200">
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            value={stepUpPercentage}
+            onChange={e => onStepUpPercentageChange(Number((e.target as HTMLInputElement).value))}
+            disabled={disableControls}
+            placeholder="Annual increase"
+            size="compact"
+            overrides={{
+              Root: {
+                style: {
+                  width: '100px',
+                  flexShrink: 0
+                }
+              },
+              After: () => (
+                <Block
+                  overrides={{
+                    Block: {
+                      style: {
+                        fontSize: '14px',
+                        color: '#6b7280',
+                        paddingRight: '8px',
+                        alignSelf: 'center'
+                      }
+                    }
+                  }}
+                >
+                  %
+                </Block>
+              ),
+            }}
+            id="stepup-input"
+          />
+        </Block>
       )}
     </Block>
   </>

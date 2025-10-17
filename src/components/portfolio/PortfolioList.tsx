@@ -17,6 +17,8 @@ interface PortfolioListProps {
   onAllocationChange: (pIdx: number, idx: number, value: number) => void;
   onToggleRebalancing: (pIdx: number) => void;
   onRebalancingThresholdChange: (pIdx: number, value: number) => void;
+  onToggleStepUp: (pIdx: number) => void;
+  onStepUpPercentageChange: (pIdx: number, value: number) => void;
   onAddPortfolio: () => void;
   disableControls: boolean;
   COLORS: string[];
@@ -34,6 +36,8 @@ export const PortfolioList: React.FC<PortfolioListProps> = ({
   onAllocationChange,
   onToggleRebalancing,
   onRebalancingThresholdChange,
+  onToggleStepUp,
+  onStepUpPercentageChange,
   onAddPortfolio,
   disableControls,
   COLORS,
@@ -114,6 +118,10 @@ export const PortfolioList: React.FC<PortfolioListProps> = ({
               onToggleRebalancing={() => onToggleRebalancing(pIdx)}
               rebalancingThreshold={portfolio.rebalancingThreshold}
               onRebalancingThresholdChange={value => onRebalancingThresholdChange(pIdx, value)}
+              stepUpEnabled={portfolio.stepUpEnabled}
+              onToggleStepUp={() => onToggleStepUp(pIdx)}
+              stepUpPercentage={portfolio.stepUpPercentage}
+              onStepUpPercentageChange={value => onStepUpPercentageChange(pIdx, value)}
               useInstruments={useInstruments}
               defaultSchemeCode={defaultSchemeCode}
             />

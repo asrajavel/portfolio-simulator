@@ -13,7 +13,7 @@ export const API_ENDPOINTS = {
 export const COLORS = [
   '#007bff', '#28a745', '#ff9800', '#e91e63', 
   '#9c27b0', '#00bcd4', '#795548', '#607d8b'
-] as const;
+];
 
 // Validation
 export const ALLOCATION_TOTAL = 100;

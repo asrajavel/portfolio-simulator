@@ -15,6 +15,8 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
           allocations: p.allocations && p.allocations.length > 0 ? p.allocations : [ALLOCATION_TOTAL],
           rebalancingEnabled: typeof p.rebalancingEnabled === 'boolean' ? p.rebalancingEnabled : false,
           rebalancingThreshold: typeof p.rebalancingThreshold === 'number' ? p.rebalancingThreshold : DEFAULT_REBALANCING_THRESHOLD,
+          stepUpEnabled: typeof p.stepUpEnabled === 'boolean' ? p.stepUpEnabled : false,
+          stepUpPercentage: typeof p.stepUpPercentage === 'number' ? p.stepUpPercentage : 10,
         }))
       : [
           // Default Portfolio 1: NIFTY 50 Index (100%)
@@ -28,7 +30,9 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
             }], 
             allocations: [ALLOCATION_TOTAL], 
             rebalancingEnabled: false, 
-            rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD 
+            rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
+            stepUpEnabled: false,
+            stepUpPercentage: 10
           },
           // Default Portfolio 2: Mixed (70% scheme 122639, 30% scheme 120197, rebalancing enabled)
           { 
@@ -50,7 +54,9 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
             ], 
             allocations: [70, 30], 
             rebalancingEnabled: true, 
-            rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD 
+            rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
+            stepUpEnabled: false,
+            stepUpPercentage: 10
           }
         ]
   );
@@ -60,7 +66,14 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
   const handleAddPortfolio = () => {
     setPortfolios(prev => [
       ...prev,
-      { selectedInstruments: [null], allocations: [ALLOCATION_TOTAL], rebalancingEnabled: false, rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD }
+      { 
+        selectedInstruments: [null], 
+        allocations: [ALLOCATION_TOTAL], 
+        rebalancingEnabled: false, 
+        rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
+        stepUpEnabled: false,
+        stepUpPercentage: 10
+      }
     ]);
   };
 
@@ -121,6 +134,22 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
     ));
   };
 
+  const handleToggleStepUp = (portfolioIdx: number) => {
+    setPortfolios(prev => prev.map((p, i) =>
+      i === portfolioIdx
+        ? { ...p, stepUpEnabled: !p.stepUpEnabled }
+        : p
+    ));
+  };
+
+  const handleStepUpPercentageChange = (portfolioIdx: number, value: number) => {
+    setPortfolios(prev => prev.map((p, i) =>
+      i === portfolioIdx
+        ? { ...p, stepUpPercentage: Math.max(0, value) } // Ensure percentage is not negative
+        : p
+    ));
+  };
+
   // Sync portfolios and years to query params (schemes and allocations)
   React.useEffect(() => {
     setQueryParams(portfolios, years);
@@ -138,5 +167,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number) {
     handleAllocationChange,
     handleToggleRebalancing,
     handleRebalancingThresholdChange,
+    handleToggleStepUp,
+    handleStepUpPercentageChange,
   };
 } 

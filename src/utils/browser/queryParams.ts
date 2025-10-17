@@ -10,12 +10,14 @@ export function getQueryParams() {
   return {
     portfolios: portfoliosParam
       ? portfoliosParam.split(';').map(p_str => {
-          // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold
+          // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
           // instrument format: type:id:allocation (e.g., mf:120716:50 or idx:NIFTY50:50 or fixed:8:50)
           const parts = p_str.split('|');
           const instrumentsStr = parts[0];
           const rebalFlagStr = parts[1]; 
           const rebalThresholdStr = parts[2];
+          const stepUpFlagStr = parts[3];
+          const stepUpPercentageStr = parts[4];
 
           const selectedInstruments: (any | null)[] = [];
           const allocations: number[] = [];
@@ -79,11 +81,17 @@ export function getQueryParams() {
           const rebalancingEnabled = rebalFlagStr === '1';
           const rebalancingThreshold = rebalThresholdStr ? parseInt(rebalThresholdStr, 10) : defaultThreshold;
           
+          // Default stepUpEnabled to false if not present or not '1'
+          const stepUpEnabled = stepUpFlagStr === '1';
+          const stepUpPercentage = stepUpPercentageStr ? parseInt(stepUpPercentageStr, 10) : 10;
+          
           return {
             selectedInstruments,
             allocations,
             rebalancingEnabled,
-            rebalancingThreshold: isNaN(rebalancingThreshold) ? defaultThreshold : rebalancingThreshold
+            rebalancingThreshold: isNaN(rebalancingThreshold) ? defaultThreshold : rebalancingThreshold,
+            stepUpEnabled,
+            stepUpPercentage: isNaN(stepUpPercentage) ? 10 : stepUpPercentage
           };
         }).filter(p => p.allocations.length > 0) // Filter out empty portfolios
       : [],
@@ -92,7 +100,7 @@ export function getQueryParams() {
 }
 
 export function setQueryParams(portfolios: Portfolio[], years: number) {
-  // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold
+  // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
   // instrument format: type:id (e.g., mf:120716 or idx:NIFTY50 or fixed:8)
   const portfoliosStr = portfolios
     .map(p => {
@@ -117,7 +125,7 @@ export function setQueryParams(portfolios: Portfolio[], years: number) {
         })
         .join(',');
       
-      return `${instrumentsStr}|${p.rebalancingEnabled ? '1' : '0'}|${p.rebalancingThreshold}`;
+      return `${instrumentsStr}|${p.rebalancingEnabled ? '1' : '0'}|${p.rebalancingThreshold}|${p.stepUpEnabled ? '1' : '0'}|${p.stepUpPercentage}`;
     })
     .join(';');
   
