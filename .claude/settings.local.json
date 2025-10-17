@@ -10,7 +10,14 @@
       "Bash(grep -n \"export.*MultiFundCharts\" /Users/rajavel.as/projects/mf-analysis-react/src/components/MultiFundCharts.tsx)",
       "Bash(grep -n \"portfolioSchemes\" /Users/rajavel.as/projects/mf-analysis-react/src/components/MultiFundCharts.tsx)",
       "Bash(grep -n \"MultiFundCharts\" /Users/rajavel.as/projects/mf-analysis-react/src/components/ChartArea.tsx)",
-      "Bash(git add .)"
+      "Bash(git add .)",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__evaluate_script",
+      "Bash(npm run:*)",
+      "mcp__chrome-devtools__navigate_page"
     ],
     "deny": []
   }

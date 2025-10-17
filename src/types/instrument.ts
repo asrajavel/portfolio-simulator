@@ -1,4 +1,4 @@
-export type InstrumentType = 'mutual_fund' | 'index_fund' | 'yahoo_finance';
+export type InstrumentType = 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return';
 
 export interface BaseInstrument {
   id: string | number;
@@ -27,7 +27,14 @@ export interface YahooFinanceInstrument extends BaseInstrument {
   displayName: string;
 }
 
-export type Instrument = MutualFund | IndexFund | YahooFinanceInstrument;
+export interface FixedReturnInstrument extends BaseInstrument {
+  type: 'fixed_return';
+  id: string;
+  annualReturnPercentage: number;
+  displayName: string;
+}
+
+export type Instrument = MutualFund | IndexFund | YahooFinanceInstrument | FixedReturnInstrument;
 
 export interface InstrumentNavData {
   date: Date;

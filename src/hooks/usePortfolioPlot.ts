@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { fillMissingNavDates } from '../utils/data/fillMissingNavDates';
 import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
+import { fixedReturnService } from '../services/fixedReturnService';
 
 export function usePortfolioPlot({
   portfolios,
@@ -68,6 +69,24 @@ export function usePortfolioPlot({
                   identifier = `${pIdx}_${instrument.symbol}`;
                 } catch (stockError) {
                   console.error(`Failed to fetch stock data for ${instrument.symbol}:`, stockError);
+                  continue;
+                }
+              } else if (instrument.type === 'fixed_return') {
+                try {
+                  const fixedReturnData = fixedReturnService.generateFixedReturnData(
+                    instrument.annualReturnPercentage,
+                    1990
+                  );
+                  
+                  if (!fixedReturnData || fixedReturnData.length === 0) {
+                    continue;
+                  }
+                  
+                  // Data is already in the correct format
+                  nav = fixedReturnData;
+                  identifier = `${pIdx}_fixed_${instrument.annualReturnPercentage}`;
+                } catch (fixedReturnError) {
+                  console.error(`Failed to generate fixed return data for ${instrument.annualReturnPercentage}%:`, fixedReturnError);
                   continue;
                 }
               }

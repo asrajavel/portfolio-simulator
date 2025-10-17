@@ -93,8 +93,8 @@ function computeSipXirrForDate(
 
   return [{
     date: currentDate,
-    xirr: xirrValue,
+    xirr: Math.round(xirrValue * 10000) / 10000, // Round to 4 decimal places for precision
     transactions: transactionsToReturn,
-    volatility
+    volatility: Math.round(volatility * 10000) / 10000 // Round to 4 decimal places for precision
   }];
 }

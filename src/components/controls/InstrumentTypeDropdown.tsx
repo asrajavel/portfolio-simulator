@@ -11,7 +11,8 @@ interface InstrumentTypeDropdownProps {
 const options = [
   { label: 'Mutual Fund', id: 'mutual_fund' },
   { label: 'Index (TRI)', id: 'index_fund' },
-  { label: 'Yahoo Finance', id: 'yahoo_finance' }
+  { label: 'Yahoo Finance', id: 'yahoo_finance' },
+  { label: 'Fixed Annual Return', id: 'fixed_return' }
 ];
 
 export const InstrumentTypeDropdown: React.FC<InstrumentTypeDropdownProps> = ({ value, onChange }) => {

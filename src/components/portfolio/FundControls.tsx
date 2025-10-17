@@ -81,6 +81,16 @@ export const FundControls: React.FC<FundControlsProps> = ({
     } else if (type === 'yahoo_finance') {
       // For Yahoo Finance, clear the selection (user needs to enter symbol manually)
       onInstrumentSelect(idx, null);
+    } else if (type === 'fixed_return') {
+      // For Fixed Return, create a default 8% return instrument
+      const defaultFixedReturn: Instrument = {
+        type: 'fixed_return',
+        id: 'fixed_8',
+        name: 'Fixed 8% Return',
+        annualReturnPercentage: 8,
+        displayName: 'Fixed 8% Return'
+      };
+      onInstrumentSelect(idx, defaultFixedReturn);
     }
   };
 

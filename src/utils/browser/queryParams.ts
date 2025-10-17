@@ -11,7 +11,7 @@ export function getQueryParams() {
     portfolios: portfoliosParam
       ? portfoliosParam.split(';').map(p_str => {
           // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold
-          // instrument format: type:id:allocation (e.g., mf:120716:50 or idx:NIFTY50:50)
+          // instrument format: type:id:allocation (e.g., mf:120716:50 or idx:NIFTY50:50 or fixed:8:50)
           const parts = p_str.split('|');
           const instrumentsStr = parts[0];
           const rebalFlagStr = parts[1]; 
@@ -59,6 +59,15 @@ export function getQueryParams() {
                     symbol: symbol,
                     displayName: symbol
                   });
+                } else if (type === 'fixed' && instrumentParts.length >= 3) {
+                  const returnPercentage = parseFloat(instrumentParts[1]);
+                  selectedInstruments.push({
+                    type: 'fixed_return',
+                    id: `fixed_${returnPercentage}`,
+                    name: `Fixed ${returnPercentage}% Return`,
+                    annualReturnPercentage: returnPercentage,
+                    displayName: `Fixed ${returnPercentage}% Return`
+                  });
                 } else {
                   selectedInstruments.push(null);
                 }
@@ -84,7 +93,7 @@ export function getQueryParams() {
 
 export function setQueryParams(portfolios: Portfolio[], years: number) {
   // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold
-  // instrument format: type:id (e.g., mf:120716 or idx:NIFTY50)
+  // instrument format: type:id (e.g., mf:120716 or idx:NIFTY50 or fixed:8)
   const portfoliosStr = portfolios
     .map(p => {
       const instrumentsStr = p.selectedInstruments
@@ -101,6 +110,8 @@ export function setQueryParams(portfolios: Portfolio[], years: number) {
             return `idx:${cleanIndexName}:${allocation}`;
           } else if (inst.type === 'yahoo_finance') {
             return `yahoo:${inst.symbol}:${allocation}`;
+          } else if (inst.type === 'fixed_return') {
+            return `fixed:${inst.annualReturnPercentage}:${allocation}`;
           }
           return `null:${allocation}`;
         })
