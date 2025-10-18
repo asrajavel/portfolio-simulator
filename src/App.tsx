@@ -46,6 +46,7 @@ const App: React.FC = () => {
     loadNavData,
     plotState,
     sipAmount,
+    chartView,
   });
 
   const anyInvalidAlloc = portfolios.some(
