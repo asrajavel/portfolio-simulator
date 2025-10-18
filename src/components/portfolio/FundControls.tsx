@@ -188,50 +188,44 @@ export const FundControls: React.FC<FundControlsProps> = ({
       >
         + Instrument
       </Button>
-      {(selectedInstruments?.length ?? 0) > 1 && (
-        <>
-          <Checkbox
-            checked={rebalancingEnabled}
-            onChange={onToggleRebalancing}
-            disabled={disableControls}
-          >
-            Enable Rebalancing
-          </Checkbox>
-          {rebalancingEnabled && (
-            <Block display="flex" alignItems="center" gridGap="scale200">
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                value={rebalancingThreshold}
-                onChange={e => onRebalancingThresholdChange(Number((e.target as HTMLInputElement).value))}
-                disabled={disableControls}
-                placeholder="Threshold"
-                size="compact"
+      <Checkbox
+        checked={rebalancingEnabled}
+        onChange={onToggleRebalancing}
+        disabled={disableControls || (selectedInstruments?.length ?? 0) <= 1}
+      >
+        Enable Rebalancing
+      </Checkbox>
+      <Block display="flex" alignItems="center" gridGap="scale200">
+        <Input
+          type="number"
+          min={0}
+          max={100}
+          value={rebalancingThreshold}
+          onChange={e => onRebalancingThresholdChange(Number((e.target as HTMLInputElement).value))}
+          disabled={disableControls || !rebalancingEnabled || (selectedInstruments?.length ?? 0) <= 1}
+          placeholder="Threshold"
+          size="compact"
+          overrides={{
+            After: () => (
+              <Block
                 overrides={{
-                  After: () => (
-                    <Block
-                      overrides={{
-                        Block: {
-                          style: {
-                            fontSize: '14px',
-                            color: '#6b7280',
-                            paddingRight: '8px',
-                            alignSelf: 'center'
-                          }
-                        }
-                      }}
-                    >
-                      %
-                    </Block>
-                  ),
+                  Block: {
+                    style: {
+                      fontSize: '14px',
+                      color: '#6b7280',
+                      paddingRight: '8px',
+                      alignSelf: 'center'
+                    }
+                  }
                 }}
-                id="rebal-threshold-input"
-              />
-            </Block>
-          )}
-        </>
-      )}
+              >
+                %
+              </Block>
+            ),
+          }}
+          id="rebal-threshold-input"
+        />
+      </Block>
       <Checkbox
         checked={stepUpEnabled}
         onChange={onToggleStepUp}
@@ -239,45 +233,43 @@ export const FundControls: React.FC<FundControlsProps> = ({
       >
         Annual Step-up
       </Checkbox>
-      {stepUpEnabled && (
-        <Block display="flex" alignItems="center" gridGap="scale200">
-          <Input
-            type="number"
-            min={0}
-            max={100}
-            value={stepUpPercentage}
-            onChange={e => onStepUpPercentageChange(Number((e.target as HTMLInputElement).value))}
-            disabled={disableControls}
-            placeholder="Annual increase"
-            size="compact"
-            overrides={{
-              Root: {
-                style: {
-                  width: '100px',
-                  flexShrink: 0
-                }
-              },
-              After: () => (
-                <Block
-                  overrides={{
-                    Block: {
-                      style: {
-                        fontSize: '14px',
-                        color: '#6b7280',
-                        paddingRight: '8px',
-                        alignSelf: 'center'
-                      }
+      <Block display="flex" alignItems="center" gridGap="scale200">
+        <Input
+          type="number"
+          min={0}
+          max={100}
+          value={stepUpPercentage}
+          onChange={e => onStepUpPercentageChange(Number((e.target as HTMLInputElement).value))}
+          disabled={disableControls || !stepUpEnabled}
+          placeholder="Annual increase"
+          size="compact"
+          overrides={{
+            Root: {
+              style: {
+                width: '100px',
+                flexShrink: 0
+              }
+            },
+            After: () => (
+              <Block
+                overrides={{
+                  Block: {
+                    style: {
+                      fontSize: '14px',
+                      color: '#6b7280',
+                      paddingRight: '8px',
+                      alignSelf: 'center'
                     }
-                  }}
-                >
-                  %
-                </Block>
-              ),
-            }}
-            id="stepup-input"
-          />
-        </Block>
-      )}
+                  }
+                }}
+              >
+                %
+              </Block>
+            ),
+          }}
+          id="stepup-input"
+        />
+      </Block>
     </Block>
   </>
   );
