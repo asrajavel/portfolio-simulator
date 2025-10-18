@@ -55,7 +55,6 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
       </Block>
     )}
     <Block 
-      minHeight="350px" 
       position="relative" 
       width="100%"
     >

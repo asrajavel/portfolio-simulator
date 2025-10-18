@@ -9,8 +9,7 @@ export const Container: React.FC<ContainerProps> = ({ children }) => {
   return (
     <Block
       width="100%"
-      minHeight="100vh"
-      backgroundColor="#f8f9fa"
+      backgroundColor="white"
     >
       {children}
     </Block>
