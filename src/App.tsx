@@ -12,8 +12,7 @@ import { Block } from 'baseui/block';
 import { LoadingErrorStates } from './components/common/LoadingErrorStates';
 import { PortfolioList } from './components/portfolio/PortfolioList';
 import { ControlsPanel } from './components/controls/ControlsPanel';
-import { HeadingLarge } from 'baseui/typography';
-import { Button } from 'baseui/button';
+import { AppNavBar } from 'baseui/app-nav-bar';
 import { PortfolioSipHelpModal } from './components/portfolio/PortfolioSipHelpModal';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from './constants';
 
@@ -84,7 +83,31 @@ const App: React.FC = () => {
 
   return (
     <Container>
-      <Block position="relative">
+      <AppNavBar
+        title="Indian Investment Analysis"
+        mainItems={[
+          { 
+            icon: (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            ),
+            label: 'Portfolio SIP Simulator',
+            active: true
+          }
+        ]}
+        onMainItemSelect={() => {}}
+        overrides={{
+          Root: {
+            style: {
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+            }
+          }
+        }}
+      />
+      
+      <Block position="relative" backgroundColor="white" padding="1.5rem">
         <LoadingOverlay active={plotState.loadingNav || plotState.loadingXirr} />
         
         <LoadingErrorStates loading={loading} error={error} />
@@ -92,42 +115,6 @@ const App: React.FC = () => {
         {!loading && !error && funds.length > 0 && (
           <>
             <Block maxWidth="900px" margin="0 auto">
-              <Block display="flex" alignItems="center" justifyContent="space-between" marginBottom="2rem">
-                <HeadingLarge
-                  overrides={{
-                    Block: {
-                      style: ({ $theme }) => ({
-                        margin: 0,
-                        color: $theme.colors.contentPrimary,
-                        fontWeight: '600'
-                      })
-                    }
-                  }}
-                >
-                  Portfolio SIP Simulator
-                </HeadingLarge>
-                
-                <Button
-                  onClick={handleHelpClick}
-                  kind="tertiary"
-                  size="compact"
-                  overrides={{
-                    BaseButton: {
-                      style: ({ $theme }) => ({
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        ':hover': {
-                          backgroundColor: $theme.colors.backgroundSecondary
-                        }
-                      })
-                    }
-                  }}
-                  title="How to use Portfolio SIP Simulator"
-                >
-                  ❓ Help
-                </Button>
-              </Block>
               
               <PortfolioList
                 portfolios={portfolios}
