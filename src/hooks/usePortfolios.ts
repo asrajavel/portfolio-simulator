@@ -25,7 +25,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
           rebalancingEnabled: typeof p.rebalancingEnabled === 'boolean' ? p.rebalancingEnabled : false,
           rebalancingThreshold: typeof p.rebalancingThreshold === 'number' ? p.rebalancingThreshold : DEFAULT_REBALANCING_THRESHOLD,
           stepUpEnabled: typeof p.stepUpEnabled === 'boolean' ? p.stepUpEnabled : false,
-          stepUpPercentage: typeof p.stepUpPercentage === 'number' ? p.stepUpPercentage : 10,
+          stepUpPercentage: typeof p.stepUpPercentage === 'number' ? p.stepUpPercentage : 5,
         }))
       : [
           // Default Portfolio 1: NIFTY 50 Index (100%)
@@ -41,7 +41,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
             rebalancingEnabled: false, 
             rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
             stepUpEnabled: false,
-            stepUpPercentage: 10
+            stepUpPercentage: 5
           },
           // Default Portfolio 2: Mixed (70% scheme 122639, 30% scheme 120197, rebalancing enabled)
           { 
@@ -65,7 +65,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
             rebalancingEnabled: true, 
             rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
             stepUpEnabled: false,
-            stepUpPercentage: 10
+            stepUpPercentage: 5
           }
         ]
   );
@@ -81,7 +81,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
         rebalancingEnabled: false, 
         rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
         stepUpEnabled: false,
-        stepUpPercentage: 10
+        stepUpPercentage: 5
       }
     ]);
   };

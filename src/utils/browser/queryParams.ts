@@ -1,4 +1,4 @@
-import { Portfolio } from '../types/portfolio';
+import { Portfolio } from '../../types/portfolio';
 
 // Utility functions for reading and writing portfolios and years to the query string
 export function getQueryParams() {
@@ -84,7 +84,7 @@ export function getQueryParams() {
           
           // Default stepUpEnabled to false if not present or not '1'
           const stepUpEnabled = stepUpFlagStr === '1';
-          const stepUpPercentage = stepUpPercentageStr ? parseInt(stepUpPercentageStr, 10) : 10;
+          const stepUpPercentage = stepUpPercentageStr ? parseInt(stepUpPercentageStr, 10) : 5;
           
           return {
             selectedInstruments,
@@ -92,7 +92,7 @@ export function getQueryParams() {
             rebalancingEnabled,
             rebalancingThreshold: isNaN(rebalancingThreshold) ? defaultThreshold : rebalancingThreshold,
             stepUpEnabled,
-            stepUpPercentage: isNaN(stepUpPercentage) ? 10 : stepUpPercentage
+            stepUpPercentage: isNaN(stepUpPercentage) ? 5 : stepUpPercentage
           };
         }).filter(p => p.allocations.length > 0) // Filter out empty portfolios
       : [],
@@ -107,7 +107,7 @@ export function setQueryParams(portfolios: Portfolio[], years: number, sipAmount
   const portfoliosStr = portfolios
     .map(p => {
       const instrumentsStr = p.selectedInstruments
-        .map((inst, idx) => {
+        .map((inst: any, idx: number) => {
           const allocation = p.allocations[idx] || 0;
           if (!inst) {
             return `null:${allocation}`;
