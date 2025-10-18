@@ -19,7 +19,8 @@ export function calculateTransactionsForDate(
   rebalancingEnabled: boolean,
   rebalancingThreshold: number,
   stepUpEnabled: boolean,
-  stepUpPercentage: number
+  stepUpPercentage: number,
+  sipAmount: number
 ): Transaction[] | null {
   const sipDates = generateSipDates(currentDate, months, firstDate);
   if (!sipDates.earliestDate) {
@@ -37,6 +38,7 @@ export function calculateTransactionsForDate(
     rebalancingThreshold,
     stepUpEnabled,
     stepUpPercentage,
+    sipAmount,
     state
   );
 
@@ -73,6 +75,7 @@ function buildDailyTransactions(
   rebalancingThreshold: number,
   stepUpEnabled: boolean,
   stepUpPercentage: number,
+  sipAmount: number,
   state: TransactionState
 ): Transaction[] | null {
   const transactions: Transaction[] = [];
@@ -84,7 +87,7 @@ function buildDailyTransactions(
     const isSipDate = sipDates.has(dateKey);
 
     const result = isSipDate
-      ? processSipDate(dateKey, loopDate, fundDateMaps, allocations, rebalancingEnabled, rebalancingThreshold, firstSipDate, stepUpEnabled, stepUpPercentage, state)
+      ? processSipDate(dateKey, loopDate, fundDateMaps, allocations, rebalancingEnabled, rebalancingThreshold, firstSipDate, stepUpEnabled, stepUpPercentage, sipAmount, state)
       : processNilDate(dateKey, fundDateMaps, state);
 
     if (!result) return null;
@@ -106,9 +109,10 @@ function processSipDate(
   firstSipDate: Date,
   stepUpEnabled: boolean,
   stepUpPercentage: number,
+  sipAmount: number,
   state: TransactionState
 ): Transaction[] | null {
-  const buyResult = createBuyTransactions(dateKey, fundDateMaps, allocations, state, loopDate, firstSipDate, stepUpEnabled, stepUpPercentage);
+  const buyResult = createBuyTransactions(dateKey, fundDateMaps, allocations, state, loopDate, firstSipDate, stepUpEnabled, stepUpPercentage, sipAmount);
   if (!buyResult) return null;
 
   const rebalanceTransactions = rebalancingEnabled

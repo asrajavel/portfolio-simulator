@@ -23,16 +23,16 @@ export function createBuyTransactions(
   currentDate: Date,
   firstSipDate: Date,
   stepUpEnabled: boolean,
-  stepUpPercentage: number
+  stepUpPercentage: number,
+  sipAmount: number
 ): BuyTransactionsResult | null {
-  // Calculate base investment with step-up if enabled
-  const baseInvestment = 100;
-  let totalInvestment = baseInvestment;
+  // Calculate investment with step-up if enabled
+  let totalInvestment = sipAmount;
   
   if (stepUpEnabled && stepUpPercentage > 0) {
     const investmentYear = getInvestmentYear(currentDate, firstSipDate);
-    // Apply compound step-up: Year 1 = 100, Year 2 = 100 * (1 + r), Year 3 = 100 * (1 + r)^2, etc.
-    totalInvestment = baseInvestment * Math.pow(1 + stepUpPercentage / 100, investmentYear - 1);
+    // Apply compound step-up: Year 1 = sipAmount, Year 2 = sipAmount * (1 + r), Year 3 = sipAmount * (1 + r)^2, etc.
+    totalInvestment = sipAmount * Math.pow(1 + stepUpPercentage / 100, investmentYear - 1);
   }
   const transactions: Transaction[] = [];
   let totalPortfolioValue = 0;

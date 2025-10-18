@@ -9,6 +9,7 @@ export function usePortfolioPlot({
   years,
   loadNavData,
   plotState,
+  sipAmount,
 }) {
   // Handler for plotting all portfolios
   const handlePlotAllPortfolios = useCallback(async () => {
@@ -124,7 +125,7 @@ export function usePortfolioPlot({
         }
         await new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url));
-          worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage });
+          worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount });
           worker.onmessage = (event: MessageEvent) => {
             allSipXirrDatas[`Portfolio ${pIdx + 1}`] = event.data;
             worker.terminate();

@@ -21,15 +21,17 @@ interface MultiFundChartsProps {
   COLORS: string[];
   portfolios: Portfolio[];
   years: number;
+  sipAmount: number;
+  chartView: 'xirr' | 'corpus';
 }
 
 interface ModalState {
   visible: boolean;
-  transactions: { fundIdx: number; nav: number; when: Date; units: number; amount: number; type: 'buy' | 'sell'; allocationPercentage?: number }[];
+  transactions: { fundIdx: number; nav: number; when: Date; units: number; amount: number; type: 'buy' | 'sell' | 'rebalance' | 'nil'; cumulativeUnits: number; currentValue: number; allocationPercentage?: number }[];
   date: string;
   xirr: number;
   portfolioName: string;
-  portfolioFunds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' }>;
+  portfolioFunds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
 }
 
 // ============================================================================
@@ -58,7 +60,7 @@ const getPortfolioFunds = (
   portfolioName: string, 
   portfolios: Portfolio[], 
   funds: mfapiMutualFund[]
-): Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' }> => {
+): Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }> => {
   const idx = parseInt(portfolioName.replace('Portfolio ', '')) - 1;
   const portfolio = portfolios[idx];
   if (!portfolio || !portfolio.selectedInstruments) return [];
@@ -81,6 +83,11 @@ const getPortfolioFunds = (
         return {
           schemeName: inst!.displayName || inst!.symbol,
           type: 'yahoo_finance' as const
+        };
+      } else if (inst!.type === 'fixed_return') {
+        return {
+          schemeName: inst!.displayName || inst!.name,
+          type: 'fixed_return' as const
         };
       }
       return {
@@ -112,7 +119,7 @@ const getBaseChartOptions = (title: string) => ({
   }
 });
 
-const getStockChartOptions = (title: string) => ({
+const getStockChartOptions = (title: string, sipXirrDatas: Record<string, any[]>, sipAmount: number, chartView: 'xirr' | 'corpus') => ({
   ...getBaseChartOptions(title),
   xAxis: {
     type: 'datetime',
@@ -125,19 +132,25 @@ const getStockChartOptions = (title: string) => ({
   yAxis: {
     opposite: false,
     title: {
-      text: 'XIRR (%)',
+      text: chartView === 'xirr' ? 'XIRR (%)' : 'Corpus Value (₹)',
       align: 'middle',
       rotation: -90,
       x: -10,
       style: CHART_STYLES.axisTitle
     },
     labels: {
-      formatter: function (this: any) { return this.value + ' %'; },
+      formatter: function (this: any) { 
+        if (chartView === 'xirr') {
+          return this.value + ' %';
+        } else {
+          return '₹' + new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(this.value);
+        }
+      },
       style: CHART_STYLES.axisLabels
     },
     gridLineColor: CHART_STYLES.colors.gridLine,
     lineColor: CHART_STYLES.colors.line,
-    plotLines: [{ value: 0, width: 2, color: '#aaa', zIndex: 1 }]
+    plotLines: chartView === 'xirr' ? [{ value: 0, width: 2, color: '#aaa', zIndex: 1 }] : []
   },
   rangeSelector: { enabled: false },
   navigator: STOCK_CHART_NAVIGATOR,
@@ -157,9 +170,29 @@ const getStockChartOptions = (title: string) => ({
         [...this.points].sort((a: any, b: any) => (b.y as number) - (a.y as number)) : [];
       
       sortedPoints.forEach((point: any) => {
-        const formattedValue = (point.y as number).toFixed(2) + " %";
+        // Get the portfolio data
+        const portfolioName = point.series.name;
+        const pointDate = Highcharts.dateFormat('%Y-%m-%d', this.x);
+        const xirrEntry = sipXirrDatas[portfolioName]?.find((row: any) => formatDate(row.date) === pointDate);
+        
+        // Get actual XIRR value from the entry (not from point.y which could be corpus)
+        const xirrPercent = xirrEntry ? (xirrEntry.xirr * 100).toFixed(2) : '0.00';
+        
+        let corpusValue = 0;
+        if (xirrEntry && xirrEntry.transactions) {
+          // Sum all final values from sell transactions
+          corpusValue = xirrEntry.transactions
+            .filter((tx: any) => tx.type === 'sell')
+            .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
+        }
+        
         const color = point.series.color;
-        tooltipHTML += `<span style="color:${color}">●</span> ${point.series.name}: <strong>${formattedValue}</strong><br/>`;
+        if (chartView === 'xirr') {
+          tooltipHTML += `<span style="color:${color}">●</span> ${point.series.name}: <strong>${xirrPercent}%</strong><br/>`;
+        } else {
+          const formattedCorpus = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(corpusValue);
+          tooltipHTML += `<span style="color:${color}">●</span> ${point.series.name}: <strong>${formattedCorpus}</strong> <span style="color:#aaa">(${xirrPercent}%)</span><br/>`;
+        }
       });
       
       return tooltipHTML + '</div>';
@@ -185,17 +218,28 @@ const getStockChartOptions = (title: string) => ({
   }
 });
 
-const getSipSeries = (sipXirrDatas: Record<string, any[]>, COLORS: string[]) => {
+const getSipSeries = (sipXirrDatas: Record<string, any[]>, COLORS: string[], chartView: 'xirr' | 'corpus') => {
   const allDates = getAllDates(sipXirrDatas);
   return Object.entries(sipXirrDatas).map(([portfolioName, data], idx) => {
-    const dateToXirr: Record<string, number> = {};
+    const dateToValue: Record<string, number> = {};
     (data || []).forEach((row: any) => {
-      dateToXirr[formatDate(row.date)] = row.xirr * 100;
+      if (chartView === 'xirr') {
+        dateToValue[formatDate(row.date)] = row.xirr * 100;
+      } else {
+        // Calculate corpus from sell transactions
+        let corpusValue = 0;
+        if (row.transactions) {
+          corpusValue = row.transactions
+            .filter((tx: any) => tx.type === 'sell')
+            .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
+        }
+        dateToValue[formatDate(row.date)] = corpusValue;
+      }
     });
     
     const seriesData = allDates.map(date => {
-      const xirr = dateToXirr[date];
-      return xirr !== undefined ? [new Date(date).getTime(), xirr] : null;
+      const value = dateToValue[date];
+      return value !== undefined ? [new Date(date).getTime(), value] : null;
     }).filter(point => point !== null);
     
     return {
@@ -217,6 +261,8 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
   COLORS,
   portfolios,
   years,
+  sipAmount,
+  chartView,
 }) => {
   const [modal, setModal] = useState<ModalState>(initialModalState);
 
@@ -237,18 +283,22 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
 
   const closeModal = () => setModal(initialModalState);
 
+  const chartTitle = chartView === 'xirr' 
+    ? `SIP Rolling ${years}Y XIRR` 
+    : `SIP Corpus Value - Rolling ${years}Y`;
+  
   const chartOptions = {
-    ...getStockChartOptions(`SIP Rolling ${years}Y XIRR`),
-    series: getSipSeries(sipXirrDatas, COLORS),
+    ...getStockChartOptions(chartTitle, sipXirrDatas, sipAmount, chartView),
+    series: getSipSeries(sipXirrDatas, COLORS, chartView),
     chart: {
-      ...getStockChartOptions(`SIP Rolling ${years}Y XIRR`).chart,
+      ...getStockChartOptions(chartTitle, sipXirrDatas, sipAmount, chartView).chart,
       height: 500,
       zooming: { mouseWheel: false },
       events: { click: closeModal }
     },
     plotOptions: {
       series: {
-        ...getStockChartOptions(`SIP Rolling ${years}Y XIRR`).plotOptions.series,
+        ...getStockChartOptions(chartTitle, sipXirrDatas, sipAmount, chartView).plotOptions.series,
         point: {
           events: {
             click: function (this: Highcharts.Point) {
@@ -265,7 +315,7 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
 
   return (
     <Block marginTop="2rem">
-      <TransactionModal {...modal} onClose={closeModal} funds={modal.portfolioFunds} />
+      <TransactionModal {...modal} onClose={closeModal} funds={modal.portfolioFunds} sipAmount={sipAmount} />
       <Block marginTop="1.5rem">
         <HighchartsReact
           highcharts={Highcharts}

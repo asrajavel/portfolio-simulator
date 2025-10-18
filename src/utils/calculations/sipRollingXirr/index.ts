@@ -19,6 +19,7 @@ export type { SipRollingXirrEntry, Transaction } from './types';
  * @param includeNilTransactions - Whether to include nil transactions in result (default: false, set true for tests)
  * @param stepUpEnabled - Whether to enable step-up SIP (default: false)
  * @param stepUpPercentage - Annual percentage increase for step-up SIP (default: 0)
+ * @param sipAmount - Monthly SIP amount (default: 100)
  * @returns Array of SIP Rolling XIRR entries for each date
  */
 export function calculateSipRollingXirr(
@@ -29,7 +30,8 @@ export function calculateSipRollingXirr(
   rebalancingThreshold: number = 5,
   includeNilTransactions: boolean = false,
   stepUpEnabled: boolean = false,
-  stepUpPercentage: number = 0
+  stepUpPercentage: number = 0,
+  sipAmount: number = 100
 ): SipRollingXirrEntry[] {
   // Validate input
   if (!isValidInput(navDataList)) return [];
@@ -53,7 +55,8 @@ export function calculateSipRollingXirr(
       rebalancingThreshold,
       includeNilTransactions,
       stepUpEnabled,
-      stepUpPercentage
+      stepUpPercentage,
+      sipAmount
     )
   );
 }
@@ -72,7 +75,8 @@ function computeSipXirrForDate(
   rebalancingThreshold: number,
   includeNilTransactions: boolean,
   stepUpEnabled: boolean,
-  stepUpPercentage: number
+  stepUpPercentage: number,
+  sipAmount: number
 ): SipRollingXirrEntry[] {
   // Build all transactions (buy, sell, rebalance, nil)
   const allTransactions = calculateTransactionsForDate(
@@ -84,7 +88,8 @@ function computeSipXirrForDate(
     rebalancingEnabled,
     rebalancingThreshold,
     stepUpEnabled,
-    stepUpPercentage
+    stepUpPercentage,
+    sipAmount
   );
 
   if (!allTransactions) return [];

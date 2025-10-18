@@ -22,6 +22,8 @@ const App: React.FC = () => {
   const { loadNavData } = useNavData();
   const plotState = usePlotState(loadNavData, funds);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [sipAmount, setSipAmount] = useState<number>(10000);
+  const [chartView, setChartView] = useState<'xirr' | 'corpus'>('xirr');
   
   const {
     portfolios,
@@ -37,13 +39,14 @@ const App: React.FC = () => {
     handleRebalancingThresholdChange,
     handleToggleStepUp,
     handleStepUpPercentageChange,
-  } = usePortfolios(DEFAULT_SCHEME_CODE);
+  } = usePortfolios(DEFAULT_SCHEME_CODE, [sipAmount, setSipAmount]);
 
   const { handlePlotAllPortfolios } = usePortfolioPlot({
     portfolios,
     years,
     loadNavData,
     plotState,
+    sipAmount,
   });
 
   const anyInvalidAlloc = portfolios.some(
@@ -58,11 +61,18 @@ const App: React.FC = () => {
   const handleAddFundInvalidate = withInvalidation(handleAddFund);
   const handleRemoveFundInvalidate = withInvalidation(handleRemoveFund);
   const handleAllocationChangeInvalidate = withInvalidation(handleAllocationChange);
+  const handleInstrumentSelectInvalidate = withInvalidation(handleInstrumentSelect);
   const handleToggleRebalancingInvalidate = withInvalidation(handleToggleRebalancing);
   const handleRebalancingThresholdChangeInvalidate = withInvalidation(handleRebalancingThresholdChange);
   const handleToggleStepUpInvalidate = withInvalidation(handleToggleStepUp);
   const handleStepUpPercentageChangeInvalidate = withInvalidation(handleStepUpPercentageChange);
   const handleYearsChange = invalidateChart;
+  
+  // Handle chart view change - invalidate charts when switching between XIRR and Corpus
+  const handleChartViewChange = (view: 'xirr' | 'corpus') => {
+    setChartView(view);
+    invalidateChart();
+  };
 
   const handleHelpClick = () => {
     setIsHelpModalOpen(true);
@@ -148,6 +158,10 @@ const App: React.FC = () => {
                 disabled={plotState.loadingNav || plotState.loadingXirr}
                 anyInvalidAlloc={anyInvalidAlloc}
                 onYearsChange={handleYearsChange}
+                sipAmount={sipAmount}
+                setSipAmount={setSipAmount}
+                chartView={chartView}
+                setChartView={handleChartViewChange}
               />
             </Block>
 
@@ -163,6 +177,8 @@ const App: React.FC = () => {
               loadingXirr={plotState.loadingXirr}
               portfolios={portfolios}
               years={years}
+              sipAmount={sipAmount}
+              chartView={chartView}
             />
           </>
         )}

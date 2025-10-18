@@ -5,6 +5,7 @@ export function getQueryParams() {
   const params = new URLSearchParams(window.location.search);
   const portfoliosParam = params.get('portfolios');
   const years = params.get('years');
+  const sipAmount = params.get('sipAmount');
   const defaultThreshold = 5; // Default threshold if not in query params
 
   return {
@@ -96,10 +97,11 @@ export function getQueryParams() {
         }).filter(p => p.allocations.length > 0) // Filter out empty portfolios
       : [],
     years: years ? Number(years) : null,
+    sipAmount: sipAmount ? Number(sipAmount) : 10000,
   };
 }
 
-export function setQueryParams(portfolios: Portfolio[], years: number) {
+export function setQueryParams(portfolios: Portfolio[], years: number, sipAmount: number = 10000) {
   // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
   // instrument format: type:id (e.g., mf:120716 or idx:NIFTY50 or fixed:8)
   const portfoliosStr = portfolios
@@ -130,6 +132,6 @@ export function setQueryParams(portfolios: Portfolio[], years: number) {
     .join(';');
   
   // Construct URL manually since we're using safe characters now
-  const urlParams = `portfolios=${portfoliosStr}&years=${years}`;
+  const urlParams = `portfolios=${portfoliosStr}&years=${years}&sipAmount=${sipAmount}`;
   window.history.replaceState({}, '', `?${urlParams}`);
 }

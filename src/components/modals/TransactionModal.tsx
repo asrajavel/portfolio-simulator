@@ -19,13 +19,14 @@ interface TransactionModalProps {
   date: string;
   xirr: number;
   portfolioName: string;
-  funds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' }>;
+  funds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
+  sipAmount: number;
 }
 
 // Define the row data type for the DataTable
 type TransactionRowDataT = [string, string, string, number, number, number, number, number, string];
 
-export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onClose, transactions, date, xirr, portfolioName, funds }) => {
+export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onClose, transactions, date, xirr, portfolioName, funds, sipAmount }) => {
   const [css] = useStyletron();
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +71,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
   });
 
   // Convert transactions to DataTable format
+  // No scaling needed - transactions already calculated with correct sipAmount
   const rows = sortedTxs.map((tx, idx) => {
     const fundName = funds[tx.fundIdx]?.schemeName || `Fund ${tx.fundIdx + 1}`;
     const allocationText = tx.allocationPercentage !== undefined 

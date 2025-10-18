@@ -18,6 +18,8 @@ interface ChartAreaProps {
   loadingXirr?: boolean;
   portfolios: Portfolio[];
   years: number;
+  sipAmount: number;
+  chartView: 'xirr' | 'corpus';
 }
 
 export const ChartArea: React.FC<ChartAreaProps> = ({
@@ -32,6 +34,8 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
   loadingXirr = false,
   portfolios,
   years,
+  sipAmount,
+  chartView,
 }) => (
   <>
     {xirrError && (
@@ -78,15 +82,17 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
         </Block>
       ) : (
         hasPlotted && Object.keys(navDatas).length > 0 && (
-          <MultiFundCharts
-            navDatas={navDatas}
-            lumpSumXirrDatas={lumpSumXirrDatas}
-            sipXirrDatas={sipXirrDatas}
-            funds={funds}
-            COLORS={COLORS}
-            portfolios={portfolios}
-            years={years}
-          />
+        <MultiFundCharts
+          navDatas={navDatas}
+          lumpSumXirrDatas={lumpSumXirrDatas}
+          sipXirrDatas={sipXirrDatas}
+          funds={funds}
+          COLORS={COLORS}
+          portfolios={portfolios}
+          years={years}
+          sipAmount={sipAmount}
+          chartView={chartView}
+        />
         )
       )}
     </Block>
