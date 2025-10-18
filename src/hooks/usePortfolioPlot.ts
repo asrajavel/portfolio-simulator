@@ -10,6 +10,7 @@ export function usePortfolioPlot({
   loadNavData,
   plotState,
   sipAmount,
+  chartView,
 }) {
   // Handler for plotting all portfolios
   const handlePlotAllPortfolios = useCallback(async () => {
@@ -125,7 +126,9 @@ export function usePortfolioPlot({
         }
         await new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url));
-          worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount });
+          // Use 100 as base for XIRR view, actual sipAmount for corpus view
+          const baseSipAmount = chartView === 'corpus' ? sipAmount : 100;
+          worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount: baseSipAmount });
           worker.onmessage = (event: MessageEvent) => {
             allSipXirrDatas[`Portfolio ${pIdx + 1}`] = event.data;
             worker.terminate();
