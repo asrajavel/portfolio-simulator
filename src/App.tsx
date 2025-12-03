@@ -14,11 +14,15 @@ import { PortfolioList } from './components/portfolio/PortfolioList';
 import { ControlsPanel } from './components/controls/ControlsPanel';
 import { AppNavBar } from 'baseui/app-nav-bar';
 import { PortfolioSipHelpModal } from './components/portfolio/PortfolioSipHelpModal';
+import { RawInstrumentPanel } from './components/raw-instrument/RawInstrumentPanel';
+import { useInstrumentNavData } from './hooks/useInstrumentNavData';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from './constants';
 
 const App: React.FC = () => {
+  const [activeView, setActiveView] = useState<'portfolio' | 'raw'>('portfolio');
   const { funds, loading, error } = useMutualFunds();
   const { loadNavData } = useNavData();
+  const { loadNavData: loadInstrumentNavData } = useInstrumentNavData();
   const plotState = usePlotState(loadNavData, funds);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [sipAmount, setSipAmount] = useState<number>(10000);
@@ -88,17 +92,28 @@ const App: React.FC = () => {
         title="Indian Investment Analysis"
         mainItems={[
           { 
-            icon: (
+            icon: () => (
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="1" x2="12" y2="23"></line>
                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
               </svg>
             ),
             label: 'Portfolio SIP Simulator',
-            active: true
+            active: activeView === 'portfolio'
+          },
+          { 
+            icon: () => (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+            ),
+            label: 'Raw Instrument Values',
+            active: activeView === 'raw'
           }
         ]}
-        onMainItemSelect={() => {}}
+        onMainItemSelect={(item) => {
+          setActiveView(item.label === 'Portfolio SIP Simulator' ? 'portfolio' : 'raw');
+        }}
         overrides={{
           Root: {
             style: {
@@ -107,67 +122,77 @@ const App: React.FC = () => {
           }
         }}
       />
-      
+
       <Block position="relative" backgroundColor="white" padding="1.5rem">
-        <LoadingOverlay active={plotState.loadingNav || plotState.loadingXirr} />
-        
         <LoadingErrorStates loading={loading} error={error} />
         
         {!loading && !error && funds.length > 0 && (
           <>
-            <Block maxWidth="900px" margin="0 auto">
-              
-              <PortfolioList
-                portfolios={portfolios}
-                setPortfolios={setPortfolios}
+            {activeView === 'portfolio' && (
+              <Block position="relative">
+                <LoadingOverlay active={plotState.loadingNav || plotState.loadingXirr} />
+                
+                <Block maxWidth="900px" margin="0 auto">
+                  <PortfolioList
+                    portfolios={portfolios}
+                    setPortfolios={setPortfolios}
+                    funds={funds}
+                    onInstrumentSelect={(pIdx: number, idx: number, instrument) => {
+                      invalidateChart();
+                      handleInstrumentSelect(pIdx, idx, instrument);
+                    }}
+                    onAddFund={handleAddFundInvalidate}
+                    onRemoveFund={handleRemoveFundInvalidate}
+                    onAllocationChange={handleAllocationChangeInvalidate}
+                    onToggleRebalancing={handleToggleRebalancingInvalidate}
+                    onRebalancingThresholdChange={handleRebalancingThresholdChangeInvalidate}
+                    onToggleStepUp={handleToggleStepUpInvalidate}
+                    onStepUpPercentageChange={handleStepUpPercentageChangeInvalidate}
+                    onAddPortfolio={handleAddPortfolioInvalidate}
+                    disableControls={plotState.loadingNav || plotState.loadingXirr}
+                    COLORS={plotState.COLORS}
+                    useInstruments={true}
+                    defaultSchemeCode={DEFAULT_SCHEME_CODE}
+                  />
+
+                  <ControlsPanel
+                    years={years}
+                    setYears={setYears}
+                    onPlot={handlePlotAllPortfolios}
+                    disabled={plotState.loadingNav || plotState.loadingXirr}
+                    anyInvalidAlloc={anyInvalidAlloc}
+                    onYearsChange={handleYearsChange}
+                    sipAmount={sipAmount}
+                    setSipAmount={setSipAmount}
+                    chartView={chartView}
+                    setChartView={handleChartViewChange}
+                  />
+                </Block>
+
+                <ChartArea
+                  xirrError={plotState.xirrError}
+                  hasPlotted={plotState.hasPlotted}
+                  navDatas={plotState.navDatas}
+                  lumpSumXirrDatas={plotState.lumpSumXirrDatas}
+                  sipXirrDatas={plotState.sipXirrDatas}
+                  funds={funds}
+                  COLORS={plotState.COLORS}
+                  loadingNav={plotState.loadingNav}
+                  loadingXirr={plotState.loadingXirr}
+                  portfolios={portfolios}
+                  years={years}
+                  sipAmount={sipAmount}
+                  chartView={chartView}
+                />
+              </Block>
+            )}
+
+            {activeView === 'raw' && (
+              <RawInstrumentPanel 
                 funds={funds}
-                onInstrumentSelect={(pIdx: number, idx: number, instrument) => {
-                  invalidateChart();
-                  handleInstrumentSelect(pIdx, idx, instrument);
-                }}
-                onAddFund={handleAddFundInvalidate}
-                onRemoveFund={handleRemoveFundInvalidate}
-                onAllocationChange={handleAllocationChangeInvalidate}
-                onToggleRebalancing={handleToggleRebalancingInvalidate}
-                onRebalancingThresholdChange={handleRebalancingThresholdChangeInvalidate}
-                onToggleStepUp={handleToggleStepUpInvalidate}
-                onStepUpPercentageChange={handleStepUpPercentageChangeInvalidate}
-                onAddPortfolio={handleAddPortfolioInvalidate}
-                disableControls={plotState.loadingNav || plotState.loadingXirr}
-                COLORS={plotState.COLORS}
-                useInstruments={true}
-                defaultSchemeCode={DEFAULT_SCHEME_CODE}
+                loadNavData={loadInstrumentNavData}
               />
-
-              <ControlsPanel
-                years={years}
-                setYears={setYears}
-                onPlot={handlePlotAllPortfolios}
-                disabled={plotState.loadingNav || plotState.loadingXirr}
-                anyInvalidAlloc={anyInvalidAlloc}
-                onYearsChange={handleYearsChange}
-                sipAmount={sipAmount}
-                setSipAmount={setSipAmount}
-                chartView={chartView}
-                setChartView={handleChartViewChange}
-              />
-            </Block>
-
-            <ChartArea
-              xirrError={plotState.xirrError}
-              hasPlotted={plotState.hasPlotted}
-              navDatas={plotState.navDatas}
-              lumpSumXirrDatas={plotState.lumpSumXirrDatas}
-              sipXirrDatas={plotState.sipXirrDatas}
-              funds={funds}
-              COLORS={plotState.COLORS}
-              loadingNav={plotState.loadingNav}
-              loadingXirr={plotState.loadingXirr}
-              portfolios={portfolios}
-              years={years}
-              sipAmount={sipAmount}
-              chartView={chartView}
-            />
+            )}
           </>
         )}
         
