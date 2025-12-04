@@ -56,7 +56,8 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
     )}
     <Block 
       position="relative" 
-      width="100%"
+      maxWidth="90%"
+      margin="0 auto"
     >
       {(loadingNav || loadingXirr) ? (
         <Block

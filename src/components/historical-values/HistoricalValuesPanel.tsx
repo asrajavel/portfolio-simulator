@@ -250,14 +250,16 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
         </Block>
       </Block>
 
-      {/* Chart Display - outside maxWidth container for full width */}
+      {/* Chart Display - 90% width, centered */}
       {plottedInstruments.length > 0 && (
-        <HistoricalValuesChart 
-          navDatas={navDatas}
-          instruments={plottedInstruments}
-          useLogScale={useLogScale}
-          colors={COLORS}
-        />
+        <Block maxWidth="90%" margin="0 auto">
+          <HistoricalValuesChart 
+            navDatas={navDatas}
+            instruments={plottedInstruments}
+            useLogScale={useLogScale}
+            colors={COLORS}
+          />
+        </Block>
       )}
     </Block>
   );
