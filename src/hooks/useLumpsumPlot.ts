@@ -3,6 +3,7 @@ import { fillMissingNavDates } from '../utils/data/fillMissingNavDates';
 import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { fixedReturnService } from '../services/fixedReturnService';
+import { inflationService } from '../services/inflationService';
 
 export function useLumpsumPlot({
   lumpsumStrategies,
@@ -89,6 +90,23 @@ export function useLumpsumPlot({
                   console.error(`Failed to generate fixed return data for ${instrument.annualReturnPercentage}%:`, fixedReturnError);
                   continue;
                 }
+              } else if (instrument.type === 'inflation') {
+                try {
+                  const inflationData = await inflationService.generateInflationNavData(
+                    instrument.countryCode,
+                    1960
+                  );
+                  
+                  if (!inflationData || inflationData.length === 0) {
+                    continue;
+                  }
+                  
+                  nav = inflationData;
+                  identifier = `${pIdx}_inflation_${instrument.countryCode}`;
+                } catch (inflationError) {
+                  console.error(`Failed to generate inflation data for ${instrument.countryCode}:`, inflationError);
+                  continue;
+                }
               }
               
               if (!Array.isArray(nav) || nav.length === 0) {
@@ -121,6 +139,11 @@ export function useLumpsumPlot({
           continue;
         }
         
+        // Check if this strategy contains inflation instrument
+        const hasInflation = lumpsumStrategies[pIdx].selectedInstruments.some(
+          inst => inst?.type === 'inflation'
+        );
+        
         await new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/lumpSumRollingXirr/worker.ts', import.meta.url));
           // Use actual lumpsumAmount for corpus view, 100 for XIRR view
@@ -128,7 +151,17 @@ export function useLumpsumPlot({
           worker.postMessage({ navDataList, years, allocations, investmentAmount: baseAmount });
           
           worker.onmessage = (event: MessageEvent) => {
-            allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = event.data;
+            let resultData = event.data;
+            
+            // Strip volatility for inflation instruments (not meaningful for smooth daily compounding)
+            if (hasInflation && Array.isArray(resultData)) {
+              resultData = resultData.map((entry: any) => {
+                const { volatility, ...rest } = entry;
+                return rest;
+              });
+            }
+            
+            allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = resultData;
             worker.terminate();
             resolve();
           };

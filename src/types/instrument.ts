@@ -1,4 +1,4 @@
-export type InstrumentType = 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return';
+export type InstrumentType = 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' | 'inflation';
 
 export interface BaseInstrument {
   id: string | number;
@@ -34,7 +34,14 @@ export interface FixedReturnInstrument extends BaseInstrument {
   displayName: string;
 }
 
-export type Instrument = MutualFund | IndexFund | YahooFinanceInstrument | FixedReturnInstrument;
+export interface InflationInstrument extends BaseInstrument {
+  type: 'inflation';
+  id: string;
+  displayName: string;
+  countryCode: string; // e.g., 'IND' for India
+}
+
+export type Instrument = MutualFund | IndexFund | YahooFinanceInstrument | FixedReturnInstrument | InflationInstrument;
 
 export interface InstrumentNavData {
   date: Date;

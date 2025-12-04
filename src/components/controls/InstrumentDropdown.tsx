@@ -4,6 +4,7 @@ import { MutualFundSelector } from './MutualFundSelector';
 import { IndexSelector } from './IndexSelector';
 import { YahooFinanceSelector } from './YahooFinanceSelector';
 import { FixedReturnSelector } from './FixedReturnSelector';
+import { InflationSelector } from './InflationSelector';
 
 interface InstrumentDropdownProps {
   instrumentType: InstrumentType;
@@ -52,6 +53,15 @@ export const InstrumentDropdown: React.FC<InstrumentDropdownProps> = ({
   if (instrumentType === 'fixed_return') {
     return (
       <FixedReturnSelector
+        onSelect={onSelect}
+        value={value}
+      />
+    );
+  }
+
+  if (instrumentType === 'inflation') {
+    return (
+      <InflationSelector
         onSelect={onSelect}
         value={value}
       />

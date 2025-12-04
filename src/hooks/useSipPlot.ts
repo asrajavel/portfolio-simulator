@@ -3,6 +3,7 @@ import { fillMissingNavDates } from '../utils/data/fillMissingNavDates';
 import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { fixedReturnService } from '../services/fixedReturnService';
+import { inflationService } from '../services/inflationService';
 
 export function useSipPlot({
   sipStrategies,
@@ -91,6 +92,24 @@ export function useSipPlot({
                   console.error(`Failed to generate fixed return data for ${instrument.annualReturnPercentage}%:`, fixedReturnError);
                   continue;
                 }
+              } else if (instrument.type === 'inflation') {
+                try {
+                  const inflationData = await inflationService.generateInflationNavData(
+                    instrument.countryCode,
+                    1960
+                  );
+                  
+                  if (!inflationData || inflationData.length === 0) {
+                    continue;
+                  }
+                  
+                  // Data is already in the correct format
+                  nav = inflationData;
+                  identifier = `${pIdx}_inflation_${instrument.countryCode}`;
+                } catch (inflationError) {
+                  console.error(`Failed to generate inflation data for ${instrument.countryCode}:`, inflationError);
+                  continue;
+                }
               }
               
               if (!Array.isArray(nav) || nav.length === 0) {
@@ -112,6 +131,7 @@ export function useSipPlot({
       plotState.setLoadingXirr(true);
       const allSipXirrDatas: Record<string, any[]> = {};
       let completed = 0;
+      
       for (let pIdx = 0; pIdx < sipStrategies.length; ++pIdx) {
         const navDataList = allNavDatas[pIdx];
         const allocations = sipStrategies[pIdx].allocations;
@@ -119,18 +139,35 @@ export function useSipPlot({
         const rebalancingThreshold = sipStrategies[pIdx].rebalancingThreshold;
         const stepUpEnabled = sipStrategies[pIdx].stepUpEnabled;
         const stepUpPercentage = sipStrategies[pIdx].stepUpPercentage;
+        
         if (!navDataList || navDataList.length === 0) {
           allSipXirrDatas[`Strategy ${pIdx + 1}`] = [];
           completed++;
           continue;
         }
+        
+        // Check if this strategy contains inflation instrument
+        const hasInflation = sipStrategies[pIdx].selectedInstruments.some(
+          inst => inst?.type === 'inflation'
+        );
+        
         await new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url));
           // Use 100 as base for XIRR view, actual sipAmount for corpus view
           const baseSipAmount = chartView === 'corpus' ? sipAmount : 100;
           worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount: baseSipAmount });
           worker.onmessage = (event: MessageEvent) => {
-            allSipXirrDatas[`Strategy ${pIdx + 1}`] = event.data;
+            let resultData = event.data;
+            
+            // Strip volatility for inflation instruments (not meaningful for smooth daily compounding)
+            if (hasInflation && Array.isArray(resultData)) {
+              resultData = resultData.map((entry: any) => {
+                const { volatility, ...rest } = entry;
+                return rest;
+              });
+            }
+            
+            allSipXirrDatas[`Strategy ${pIdx + 1}`] = resultData;
             worker.terminate();
             completed++;
             resolve();

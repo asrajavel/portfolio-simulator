@@ -47,6 +47,14 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
     });
   }, [selectedInstruments]);
 
+  // Check if inflation exists in any instrument
+  const hasInflation = selectedInstruments.some(inst => inst?.type === 'inflation');
+
+  // Check if there are other instruments besides the current index
+  const hasOtherInstruments = (idx: number) => {
+    return selectedInstruments.some((inst, i) => i !== idx && inst !== null);
+  };
+
   const handleInstrumentTypeChange = (idx: number, type: InstrumentType) => {
     const newTypes = [...instrumentTypes];
     newTypes[idx] = type;
@@ -78,6 +86,15 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
         displayName: 'Fixed 8% Return'
       };
       onInstrumentSelect(idx, defaultFixedReturn);
+    } else if (type === 'inflation') {
+      const defaultInflation: Instrument = {
+        type: 'inflation',
+        id: 'inflation_IND',
+        name: 'India - Consumer Price Index',
+        countryCode: 'IND',
+        displayName: 'India - Consumer Price Index'
+      };
+      onInstrumentSelect(idx, defaultInflation);
     }
   };
 
@@ -88,6 +105,7 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
           <InstrumentTypeDropdown
             value={instrumentTypes[idx] || 'mutual_fund'}
             onChange={(type) => handleInstrumentTypeChange(idx, type)}
+            disableInflation={hasOtherInstruments(idx)}
           />
           <InstrumentDropdown
             instrumentType={instrumentTypes[idx] || 'mutual_fund'}
@@ -106,7 +124,7 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
             max={100}
             value={allocations[idx] ?? 0}
             onChange={e => onAllocationChange(idx, Number((e.target as HTMLInputElement).value))}
-            disabled={disableControls}
+            disabled={disableControls || hasInflation}
             size="compact"
             overrides={{
               Root: {
@@ -163,7 +181,7 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
           kind="primary"
           size="compact"
           onClick={onAddFund}
-          disabled={disableControls}
+          disabled={disableControls || hasInflation}
         >
           + Instrument
         </Button>

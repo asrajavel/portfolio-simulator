@@ -6,17 +6,24 @@ import { InstrumentType } from '../../types/instrument';
 interface InstrumentTypeDropdownProps {
   value: InstrumentType;
   onChange: (type: InstrumentType) => void;
+  disableInflation?: boolean;
 }
 
 const options = [
   { label: 'Mutual Fund', id: 'mutual_fund' },
   { label: 'Index (TRI)', id: 'index_fund' },
   { label: 'Yahoo Finance', id: 'yahoo_finance' },
-  { label: 'Fixed Annual Return', id: 'fixed_return' }
+  { label: 'Fixed Annual Return', id: 'fixed_return' },
+  { label: 'Inflation Rate', id: 'inflation' }
 ];
 
-export const InstrumentTypeDropdown: React.FC<InstrumentTypeDropdownProps> = ({ value, onChange }) => {
+export const InstrumentTypeDropdown: React.FC<InstrumentTypeDropdownProps> = ({ value, onChange, disableInflation = false }) => {
   const selectedValue = options.filter(option => option.id === value);
+
+  // Filter out inflation option if it should be disabled
+  const availableOptions = disableInflation 
+    ? options.filter(opt => opt.id !== 'inflation')
+    : options;
 
   const handleChange = (params: any) => {
     if (params.value && params.value.length > 0) {
@@ -36,7 +43,7 @@ export const InstrumentTypeDropdown: React.FC<InstrumentTypeDropdownProps> = ({ 
       }}
     >
       <Select
-        options={options}
+        options={availableOptions}
         value={selectedValue}
         onChange={handleChange}
         size="compact"

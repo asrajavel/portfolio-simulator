@@ -20,6 +20,8 @@ export function setLumpsumQueryParams(lumpsumStrategies: LumpsumStrategy[], year
             return `yahoo:${inst.symbol}:${allocation}`;
           } else if (inst.type === 'fixed_return') {
             return `fixed:${inst.annualReturnPercentage}:${allocation}`;
+          } else if (inst.type === 'inflation') {
+            return `inflation:${inst.countryCode}:${allocation}`;
           }
           return `null:${allocation}`;
         })

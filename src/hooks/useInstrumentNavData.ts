@@ -4,6 +4,7 @@ import { fetchNavData } from '../services/mfapiNavService';
 import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { fixedReturnService } from '../services/fixedReturnService';
+import { inflationService } from '../services/inflationService';
 
 export const useInstrumentNavData = () => {
   const loadNavData = useCallback(async (instrument: Instrument) => {
@@ -18,6 +19,11 @@ export const useInstrumentNavData = () => {
         return fixedReturnService.generateFixedReturnData(
           instrument.annualReturnPercentage,
           1990
+        );
+      case 'inflation':
+        return inflationService.generateInflationNavData(
+          instrument.countryCode,
+          1960 // World Bank data starts from 1960
         );
     }
   }, []);

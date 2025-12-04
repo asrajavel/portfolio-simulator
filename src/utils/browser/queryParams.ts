@@ -58,6 +58,20 @@ export function getQueryParams() {
               annualReturnPercentage: returnPercentage,
               displayName: `Fixed ${returnPercentage}% Return`
             };
+          } else if (type === 'inflation') {
+            const countryCode = parts[1];
+            const countryNames: Record<string, string> = {
+              'IND': 'India - Consumer Price Index',
+              'USA': 'USA - Consumer Price Index'
+            };
+            const displayName = countryNames[countryCode] || `${countryCode} - Consumer Price Index`;
+            return {
+              type: 'inflation' as const,
+              id: `inflation_${countryCode}`,
+              name: displayName,
+              countryCode: countryCode,
+              displayName: displayName
+            };
           }
           return null;
         }).filter((inst): inst is Instrument => inst !== null)
@@ -125,6 +139,20 @@ export function getQueryParams() {
                     annualReturnPercentage: returnPercentage,
                     displayName: `Fixed ${returnPercentage}% Return`
                   });
+                } else if (type === 'inflation' && instrumentParts.length >= 3) {
+                  const countryCode = instrumentParts[1];
+                  const countryNames: Record<string, string> = {
+                    'IND': 'India - Consumer Price Index',
+                    'USA': 'USA - Consumer Price Index'
+                  };
+                  const displayName = countryNames[countryCode] || `${countryCode} - Consumer Price Index`;
+                  selectedInstruments.push({
+                    type: 'inflation',
+                    id: `inflation_${countryCode}`,
+                    name: displayName,
+                    countryCode: countryCode,
+                    displayName: displayName
+                  });
                 } else {
                   selectedInstruments.push(null);
                 }
@@ -176,6 +204,8 @@ export function setQueryParams(sipStrategies: SipStrategy[], years: number, sipA
             return `yahoo:${inst.symbol}:${allocation}`;
           } else if (inst.type === 'fixed_return') {
             return `fixed:${inst.annualReturnPercentage}:${allocation}`;
+          } else if (inst.type === 'inflation') {
+            return `inflation:${inst.countryCode}:${allocation}`;
           }
           return `null:${allocation}`;
         })
@@ -204,6 +234,8 @@ export function setHistoricalValuesParams(instruments: Instrument[], logScale: b
         return `yahoo:${inst.symbol}`;
       } else if (inst.type === 'fixed_return') {
         return `fixed:${inst.annualReturnPercentage}`;
+      } else if (inst.type === 'inflation') {
+        return `inflation:${inst.countryCode}`;
       }
       return null;
     })
