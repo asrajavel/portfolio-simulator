@@ -3,7 +3,6 @@ import { fillMissingNavDates } from '../utils/data/fillMissingNavDates';
 import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { fixedReturnService } from '../services/fixedReturnService';
-import { calculateLumpSumRollingXirr } from '../utils/calculations/lumpSumRollingXirr';
 
 export function useLumpsumPlot({
   lumpsumStrategies,
@@ -109,7 +108,7 @@ export function useLumpsumPlot({
       
       plotState.setNavDatas(allNavsFlat);
       
-      // Now calculate XIRR for each strategy (lumpsum calculation is synchronous, no worker needed)
+      // Now calculate XIRR for each strategy using Web Worker (prevents UI freezing)
       plotState.setLoadingXirr(true);
       const allLumpsumXirrDatas: Record<string, any[]> = {};
       
@@ -122,15 +121,25 @@ export function useLumpsumPlot({
           continue;
         }
         
-        try {
+        await new Promise<void>((resolve) => {
+          const worker = new Worker(new URL('../utils/calculations/lumpSumRollingXirr/worker.ts', import.meta.url));
           // Use actual lumpsumAmount for corpus view, 100 for XIRR view
           const baseAmount = chartView === 'corpus' ? lumpsumAmount : 100;
-          const xirrData = calculateLumpSumRollingXirr(navDataList, years, allocations, baseAmount);
-          allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = xirrData;
-        } catch (error) {
-          console.error(`Error calculating lumpsum XIRR for strategy ${pIdx + 1}:`, error);
-          allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = [];
-        }
+          worker.postMessage({ navDataList, years, allocations, investmentAmount: baseAmount });
+          
+          worker.onmessage = (event: MessageEvent) => {
+            allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = event.data;
+            worker.terminate();
+            resolve();
+          };
+          
+          worker.onerror = (err: ErrorEvent) => {
+            console.error(`Error calculating lumpsum XIRR for strategy ${pIdx + 1}:`, err);
+            allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = [];
+            worker.terminate();
+            resolve();
+          };
+        });
       }
       
       plotState.setLumpSumXirrDatas(allLumpsumXirrDatas);

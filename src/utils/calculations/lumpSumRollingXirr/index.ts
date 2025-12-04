@@ -7,6 +7,7 @@ export interface RollingXirrEntry {
   date: Date;
   xirr: number;
   transactions: { nav: number; when: Date }[];
+  volatility?: number;
 }
 
 /**
@@ -51,6 +52,15 @@ export function calculateLumpSumRollingXirr(
   const result: RollingXirrEntry[] = [];
   const firstDate = dateList[0];
   const months = 12 * years;
+
+  // Pre-calculate ALL daily portfolio values ONCE (for volatility)
+  // This is much faster than recalculating for each rolling period
+  const allDailyValues = calculateAllDailyPortfolioValues(
+    filledNavs,
+    actualAllocations,
+    investmentAmount,
+    sorted
+  );
 
   for (let i = 0; i < dateList.length; i++) {
     const endDate = dateList[i];
@@ -128,8 +138,109 @@ export function calculateLumpSumRollingXirr(
       continue; // Skip if XIRR calculation fails
     }
     
-    result.push({ date: endDate, xirr: rate, transactions });
+    // Slice daily values for this specific period (fast lookup)
+    const periodDailyValues = allDailyValues.filter(
+      dv => dv.date >= startDate && dv.date <= endDate
+    );
+    
+    // Calculate volatility from pre-calculated daily values
+    const volatility = calculateVolatilityFromDailyValues(periodDailyValues);
+    
+    result.push({ 
+      date: endDate, 
+      xirr: rate, 
+      transactions,
+      volatility: Math.round(volatility * 10000) / 10000 // Round to 4 decimal places
+    });
   }
   
   return result;
+}
+
+/**
+ * Pre-calculate daily portfolio values for ALL dates
+ * This is done ONCE, then sliced for each rolling period
+ */
+function calculateAllDailyPortfolioValues(
+  filledNavs: NavEntry[][],
+  allocations: number[],
+  investmentAmount: number,
+  sorted: NavEntry[]
+): Array<{ date: Date; totalValue: number }> {
+  const numFunds = filledNavs.length;
+  const firstDate = sorted[0].date;
+  
+  // Calculate units purchased on day 1 for each fund
+  const unitsPerFund: number[] = [];
+  for (let f = 0; f < numFunds; f++) {
+    const startNav = filledNavs[f].find(entry => 
+      entry.date.getTime() === firstDate.getTime()
+    );
+    if (!startNav) return [];
+    
+    const fundAllocation = (investmentAmount * allocations[f]) / 100;
+    unitsPerFund[f] = fundAllocation / startNav.nav;
+  }
+
+  // Calculate total value for each day
+  const dailyValues: Array<{ date: Date; totalValue: number }> = [];
+  
+  for (const dateEntry of sorted) {
+    let totalValue = 0;
+    let valid = true;
+
+    for (let f = 0; f < numFunds; f++) {
+      const navEntry = filledNavs[f].find(
+        entry => entry.date.getTime() === dateEntry.date.getTime()
+      );
+      
+      if (!navEntry) {
+        valid = false;
+        break;
+      }
+      
+      totalValue += unitsPerFund[f] * navEntry.nav;
+    }
+
+    if (valid && totalValue > 0) {
+      dailyValues.push({
+        date: dateEntry.date,
+        totalValue
+      });
+    }
+  }
+
+  return dailyValues;
+}
+
+/**
+ * Calculate volatility from daily portfolio values
+ * Simple version - no cash flow adjustments needed for lumpsum
+ */
+function calculateVolatilityFromDailyValues(
+  dailyValues: Array<{ date: Date; totalValue: number }>
+): number {
+  if (dailyValues.length < 2) return 0;
+
+  // Calculate daily returns
+  const dailyReturns: number[] = [];
+  for (let i = 1; i < dailyValues.length; i++) {
+    const prevValue = dailyValues[i - 1].totalValue;
+    const currValue = dailyValues[i].totalValue;
+    
+    if (prevValue > 0) {
+      const dailyReturn = (currValue / prevValue) - 1;
+      dailyReturns.push(dailyReturn);
+    }
+  }
+
+  if (dailyReturns.length < 2) return 0;
+
+  // Calculate std dev
+  const mean = dailyReturns.reduce((sum, r) => sum + r, 0) / dailyReturns.length;
+  const variance = dailyReturns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / dailyReturns.length;
+  const stdDev = Math.sqrt(variance);
+
+  // Annualize (252 trading days)
+  return stdDev * Math.sqrt(252) * 100;
 } 

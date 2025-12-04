@@ -342,9 +342,9 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
         />
       </Block>
       
-      {/* Volatility Chart - only for SIP */}
-      {!isLumpsum && sipStrategyXirrData && (
-        <VolatilityChart sipStrategyXirrData={sipStrategyXirrData} COLORS={COLORS} years={years} />
+      {/* Volatility Chart */}
+      {strategyXirrData && (
+        <VolatilityChart sipStrategyXirrData={strategyXirrData} COLORS={COLORS} years={years} />
       )}
     </Block>
   );

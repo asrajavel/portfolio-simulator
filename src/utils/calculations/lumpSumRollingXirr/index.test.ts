@@ -101,4 +101,22 @@ describe('calculateLumpSumRollingXirr', () => {
     expect(r2024!.xirr).toBe(1); // 100% return (50k → 100k)
     expect(r2024!.transactions[1].nav).toBe(100000);
   });
+
+  it('calculates volatility for lumpsum investment', () => {
+    const navData: NavEntry[] = [
+      { date: new Date('2023-01-01'), nav: 100 },
+      { date: new Date('2023-01-02'), nav: 105 }, // +5%
+      { date: new Date('2023-01-03'), nav: 102 }, // -2.86%
+      { date: new Date('2023-01-04'), nav: 108 }, // +5.88%
+      { date: new Date('2023-01-05'), nav: 104 }, // -3.70%
+      { date: new Date('2024-01-01'), nav: 110 },
+    ];
+    const filled = fillMissingNavDates(navData);
+    
+    const result = calculateLumpSumRollingXirr([filled], 1, [100], 100);
+    const r2024 = result.find(r => r.date.getTime() === new Date('2024-01-01').getTime());
+    
+    expect(r2024).toBeDefined();
+    expect(r2024!.volatility).toBe(8.8906);
+  });
 }); 
