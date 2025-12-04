@@ -115,6 +115,7 @@ export function useLumpsumPlot({
       
       for (let pIdx = 0; pIdx < lumpsumStrategies.length; ++pIdx) {
         const navDataList = allNavDatas[pIdx];
+        const allocations = lumpsumStrategies[pIdx].allocations;
         
         if (!navDataList || navDataList.length === 0) {
           allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = [];
@@ -124,7 +125,7 @@ export function useLumpsumPlot({
         try {
           // Use actual lumpsumAmount for corpus view, 100 for XIRR view
           const baseAmount = chartView === 'corpus' ? lumpsumAmount : 100;
-          const xirrData = calculateLumpSumRollingXirr(navDataList, years, baseAmount);
+          const xirrData = calculateLumpSumRollingXirr(navDataList, years, allocations, baseAmount);
           allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = xirrData;
         } catch (error) {
           console.error(`Error calculating lumpsum XIRR for strategy ${pIdx + 1}:`, error);

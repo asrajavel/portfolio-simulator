@@ -12,15 +12,17 @@ export interface RollingXirrEntry {
 /**
  * Calculates lump sum rolling XIRR for a portfolio of funds.
  * Each fund's NAV data should be provided as an array in the input array.
- * Investments are split equally across all funds.
+ * Investments are allocated according to the allocations array.
  *
  * @param navDataList Array of arrays of NavEntry (one per fund)
  * @param years Rolling window size in years (default 1)
+ * @param allocations Array of allocation percentages (default: equal split)
  * @param investmentAmount Total investment amount (default 100)
  */
 export function calculateLumpSumRollingXirr(
   navDataList: NavEntry[][],
   years: number = 1,
+  allocations: number[] = [],
   investmentAmount: number = 100
 ): RollingXirrEntry[] {
   // Ensure we have at least one fund with at least 2 entries
@@ -29,6 +31,12 @@ export function calculateLumpSumRollingXirr(
   }
 
   const numFunds = navDataList.length;
+  
+  // Use provided allocations or default to equal split
+  const actualAllocations = allocations.length === numFunds 
+    ? allocations 
+    : Array(numFunds).fill(100 / numFunds);
+  
   const filledNavs = navDataList.map(fund => {
     let data = fund;
     if (!areDatesContinuous(data)) {
@@ -61,7 +69,7 @@ export function calculateLumpSumRollingXirr(
     const fundUnits: number[] = [];
     let valid = true;
     
-    // Calculate units purchased for each fund with equal allocation
+    // Calculate units purchased for each fund based on allocations
     for (let f = 0; f < numFunds; f++) {
       const fundNav = filledNavs[f];
       const startEntry = fundNav.find(entry => 
@@ -75,7 +83,7 @@ export function calculateLumpSumRollingXirr(
         break; 
       }
       
-      const fundAllocation = investmentAmount / numFunds;
+      const fundAllocation = (investmentAmount * actualAllocations[f]) / 100;
       fundUnits[f] = fundAllocation / startEntry.nav;
     }
     
