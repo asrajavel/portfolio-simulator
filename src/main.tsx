@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 import { Provider as StyletronProvider } from 'styletron-react';
@@ -37,7 +38,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <StyletronProvider value={engine}>
     <BaseProvider theme={LightTheme}>
       <React.StrictMode>
-        <App />
+        <BrowserRouter basename="/portfolio-simulator">
+          <App />
+        </BrowserRouter>
       </React.StrictMode>
     </BaseProvider>
   </StyletronProvider>

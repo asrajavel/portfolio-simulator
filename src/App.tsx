@@ -1,82 +1,27 @@
 import React, { useState } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Container } from './components/common/Container';
 import { useMutualFunds } from './hooks/useMutualFunds';
 import { useNavData } from './hooks/useNavData';
-import { LoadingOverlay } from './components/common/LoadingOverlay';
-import { ChartArea } from './components/layout/ChartArea';
-import { usePlotState } from './hooks/usePlotState';
-import { usePortfolios } from './hooks/usePortfolios';
-import { usePortfolioPlot } from './hooks/usePortfolioPlot';
-import { useChartInvalidation } from './hooks/useChartInvalidation';
 import { Block } from 'baseui/block';
 import { LoadingErrorStates } from './components/common/LoadingErrorStates';
-import { PortfolioList } from './components/portfolio/PortfolioList';
-import { ControlsPanel } from './components/controls/ControlsPanel';
 import { AppNavBar } from 'baseui/app-nav-bar';
 import { PortfolioSipHelpModal } from './components/portfolio/PortfolioSipHelpModal';
-import { RawInstrumentPanel } from './components/raw-instrument/RawInstrumentPanel';
 import { useInstrumentNavData } from './hooks/useInstrumentNavData';
-import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from './constants';
+import { PortfolioTab } from './pages/PortfolioTab';
+import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
 
 const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'portfolio' | 'raw'>('portfolio');
   const { funds, loading, error } = useMutualFunds();
   const { loadNavData } = useNavData();
   const { loadNavData: loadInstrumentNavData } = useInstrumentNavData();
-  const plotState = usePlotState(loadNavData, funds);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-  const [sipAmount, setSipAmount] = useState<number>(10000);
-  const [chartView, setChartView] = useState<'xirr' | 'corpus'>('xirr');
-  
-  const {
-    portfolios,
-    setPortfolios,
-    years,
-    setYears,
-    handleAddPortfolio,
-    handleInstrumentSelect,
-    handleAddFund,
-    handleRemoveFund,
-    handleAllocationChange,
-    handleToggleRebalancing,
-    handleRebalancingThresholdChange,
-    handleToggleStepUp,
-    handleStepUpPercentageChange,
-  } = usePortfolios(DEFAULT_SCHEME_CODE, [sipAmount, setSipAmount]);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const { handlePlotAllPortfolios } = usePortfolioPlot({
-    portfolios,
-    years,
-    loadNavData,
-    plotState,
-    sipAmount,
-    chartView,
-  });
-
-  const anyInvalidAlloc = portfolios.some(
-    p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
-  );
-
-  // Use chart invalidation hook to wrap handlers
-  const { invalidateChart, withInvalidation } = useChartInvalidation(plotState);
-
-  // Wrap handlers with automatic chart invalidation
-  const handleAddPortfolioInvalidate = withInvalidation(handleAddPortfolio);
-  const handleAddFundInvalidate = withInvalidation(handleAddFund);
-  const handleRemoveFundInvalidate = withInvalidation(handleRemoveFund);
-  const handleAllocationChangeInvalidate = withInvalidation(handleAllocationChange);
-  const handleInstrumentSelectInvalidate = withInvalidation(handleInstrumentSelect);
-  const handleToggleRebalancingInvalidate = withInvalidation(handleToggleRebalancing);
-  const handleRebalancingThresholdChangeInvalidate = withInvalidation(handleRebalancingThresholdChange);
-  const handleToggleStepUpInvalidate = withInvalidation(handleToggleStepUp);
-  const handleStepUpPercentageChangeInvalidate = withInvalidation(handleStepUpPercentageChange);
-  const handleYearsChange = invalidateChart;
-  
-  // Handle chart view change - invalidate charts when switching between XIRR and Corpus
-  const handleChartViewChange = (view: 'xirr' | 'corpus') => {
-    setChartView(view);
-    invalidateChart();
-  };
+  // Determine which tab is active based on route
+  const isPortfolioTab = location.pathname === '/portfolio';
+  const isHistoricalTab = location.pathname === '/historical';
 
   const handleHelpClick = () => {
     setIsHelpModalOpen(true);
@@ -98,8 +43,8 @@ const App: React.FC = () => {
                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
               </svg>
             ),
-            label: 'Portfolio SIP Simulator',
-            active: activeView === 'portfolio'
+            label: 'SIP Simulator',
+            active: isPortfolioTab
           },
           { 
             icon: () => (
@@ -107,12 +52,12 @@ const App: React.FC = () => {
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
               </svg>
             ),
-            label: 'Raw Instrument Values',
-            active: activeView === 'raw'
+            label: 'Historical Values',
+            active: isHistoricalTab
           }
         ]}
         onMainItemSelect={(item) => {
-          setActiveView(item.label === 'Portfolio SIP Simulator' ? 'portfolio' : 'raw');
+          navigate(item.label === 'SIP Simulator' ? '/portfolio' : '/historical');
         }}
         overrides={{
           Root: {
@@ -126,73 +71,23 @@ const App: React.FC = () => {
       <Block position="relative" backgroundColor="white" padding="1.5rem">
         <LoadingErrorStates loading={loading} error={error} />
         
+        {/* Route handler for redirects */}
+        <Routes>
+          <Route path="/" element={<Navigate to="/portfolio" replace />} />
+          <Route path="/portfolio" element={null} />
+          <Route path="/historical" element={null} />
+        </Routes>
+        
         {!loading && !error && funds.length > 0 && (
           <>
-            {activeView === 'portfolio' && (
-              <Block position="relative">
-                <LoadingOverlay active={plotState.loadingNav || plotState.loadingXirr} />
-                
-                <Block maxWidth="900px" margin="0 auto">
-                  <PortfolioList
-                    portfolios={portfolios}
-                    setPortfolios={setPortfolios}
-                    funds={funds}
-                    onInstrumentSelect={(pIdx: number, idx: number, instrument) => {
-                      invalidateChart();
-                      handleInstrumentSelect(pIdx, idx, instrument);
-                    }}
-                    onAddFund={handleAddFundInvalidate}
-                    onRemoveFund={handleRemoveFundInvalidate}
-                    onAllocationChange={handleAllocationChangeInvalidate}
-                    onToggleRebalancing={handleToggleRebalancingInvalidate}
-                    onRebalancingThresholdChange={handleRebalancingThresholdChangeInvalidate}
-                    onToggleStepUp={handleToggleStepUpInvalidate}
-                    onStepUpPercentageChange={handleStepUpPercentageChangeInvalidate}
-                    onAddPortfolio={handleAddPortfolioInvalidate}
-                    disableControls={plotState.loadingNav || plotState.loadingXirr}
-                    COLORS={plotState.COLORS}
-                    useInstruments={true}
-                    defaultSchemeCode={DEFAULT_SCHEME_CODE}
-                  />
-
-                  <ControlsPanel
-                    years={years}
-                    setYears={setYears}
-                    onPlot={handlePlotAllPortfolios}
-                    disabled={plotState.loadingNav || plotState.loadingXirr}
-                    anyInvalidAlloc={anyInvalidAlloc}
-                    onYearsChange={handleYearsChange}
-                    sipAmount={sipAmount}
-                    setSipAmount={setSipAmount}
-                    chartView={chartView}
-                    setChartView={handleChartViewChange}
-                  />
-                </Block>
-
-                <ChartArea
-                  xirrError={plotState.xirrError}
-                  hasPlotted={plotState.hasPlotted}
-                  navDatas={plotState.navDatas}
-                  lumpSumXirrDatas={plotState.lumpSumXirrDatas}
-                  sipXirrDatas={plotState.sipXirrDatas}
-                  funds={funds}
-                  COLORS={plotState.COLORS}
-                  loadingNav={plotState.loadingNav}
-                  loadingXirr={plotState.loadingXirr}
-                  portfolios={portfolios}
-                  years={years}
-                  sipAmount={sipAmount}
-                  chartView={chartView}
-                />
-              </Block>
-            )}
-
-            {activeView === 'raw' && (
-              <RawInstrumentPanel 
-                funds={funds}
-                loadNavData={loadInstrumentNavData}
-              />
-            )}
+            {/* Keep both tabs mounted, just toggle visibility */}
+            <Block display={isPortfolioTab ? 'block' : 'none'}>
+              <PortfolioTab funds={funds} loadNavData={loadNavData} />
+            </Block>
+            
+            <Block display={isHistoricalTab ? 'block' : 'none'}>
+              <HistoricalValuesTab funds={funds} loadNavData={loadInstrumentNavData} />
+            </Block>
           </>
         )}
         

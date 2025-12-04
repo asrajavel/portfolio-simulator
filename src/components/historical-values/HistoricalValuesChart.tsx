@@ -6,14 +6,14 @@ import { Instrument } from '../../types/instrument';
 import { CHART_STYLES } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 
-interface RawNavChartProps {
+interface HistoricalValuesChartProps {
   navDatas: Record<string, Array<{ date: Date; nav: number }>>;
   instruments: Instrument[];
   useLogScale?: boolean;
   colors: string[];
 }
 
-export const RawNavChart: React.FC<RawNavChartProps> = ({
+export const HistoricalValuesChart: React.FC<HistoricalValuesChartProps> = ({
   navDatas,
   instruments,
   useLogScale = false,
@@ -53,7 +53,7 @@ export const RawNavChart: React.FC<RawNavChartProps> = ({
       type: useLogScale ? 'logarithmic' : 'linear',
       opposite: false,
       title: {
-        text: 'NAV Value',
+        text: 'Value',
         align: 'middle',
         rotation: -90,
         x: -10,

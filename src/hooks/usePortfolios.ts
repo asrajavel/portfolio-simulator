@@ -5,7 +5,7 @@ import { Portfolio } from '../types/portfolio';
 import { Instrument } from '../types/instrument';
 import { DEFAULT_REBALANCING_THRESHOLD, ALLOCATION_TOTAL } from '../constants';
 
-export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [number, (v: number) => void]) {
+export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [number, (v: number) => void], isActive: boolean = true) {
   // Initialize portfolios and years from query params
   const initialParams = React.useMemo(() => getQueryParams(), []);
   const [sipAmount, setSipAmount] = sipAmountState;
@@ -159,10 +159,12 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
     ));
   };
 
-  // Sync portfolios, years, and sipAmount to query params
+  // Sync portfolios, years, and sipAmount to query params (only when tab is active)
   React.useEffect(() => {
-    setQueryParams(portfolios, years, sipAmount);
-  }, [portfolios, years, sipAmount]);
+    if (isActive) {
+      setQueryParams(portfolios, years, sipAmount);
+    }
+  }, [portfolios, years, sipAmount, isActive]);
 
   return {
     portfolios,

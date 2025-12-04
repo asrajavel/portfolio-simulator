@@ -1,4 +1,5 @@
 import { Portfolio } from '../../types/portfolio';
+import { Instrument } from '../../types/instrument';
 
 // Utility functions for reading and writing portfolios and years to the query string
 export function getQueryParams() {
@@ -6,9 +7,59 @@ export function getQueryParams() {
   const portfoliosParam = params.get('portfolios');
   const years = params.get('years');
   const sipAmount = params.get('sipAmount');
+  const instrumentsParam = params.get('instruments');
+  const logScale = params.get('logScale');
   const defaultThreshold = 5; // Default threshold if not in query params
 
   return {
+    instruments: instrumentsParam
+      ? instrumentsParam.split(';').map(instrStr => {
+          const parts = instrStr.split(':');
+          if (parts.length < 2) return null;
+          
+          const type = parts[0];
+          
+          if (type === 'mf') {
+            const schemeCode = Number(parts[1]);
+            return {
+              type: 'mutual_fund' as const,
+              id: schemeCode,
+              name: `Scheme ${schemeCode}`,
+              schemeCode: schemeCode,
+              schemeName: `Scheme ${schemeCode}`
+            };
+          } else if (type === 'idx') {
+            const indexName = parts[1].replace(/_/g, ' ');
+            return {
+              type: 'index_fund' as const,
+              id: indexName,
+              name: indexName,
+              indexName: indexName,
+              displayName: indexName
+            };
+          } else if (type === 'yahoo') {
+            const symbol = parts[1];
+            return {
+              type: 'yahoo_finance' as const,
+              id: symbol,
+              name: symbol,
+              symbol: symbol,
+              displayName: symbol
+            };
+          } else if (type === 'fixed') {
+            const returnPercentage = parseFloat(parts[1]);
+            return {
+              type: 'fixed_return' as const,
+              id: `fixed_${returnPercentage}`,
+              name: `Fixed ${returnPercentage}% Return`,
+              annualReturnPercentage: returnPercentage,
+              displayName: `Fixed ${returnPercentage}% Return`
+            };
+          }
+          return null;
+        }).filter((inst): inst is Instrument => inst !== null)
+      : [],
+    logScale: logScale === '1',
     portfolios: portfoliosParam
       ? portfoliosParam.split(';').map(p_str => {
           // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
@@ -133,5 +184,28 @@ export function setQueryParams(portfolios: Portfolio[], years: number, sipAmount
   
   // Construct URL manually since we're using safe characters now
   const urlParams = `portfolios=${portfoliosStr}&years=${years}&sipAmount=${sipAmount}`;
+  window.history.replaceState({}, '', `?${urlParams}`);
+}
+
+export function setHistoricalValuesParams(instruments: Instrument[], logScale: boolean) {
+  // Format: type:id;type:id;...
+  const instrumentsStr = instruments
+    .map(inst => {
+      if (inst.type === 'mutual_fund') {
+        return `mf:${inst.schemeCode}`;
+      } else if (inst.type === 'index_fund') {
+        const cleanIndexName = inst.indexName.replace(/\s+/g, '_');
+        return `idx:${cleanIndexName}`;
+      } else if (inst.type === 'yahoo_finance') {
+        return `yahoo:${inst.symbol}`;
+      } else if (inst.type === 'fixed_return') {
+        return `fixed:${inst.annualReturnPercentage}`;
+      }
+      return null;
+    })
+    .filter(s => s !== null)
+    .join(';');
+  
+  const urlParams = `instruments=${instrumentsStr}&logScale=${logScale ? '1' : '0'}`;
   window.history.replaceState({}, '', `?${urlParams}`);
 }

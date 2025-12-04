@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Block } from 'baseui/block';
 import { Button } from 'baseui/button';
 import { Checkbox } from 'baseui/checkbox';
@@ -8,31 +8,43 @@ import { InstrumentDropdown } from '../controls/InstrumentDropdown';
 import { InstrumentType, Instrument } from '../../types/instrument';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { LoadingOverlay } from '../common/LoadingOverlay';
-import { RawNavChart } from './RawNavChart';
+import { HistoricalValuesChart } from './HistoricalValuesChart';
 import { fillMissingNavDates } from '../../utils/data/fillMissingNavDates';
 import { COLORS } from '../../constants';
+import { getQueryParams, setHistoricalValuesParams } from '../../utils/browser/queryParams';
 
 interface InstrumentEntry {
   instrumentType: InstrumentType;
   instrument: Instrument | null;
 }
 
-interface RawInstrumentPanelProps {
+interface HistoricalValuesPanelProps {
   funds: mfapiMutualFund[];
   loadNavData: (instrument: Instrument) => Promise<any[]>;
+  isActive?: boolean;
 }
 
-export const RawInstrumentPanel: React.FC<RawInstrumentPanelProps> = ({
+export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
   funds,
-  loadNavData
+  loadNavData,
+  isActive = true
 }) => {
-  const [instruments, setInstruments] = useState<InstrumentEntry[]>([
-    { instrumentType: 'mutual_fund', instrument: null }
-  ]);
+  const queryParams = getQueryParams();
+  
+  const [instruments, setInstruments] = useState<InstrumentEntry[]>(() => {
+    if (queryParams.instruments.length > 0) {
+      return queryParams.instruments.map(inst => ({
+        instrumentType: inst.type,
+        instrument: inst
+      }));
+    }
+    return [{ instrumentType: 'mutual_fund', instrument: null }];
+  });
+  
   const [navDatas, setNavDatas] = useState<Record<string, any[]>>({});
   const [plottedInstruments, setPlottedInstruments] = useState<Instrument[]>([]);
   const [loading, setLoading] = useState(false);
-  const [useLogScale, setUseLogScale] = useState(false);
+  const [useLogScale, setUseLogScale] = useState(queryParams.logScale);
 
   const handleAddInstrument = () => {
     setInstruments([...instruments, { instrumentType: 'mutual_fund', instrument: null }]);
@@ -87,13 +99,34 @@ export const RawInstrumentPanel: React.FC<RawInstrumentPanelProps> = ({
     setLoading(false);
   };
 
+  // Update URL params when instruments (current selection) or log scale changes
+  useEffect(() => {
+    if (isActive) {
+      const validInstruments = instruments
+        .filter(entry => entry.instrument !== null)
+        .map(entry => entry.instrument!);
+      
+      if (validInstruments.length > 0) {
+        setHistoricalValuesParams(validInstruments, useLogScale);
+      }
+    }
+  }, [instruments, useLogScale, isActive]);
+
+  // Auto-plot if instruments are loaded from URL params
+  useEffect(() => {
+    if (queryParams.instruments.length > 0) {
+      handlePlot();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const anyInvalidSelection = instruments.some(entry => entry.instrument === null);
 
   return (
-    <Block maxWidth="900px" margin="0 auto">
-      <Block position="relative">
-        <LoadingOverlay active={loading} />
-        
+    <Block position="relative">
+      <LoadingOverlay active={loading} />
+      
+      <Block maxWidth="900px" margin="0 auto">
         <Block marginBottom="scale800">
           {/* Individual Instrument Panels */}
           {instruments.map((entry, idx) => (
@@ -212,20 +245,20 @@ export const RawInstrumentPanel: React.FC<RawInstrumentPanelProps> = ({
             onClick={handlePlot}
             disabled={anyInvalidSelection || loading}
           >
-            Plot Raw Values
+            Plot Historical Values
           </Button>
         </Block>
-
-        {/* Chart Display */}
-        {plottedInstruments.length > 0 && (
-          <RawNavChart 
-            navDatas={navDatas}
-            instruments={plottedInstruments}
-            useLogScale={useLogScale}
-            colors={COLORS}
-          />
-        )}
       </Block>
+
+      {/* Chart Display - outside maxWidth container for full width */}
+      {plottedInstruments.length > 0 && (
+        <HistoricalValuesChart 
+          navDatas={navDatas}
+          instruments={plottedInstruments}
+          useLogScale={useLogScale}
+          colors={COLORS}
+        />
+      )}
     </Block>
   );
 };
