@@ -1,7 +1,7 @@
 import React from 'react';
 import { MultiFundCharts } from '../charts/MultiFundCharts';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
-import { Portfolio } from '../../types/portfolio';
+import { SipStrategy } from '../../types/sipStrategy';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { Block } from 'baseui/block';
 import { LabelMedium } from 'baseui/typography';
@@ -11,12 +11,12 @@ interface ChartAreaProps {
   hasPlotted: boolean;
   navDatas: Record<number, any[]>;
   lumpSumXirrDatas: Record<string, any[]>;
-  sipXirrDatas: Record<string, any[]>;
+  sipStrategyXirrData: Record<string, any[]>;
   funds: mfapiMutualFund[];
   COLORS: string[];
   loadingNav?: boolean;
   loadingXirr?: boolean;
-  portfolios: Portfolio[];
+  sipStrategies: SipStrategy[];
   years: number;
   sipAmount: number;
   chartView: 'xirr' | 'corpus';
@@ -27,12 +27,12 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
   hasPlotted,
   navDatas,
   lumpSumXirrDatas,
-  sipXirrDatas,
+  sipStrategyXirrData,
   funds,
   COLORS,
   loadingNav = false,
   loadingXirr = false,
-  portfolios,
+  sipStrategies,
   years,
   sipAmount,
   chartView,
@@ -85,10 +85,10 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
         <MultiFundCharts
           navDatas={navDatas}
           lumpSumXirrDatas={lumpSumXirrDatas}
-          sipXirrDatas={sipXirrDatas}
+          sipStrategyXirrData={sipStrategyXirrData}
           funds={funds}
           COLORS={COLORS}
-          portfolios={portfolios}
+          sipStrategies={sipStrategies}
           years={years}
           sipAmount={sipAmount}
           chartView={chartView}

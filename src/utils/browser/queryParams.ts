@@ -1,4 +1,4 @@
-import { Portfolio } from '../../types/portfolio';
+import { SipStrategy } from '../../types/sipStrategy';
 import { Instrument } from '../../types/instrument';
 
 // Utility functions for reading and writing portfolios and years to the query string
@@ -152,10 +152,10 @@ export function getQueryParams() {
   };
 }
 
-export function setQueryParams(portfolios: Portfolio[], years: number, sipAmount: number = 10000) {
+export function setQueryParams(sipStrategies: SipStrategy[], years: number, sipAmount: number = 10000) {
   // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
   // instrument format: type:id (e.g., mf:120716 or idx:NIFTY50 or fixed:8)
-  const portfoliosStr = portfolios
+  const portfoliosStr = sipStrategies
     .map(p => {
       const instrumentsStr = p.selectedInstruments
         .map((inst: any, idx: number) => {
@@ -183,6 +183,7 @@ export function setQueryParams(portfolios: Portfolio[], years: number, sipAmount
     .join(';');
   
   // Construct URL manually since we're using safe characters now
+  // Keep 'portfolios' param name for backward compatibility
   const urlParams = `portfolios=${portfoliosStr}&years=${years}&sipAmount=${sipAmount}`;
   window.history.replaceState({}, '', `?${urlParams}`);
 }

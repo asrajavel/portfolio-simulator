@@ -1,6 +1,6 @@
 import { Transaction } from '../types';
 
-export interface DailyPortfolioValue {
+export interface DailySipPortfolioValue {
   date: Date;
   totalValue: number;
   cashFlow: number; // Net cash flow on this day (negative for buy, positive for sell)
@@ -14,9 +14,9 @@ export interface DailyPortfolioValue {
  * 
  * @param transactions - All transactions
  */
-export function calculateDailyPortfolioValue(
+export function calculateDailySipPortfolioValue(
   transactions: Transaction[]
-): DailyPortfolioValue[] {
+): DailySipPortfolioValue[] {
   // Include nil and buy transactions (exclude sell and rebalance)
   const relevantTransactions = transactions.filter(
     tx => tx.type === 'nil' || tx.type === 'buy'
@@ -30,7 +30,7 @@ export function calculateDailyPortfolioValue(
   const transactionsByDate = groupTransactionsByDate(relevantTransactions);
 
   // Calculate total value and cash flow for each date
-  const dailyValues: DailyPortfolioValue[] = [];
+  const dailyValues: DailySipPortfolioValue[] = [];
 
   for (const [dateKey, txs] of transactionsByDate.entries()) {
     const totalValue = calculateTotalValue(txs);

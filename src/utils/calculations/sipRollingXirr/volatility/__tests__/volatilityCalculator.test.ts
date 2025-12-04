@@ -1,5 +1,5 @@
 import { calculateVolatility } from '../volatilityCalculator';
-import { DailyPortfolioValue } from '../portfolioValue';
+import { DailySipPortfolioValue } from '../sipPortfolioValue';
 
 /**
  * Tests for portfolio volatility calculation
@@ -14,7 +14,7 @@ import { DailyPortfolioValue } from '../portfolioValue';
 
 describe('calculateVolatility', () => {
   it('should return zero volatility for insufficient data', () => {
-    const dailyValues: DailyPortfolioValue[] = [
+    const dailyValues: DailySipPortfolioValue[] = [
       { date: new Date('2024-01-01'), totalValue: 100.00, cashFlow: 0 }
     ];
 
@@ -22,7 +22,7 @@ describe('calculateVolatility', () => {
   });
 
   it('should return zero volatility when all forward-filled days are skipped', () => {
-    const dailyValues: DailyPortfolioValue[] = [
+    const dailyValues: DailySipPortfolioValue[] = [
       { date: new Date('2024-01-01'), totalValue: 100.00, cashFlow: 0 },
       { date: new Date('2024-01-02'), totalValue: 100.00, cashFlow: 0 }, // Forward-filled (skipped)
       { date: new Date('2024-01-03'), totalValue: 100.00, cashFlow: 0 }  // Forward-filled (skipped)
@@ -34,7 +34,7 @@ describe('calculateVolatility', () => {
   });
 
   it('should calculate annualized volatility correctly', () => {
-    const dailyValues: DailyPortfolioValue[] = [
+    const dailyValues: DailySipPortfolioValue[] = [
       { date: new Date('2024-01-01'), totalValue: 100.00, cashFlow: 0 },
       { date: new Date('2024-01-02'), totalValue: 105.00, cashFlow: 0 },
       { date: new Date('2024-01-03'), totalValue: 110.00, cashFlow: 0 },
@@ -50,7 +50,7 @@ describe('calculateVolatility', () => {
   });
 
   it('should skip forward-filled weekends/holidays but include trading days', () => {
-    const dailyValues: DailyPortfolioValue[] = [
+    const dailyValues: DailySipPortfolioValue[] = [
       { date: new Date('2024-01-01'), totalValue: 100.00, cashFlow: 0 },  // Mon
       { date: new Date('2024-01-02'), totalValue: 105.00, cashFlow: 0 },  // Tue: +5%
       { date: new Date('2024-01-03'), totalValue: 105.00, cashFlow: 0 },  // Wed: forward-filled (skipped)
@@ -68,7 +68,7 @@ describe('calculateVolatility', () => {
   });
 
   it('should include buy days even when value unchanged', () => {
-    const dailyValues: DailyPortfolioValue[] = [
+    const dailyValues: DailySipPortfolioValue[] = [
       { date: new Date('2024-01-01'), totalValue: 100.00, cashFlow: 0 },
       { date: new Date('2024-01-02'), totalValue: 200.00, cashFlow: -100.00 }, // Buy: invested 100, value went to 200
       { date: new Date('2024-01-03'), totalValue: 200.00, cashFlow: 0 }        // Forward-filled (skipped)
@@ -83,7 +83,7 @@ describe('calculateVolatility', () => {
   });
 
   it('should calculate correct volatility with mix of trading and forward-filled days', () => {
-    const dailyValues: DailyPortfolioValue[] = [
+    const dailyValues: DailySipPortfolioValue[] = [
       { date: new Date('2024-01-01'), totalValue: 100.00, cashFlow: 0 },
       { date: new Date('2024-01-02'), totalValue: 110.00, cashFlow: 0 },  // +10%
       { date: new Date('2024-01-03'), totalValue: 110.00, cashFlow: 0 },  // Forward-filled (skipped)

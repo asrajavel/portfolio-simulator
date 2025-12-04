@@ -6,14 +6,14 @@ import { CHART_STYLES } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
 
 interface VolatilityChartProps {
-  sipXirrDatas: Record<string, any[]>;
+  sipStrategyXirrData: Record<string, any[]>;
   COLORS: string[];
   years: number;
 }
 
-  const getVolatilitySeries = (sipXirrDatas: Record<string, any[]>, COLORS: string[]) => {
-    const allDates = getAllDates(sipXirrDatas);
-    return Object.entries(sipXirrDatas).map(([portfolioName, data], idx) => {
+  const getVolatilitySeries = (sipStrategyXirrData: Record<string, any[]>, COLORS: string[]) => {
+    const allDates = getAllDates(sipStrategyXirrData);
+    return Object.entries(sipStrategyXirrData).map(([strategyName, data], idx) => {
       const dateToVolatility: Record<string, number> = {};
       (data || []).forEach((row: any) => {
         if (row.volatility !== undefined) {
@@ -30,7 +30,7 @@ interface VolatilityChartProps {
       }).filter(point => point !== null);
     
     return {
-      name: portfolioName,
+      name: strategyName,
       data: seriesData,
       type: 'line',
       color: COLORS[idx % COLORS.length],
@@ -40,8 +40,8 @@ interface VolatilityChartProps {
   });
 };
 
-const getChartOptions = (years: number, sipXirrDatas: Record<string, any[]>, COLORS: string[]) => ({
-  title: { text: `Portfolio Volatility (Annualized) - Rolling ${years}Y`, style: CHART_STYLES.title },
+const getChartOptions = (years: number, sipStrategyXirrData: Record<string, any[]>, COLORS: string[]) => ({
+  title: { text: `Strategy Volatility (Annualized) - Rolling ${years}Y`, style: CHART_STYLES.title },
   credits: { enabled: false },
   chart: {
     backgroundColor: CHART_STYLES.colors.background,
@@ -115,18 +115,18 @@ const getChartOptions = (years: number, sipXirrDatas: Record<string, any[]>, COL
       states: { hover: { lineWidthPlus: 1 } }
     }
   },
-  series: getVolatilitySeries(sipXirrDatas, COLORS)
+  series: getVolatilitySeries(sipStrategyXirrData, COLORS)
 });
 
-export const VolatilityChart: React.FC<VolatilityChartProps> = ({ sipXirrDatas, COLORS, years }) => {
-  // Check if any portfolio has volatility data
-  const hasVolatilityData = Object.values(sipXirrDatas).some(data => 
+export const VolatilityChart: React.FC<VolatilityChartProps> = ({ sipStrategyXirrData, COLORS, years }) => {
+  // Check if any strategy has volatility data
+  const hasVolatilityData = Object.values(sipStrategyXirrData).some(data => 
     Array.isArray(data) && data.some(row => row.volatility !== undefined)
   );
 
   if (!hasVolatilityData) return null;
 
-  const chartOptions = getChartOptions(years, sipXirrDatas, COLORS);
+  const chartOptions = getChartOptions(years, sipStrategyXirrData, COLORS);
 
   return (
     <Block marginTop="2rem">

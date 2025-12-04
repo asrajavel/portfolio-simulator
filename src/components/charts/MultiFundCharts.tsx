@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
-import { Portfolio } from '../../types/portfolio';
+import { SipStrategy } from '../../types/sipStrategy';
 import { Block } from 'baseui/block';
 import { TransactionModal } from '../modals/TransactionModal';
 import { CHART_STYLES } from '../../constants';
@@ -16,10 +16,10 @@ import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates }
 interface MultiFundChartsProps {
   navDatas: Record<number, any[]>;
   lumpSumXirrDatas: Record<number, any[]>;
-  sipXirrDatas: Record<string, any[]>;
+  sipStrategyXirrData: Record<string, any[]>;
   funds: mfapiMutualFund[];
   COLORS: string[];
-  portfolios: Portfolio[];
+  sipStrategies: SipStrategy[];
   years: number;
   sipAmount: number;
   chartView: 'xirr' | 'corpus';
@@ -30,8 +30,8 @@ interface ModalState {
   transactions: { fundIdx: number; nav: number; when: Date; units: number; amount: number; type: 'buy' | 'sell' | 'rebalance' | 'nil'; cumulativeUnits: number; currentValue: number; allocationPercentage?: number }[];
   date: string;
   xirr: number;
-  portfolioName: string;
-  portfolioFunds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
+  strategyName: string;
+  strategyInstruments: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
 }
 
 // ============================================================================
@@ -43,8 +43,8 @@ const initialModalState: ModalState = {
   transactions: [],
   date: '',
   xirr: 0,
-  portfolioName: '',
-  portfolioFunds: []
+  strategyName: '',
+  strategyInstruments: []
 };
 
 // ============================================================================
@@ -56,16 +56,16 @@ const getFundName = (schemeCode: number, funds: mfapiMutualFund[]): string => {
   return fund ? fund.schemeName : String(schemeCode);
 };
 
-const getPortfolioFunds = (
-  portfolioName: string, 
-  portfolios: Portfolio[], 
+const getStrategyInstruments = (
+  strategyName: string, 
+  sipStrategies: SipStrategy[], 
   funds: mfapiMutualFund[]
 ): Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }> => {
-  const idx = parseInt(portfolioName.replace('Portfolio ', '')) - 1;
-  const portfolio = portfolios[idx];
-  if (!portfolio || !portfolio.selectedInstruments) return [];
+  const idx = parseInt(strategyName.replace('Strategy ', '')) - 1;
+  const strategy = sipStrategies[idx];
+  if (!strategy || !strategy.selectedInstruments) return [];
   
-  return portfolio.selectedInstruments
+  return strategy.selectedInstruments
     .filter(inst => inst)
     .map(inst => {
       if (inst!.type === 'mutual_fund') {
@@ -119,7 +119,7 @@ const getBaseChartOptions = (title: string) => ({
   }
 });
 
-const getStockChartOptions = (title: string, sipXirrDatas: Record<string, any[]>, sipAmount: number, chartView: 'xirr' | 'corpus') => ({
+const getStockChartOptions = (title: string, sipStrategyXirrData: Record<string, any[]>, sipAmount: number, chartView: 'xirr' | 'corpus') => ({
   ...getBaseChartOptions(title),
   xAxis: {
     type: 'datetime',
@@ -170,10 +170,10 @@ const getStockChartOptions = (title: string, sipXirrDatas: Record<string, any[]>
         [...this.points].sort((a: any, b: any) => (b.y as number) - (a.y as number)) : [];
       
       sortedPoints.forEach((point: any) => {
-        // Get the portfolio data
-        const portfolioName = point.series.name;
+        // Get the strategy data
+        const strategyName = point.series.name;
         const pointDate = Highcharts.dateFormat('%Y-%m-%d', this.x);
-        const xirrEntry = sipXirrDatas[portfolioName]?.find((row: any) => formatDate(row.date) === pointDate);
+        const xirrEntry = sipStrategyXirrData[strategyName]?.find((row: any) => formatDate(row.date) === pointDate);
         
         // Get actual XIRR value from the entry (not from point.y which could be corpus)
         const xirrPercent = xirrEntry ? (xirrEntry.xirr * 100).toFixed(2) : '0.00';
@@ -218,9 +218,9 @@ const getStockChartOptions = (title: string, sipXirrDatas: Record<string, any[]>
   }
 });
 
-const getSipSeries = (sipXirrDatas: Record<string, any[]>, COLORS: string[], chartView: 'xirr' | 'corpus') => {
-  const allDates = getAllDates(sipXirrDatas);
-  return Object.entries(sipXirrDatas).map(([portfolioName, data], idx) => {
+const getSipSeries = (sipStrategyXirrData: Record<string, any[]>, COLORS: string[], chartView: 'xirr' | 'corpus') => {
+  const allDates = getAllDates(sipStrategyXirrData);
+  return Object.entries(sipStrategyXirrData).map(([strategyName, data], idx) => {
     const dateToValue: Record<string, number> = {};
     (data || []).forEach((row: any) => {
       if (chartView === 'xirr') {
@@ -243,7 +243,7 @@ const getSipSeries = (sipXirrDatas: Record<string, any[]>, COLORS: string[], cha
     }).filter(point => point !== null);
     
     return {
-      name: portfolioName,
+      name: strategyName,
       data: seriesData,
       type: 'line',
       color: COLORS[idx % COLORS.length],
@@ -256,27 +256,27 @@ const getSipSeries = (sipXirrDatas: Record<string, any[]>, COLORS: string[], cha
 export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
   navDatas,
   lumpSumXirrDatas,
-  sipXirrDatas,
+  sipStrategyXirrData,
   funds,
   COLORS,
-  portfolios,
+  sipStrategies,
   years,
   sipAmount,
   chartView,
 }) => {
   const [modal, setModal] = useState<ModalState>(initialModalState);
 
-  const handlePointClick = (portfolioName: string, pointDate: string) => {
-    const xirrEntry = (sipXirrDatas[portfolioName] || []).find((row: any) => formatDate(row.date) === pointDate);
+  const handlePointClick = (strategyName: string, pointDate: string) => {
+    const xirrEntry = (sipStrategyXirrData[strategyName] || []).find((row: any) => formatDate(row.date) === pointDate);
     if (xirrEntry) {
-      const portfolioFunds = getPortfolioFunds(portfolioName, portfolios, funds);
+      const strategyInstruments = getStrategyInstruments(strategyName, sipStrategies, funds);
       setModal({
         visible: true,
         transactions: xirrEntry.transactions || [],
         date: pointDate,
         xirr: xirrEntry.xirr,
-        portfolioName,
-        portfolioFunds,
+        strategyName,
+        strategyInstruments,
       });
     }
   };
@@ -288,24 +288,24 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
     : `SIP Corpus Value - Rolling ${years}Y`;
   
   const chartOptions = {
-    ...getStockChartOptions(chartTitle, sipXirrDatas, sipAmount, chartView),
-    series: getSipSeries(sipXirrDatas, COLORS, chartView),
+    ...getStockChartOptions(chartTitle, sipStrategyXirrData, sipAmount, chartView),
+    series: getSipSeries(sipStrategyXirrData, COLORS, chartView),
     chart: {
-      ...getStockChartOptions(chartTitle, sipXirrDatas, sipAmount, chartView).chart,
+      ...getStockChartOptions(chartTitle, sipStrategyXirrData, sipAmount, chartView).chart,
       height: 500,
       zooming: { mouseWheel: false },
       events: { click: closeModal }
     },
     plotOptions: {
       series: {
-        ...getStockChartOptions(chartTitle, sipXirrDatas, sipAmount, chartView).plotOptions.series,
+        ...getStockChartOptions(chartTitle, sipStrategyXirrData, sipAmount, chartView).plotOptions.series,
         point: {
           events: {
             click: function (this: Highcharts.Point) {
               const series = this.series;
-              const portfolioName = series.name;
+              const strategyName = series.name;
               const pointDate = Highcharts.dateFormat('%Y-%m-%d', this.x as number);
-              handlePointClick(portfolioName, pointDate);
+              handlePointClick(strategyName, pointDate);
             }
           }
         }
@@ -315,7 +315,7 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
 
   return (
     <Block marginTop="2rem">
-      <TransactionModal {...modal} onClose={closeModal} funds={modal.portfolioFunds} sipAmount={sipAmount} />
+      <TransactionModal {...modal} onClose={closeModal} funds={modal.strategyInstruments} sipAmount={sipAmount} />
       <Block marginTop="1.5rem">
         <HighchartsReact
           highcharts={Highcharts}
@@ -325,7 +325,7 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
       </Block>
       
       {/* Volatility Chart */}
-      <VolatilityChart sipXirrDatas={sipXirrDatas} COLORS={COLORS} years={years} />
+      <VolatilityChart sipStrategyXirrData={sipStrategyXirrData} COLORS={COLORS} years={years} />
     </Block>
   );
 }; 

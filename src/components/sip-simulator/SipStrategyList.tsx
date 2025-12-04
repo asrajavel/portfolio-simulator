@@ -4,12 +4,12 @@ import { Button } from 'baseui/button';
 import { LabelLarge, LabelSmall } from 'baseui/typography';
 import { FundControls } from './FundControls';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
-import { Portfolio } from '../../types/portfolio';
+import { SipStrategy } from '../../types/sipStrategy';
 import { Instrument } from '../../types/instrument';
 
-interface PortfolioListProps {
-  portfolios: Portfolio[];
-  setPortfolios: React.Dispatch<React.SetStateAction<Portfolio[]>>;
+interface SipStrategyListProps {
+  sipStrategies: SipStrategy[];
+  setSipStrategies: React.Dispatch<React.SetStateAction<SipStrategy[]>>;
   funds: mfapiMutualFund[];
   onInstrumentSelect: (pIdx: number, idx: number, instrument: Instrument | null) => void;
   onAddFund: (pIdx: number) => void;
@@ -19,16 +19,16 @@ interface PortfolioListProps {
   onRebalancingThresholdChange: (pIdx: number, value: number) => void;
   onToggleStepUp: (pIdx: number) => void;
   onStepUpPercentageChange: (pIdx: number, value: number) => void;
-  onAddPortfolio: () => void;
+  onAddStrategy: () => void;
   disableControls: boolean;
   COLORS: string[];
   useInstruments?: boolean;
   defaultSchemeCode?: number;
 }
 
-export const PortfolioList: React.FC<PortfolioListProps> = ({
-  portfolios,
-  setPortfolios,
+export const SipStrategyList: React.FC<SipStrategyListProps> = ({
+  sipStrategies,
+  setSipStrategies,
   funds,
   onInstrumentSelect,
   onAddFund,
@@ -38,7 +38,7 @@ export const PortfolioList: React.FC<PortfolioListProps> = ({
   onRebalancingThresholdChange,
   onToggleStepUp,
   onStepUpPercentageChange,
-  onAddPortfolio,
+  onAddStrategy,
   disableControls,
   COLORS,
   useInstruments = false,
@@ -46,8 +46,8 @@ export const PortfolioList: React.FC<PortfolioListProps> = ({
 }) => {
   return (
     <Block marginBottom="scale800">
-      {portfolios.map((portfolio, pIdx) => {
-        const allocationSum = (portfolio.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0);
+      {sipStrategies.map((strategy, pIdx) => {
+        const allocationSum = (strategy.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0);
         return (
           <Block
             key={pIdx}
@@ -65,9 +65,9 @@ export const PortfolioList: React.FC<PortfolioListProps> = ({
               }
             }}
           >
-            {portfolios.length > 1 && (
+            {sipStrategies.length > 1 && (
               <Button
-                onClick={() => setPortfolios(prev => prev.filter((_, i) => i !== pIdx))}
+                onClick={() => setSipStrategies(prev => prev.filter((_, i) => i !== pIdx))}
                 kind="tertiary"
                 size="mini"
                 overrides={{
@@ -83,7 +83,7 @@ export const PortfolioList: React.FC<PortfolioListProps> = ({
                     }),
                   },
                 }}
-                title={`Remove Portfolio ${pIdx + 1}`}
+                title={`Remove Strategy ${pIdx + 1}`}
               >
                 ✕
               </Button>
@@ -101,26 +101,26 @@ export const PortfolioList: React.FC<PortfolioListProps> = ({
                   }
                 }}
               >
-                Portfolio {pIdx + 1}
+                Strategy {pIdx + 1}
               </LabelLarge>
             </Block>
             
             <FundControls
-              selectedInstruments={portfolio.selectedInstruments || []}
-              allocations={portfolio.allocations}
+              selectedInstruments={strategy.selectedInstruments || []}
+              allocations={strategy.allocations}
               funds={funds}
               onInstrumentSelect={(idx, instrument) => onInstrumentSelect(pIdx, idx, instrument)}
               onAddFund={() => onAddFund(pIdx)}
               onRemoveFund={idx => onRemoveFund(pIdx, idx)}
               onAllocationChange={(idx, value) => onAllocationChange(pIdx, idx, value)}
               disableControls={disableControls}
-              rebalancingEnabled={portfolio.rebalancingEnabled}
+              rebalancingEnabled={strategy.rebalancingEnabled}
               onToggleRebalancing={() => onToggleRebalancing(pIdx)}
-              rebalancingThreshold={portfolio.rebalancingThreshold}
+              rebalancingThreshold={strategy.rebalancingThreshold}
               onRebalancingThresholdChange={value => onRebalancingThresholdChange(pIdx, value)}
-              stepUpEnabled={portfolio.stepUpEnabled}
+              stepUpEnabled={strategy.stepUpEnabled}
               onToggleStepUp={() => onToggleStepUp(pIdx)}
-              stepUpPercentage={portfolio.stepUpPercentage}
+              stepUpPercentage={strategy.stepUpPercentage}
               onStepUpPercentageChange={value => onStepUpPercentageChange(pIdx, value)}
               useInstruments={useInstruments}
               defaultSchemeCode={defaultSchemeCode}
@@ -151,16 +151,17 @@ export const PortfolioList: React.FC<PortfolioListProps> = ({
         );
       })}
       
-      {/* Add Portfolio Button */}
+      {/* Add Strategy Button */}
       <Block display="flex" justifyContent="center" marginTop="scale600">
         <Button
           kind="secondary"
-          onClick={onAddPortfolio}
+          onClick={onAddStrategy}
           startEnhancer={() => <span style={{ fontSize: '16px', marginRight: '4px' }}>+</span>}
         >
-          Add Portfolio
+          Add Strategy
         </Button>
       </Block>
     </Block>
   );
-}; 
+};
+

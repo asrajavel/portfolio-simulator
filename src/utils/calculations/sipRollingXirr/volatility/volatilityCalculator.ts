@@ -1,4 +1,4 @@
-import { DailyPortfolioValue } from './portfolioValue';
+import { DailySipPortfolioValue } from './sipPortfolioValue';
 
 const TRADING_DAYS_PER_YEAR = 252;
 
@@ -10,7 +10,7 @@ const TRADING_DAYS_PER_YEAR = 252;
  * and adjusts annualization based on actual trading days in the data
  */
 export function calculateVolatility(
-  dailyValues: DailyPortfolioValue[]
+  dailyValues: DailySipPortfolioValue[]
 ): number {
   // Need at least 2 data points to calculate volatility
   if (dailyValues.length < 2) {
@@ -67,7 +67,7 @@ export function calculateVolatility(
  * - No cash flow occurred (no actual transaction)
  * This prevents artificially low volatility from zero returns on non-trading days
  */
-function calculateDailyReturns(dailyValues: DailyPortfolioValue[]): number[] {
+function calculateDailyReturns(dailyValues: DailySipPortfolioValue[]): number[] {
   const returns: number[] = [];
 
   // Calculate returns from consecutive days (array is already sorted and continuous)

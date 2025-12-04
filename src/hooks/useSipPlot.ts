@@ -4,16 +4,16 @@ import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { fixedReturnService } from '../services/fixedReturnService';
 
-export function usePortfolioPlot({
-  portfolios,
+export function useSipPlot({
+  sipStrategies,
   years,
   loadNavData,
   plotState,
   sipAmount,
   chartView,
 }) {
-  // Handler for plotting all portfolios
-  const handlePlotAllPortfolios = useCallback(async () => {
+  // Handler for plotting all strategies
+  const handlePlotAllStrategies = useCallback(async () => {
     plotState.setLoadingNav(true);
     plotState.setLoadingXirr(false);
     plotState.setHasPlotted(false);
@@ -22,14 +22,14 @@ export function usePortfolioPlot({
     plotState.setSipXirrDatas({});
     plotState.setXirrError(null);
     try {
-      const allNavDatas: Record<string, any[][]> = {}; // key: portfolio index, value: array of nav arrays
+      const allNavDatas: Record<string, any[][]> = {}; // key: strategy index, value: array of nav arrays
       const allNavsFlat: Record<string, any[]> = {}; // for navDatas prop
-      for (let pIdx = 0; pIdx < portfolios.length; ++pIdx) {
+      for (let pIdx = 0; pIdx < sipStrategies.length; ++pIdx) {
         const navs: any[][] = [];
         
         // Process instruments
-        if (portfolios[pIdx].selectedInstruments && portfolios[pIdx].selectedInstruments.length > 0) {
-          for (const instrument of portfolios[pIdx].selectedInstruments.filter(Boolean)) {
+        if (sipStrategies[pIdx].selectedInstruments && sipStrategies[pIdx].selectedInstruments.length > 0) {
+          for (const instrument of sipStrategies[pIdx].selectedInstruments.filter(Boolean)) {
             try {
               let nav: any[] = [];
               let identifier: string = '';
@@ -108,19 +108,19 @@ export function usePortfolioPlot({
         allNavDatas[pIdx] = navs;
       }
       plotState.setNavDatas(allNavsFlat);
-      // Now calculate XIRR for each portfolio using the worker
+      // Now calculate XIRR for each strategy using the worker
       plotState.setLoadingXirr(true);
       const allSipXirrDatas: Record<string, any[]> = {};
       let completed = 0;
-      for (let pIdx = 0; pIdx < portfolios.length; ++pIdx) {
+      for (let pIdx = 0; pIdx < sipStrategies.length; ++pIdx) {
         const navDataList = allNavDatas[pIdx];
-        const allocations = portfolios[pIdx].allocations;
-        const rebalancingEnabled = portfolios[pIdx].rebalancingEnabled;
-        const rebalancingThreshold = portfolios[pIdx].rebalancingThreshold;
-        const stepUpEnabled = portfolios[pIdx].stepUpEnabled;
-        const stepUpPercentage = portfolios[pIdx].stepUpPercentage;
+        const allocations = sipStrategies[pIdx].allocations;
+        const rebalancingEnabled = sipStrategies[pIdx].rebalancingEnabled;
+        const rebalancingThreshold = sipStrategies[pIdx].rebalancingThreshold;
+        const stepUpEnabled = sipStrategies[pIdx].stepUpEnabled;
+        const stepUpPercentage = sipStrategies[pIdx].stepUpPercentage;
         if (!navDataList || navDataList.length === 0) {
-          allSipXirrDatas[`Portfolio ${pIdx + 1}`] = [];
+          allSipXirrDatas[`Strategy ${pIdx + 1}`] = [];
           completed++;
           continue;
         }
@@ -130,13 +130,13 @@ export function usePortfolioPlot({
           const baseSipAmount = chartView === 'corpus' ? sipAmount : 100;
           worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount: baseSipAmount });
           worker.onmessage = (event: MessageEvent) => {
-            allSipXirrDatas[`Portfolio ${pIdx + 1}`] = event.data;
+            allSipXirrDatas[`Strategy ${pIdx + 1}`] = event.data;
             worker.terminate();
             completed++;
             resolve();
           };
           worker.onerror = (err: ErrorEvent) => {
-            allSipXirrDatas[`Portfolio ${pIdx + 1}`] = [];
+            allSipXirrDatas[`Strategy ${pIdx + 1}`] = [];
             worker.terminate();
             completed++;
             resolve();
@@ -154,7 +154,8 @@ export function usePortfolioPlot({
       plotState.setLoadingNav(false);
       plotState.setLoadingXirr(false);
     }
-  }, [portfolios, years, loadNavData, plotState]);
+  }, [sipStrategies, years, loadNavData, plotState, sipAmount, chartView]);
 
-  return { handlePlotAllPortfolios };
-} 
+  return { handlePlotAllStrategies };
+}
+

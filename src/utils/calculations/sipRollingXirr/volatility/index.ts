@@ -1,8 +1,8 @@
 import { Transaction } from '../types';
-import { calculateDailyPortfolioValue } from './portfolioValue';
+import { calculateDailySipPortfolioValue } from './sipPortfolioValue';
 import { calculateVolatility } from './volatilityCalculator';
 
-export type { DailyPortfolioValue } from './portfolioValue';
+export type { DailySipPortfolioValue } from './sipPortfolioValue';
 
 /**
  * Calculate portfolio volatility for a set of transactions
@@ -14,7 +14,7 @@ export function calculateVolatilityForEntry(
   transactions: Transaction[]
 ): number {
   // Calculate daily portfolio values using actual drifting allocations
-  const dailyValues = calculateDailyPortfolioValue(transactions);
+  const dailyValues = calculateDailySipPortfolioValue(transactions);
 
   // Calculate volatility from portfolio values
   return calculateVolatility(dailyValues);

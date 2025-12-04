@@ -41,8 +41,8 @@ export const formatDate = (date: Date): string => date.toISOString().slice(0, 10
 /**
  * Get all unique dates from SIP XIRR data, sorted
  */
-export const getAllDates = (sipXirrDatas: Record<string, any[]>): string[] => {
-  const allDates = Object.values(sipXirrDatas).flatMap(arr =>
+export const getAllDates = (sipStrategyXirrData: Record<string, any[]>): string[] => {
+  const allDates = Object.values(sipStrategyXirrData).flatMap(arr =>
     Array.isArray(arr) ? arr.map(row => formatDate(row.date)) : []
   );
   return Array.from(new Set(allDates)).sort();

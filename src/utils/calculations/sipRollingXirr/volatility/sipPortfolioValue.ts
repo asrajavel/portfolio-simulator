@@ -1,6 +1,6 @@
 import { Transaction } from '../types';
 
-export interface DailyPortfolioValue {
+export interface DailySipPortfolioValue {
   date: Date;
   totalValue: number;
   cashFlow: number; // Net cash flow on this day (negative for buy, positive for sell)
@@ -14,9 +14,9 @@ export interface DailyPortfolioValue {
  * 
  * @param transactions - All transactions
  */
-export function calculateDailyPortfolioValue(
+export function calculateDailySipPortfolioValue(
   transactions: Transaction[]
-): DailyPortfolioValue[] {
+): DailySipPortfolioValue[] {
   // Include nil and buy transactions (exclude sell and rebalance)
   const relevantTransactions = transactions.filter(
     tx => tx.type === 'nil' || tx.type === 'buy'
@@ -30,7 +30,7 @@ export function calculateDailyPortfolioValue(
   const transactionsByDate = groupTransactionsByDate(relevantTransactions);
 
   // Calculate total value and cash flow for each date
-  const dailyValues: DailyPortfolioValue[] = [];
+  const dailyValues: DailySipPortfolioValue[] = [];
 
   for (const [dateKey, txs] of transactionsByDate.entries()) {
     const totalValue = calculateTotalValue(txs);
@@ -52,62 +52,37 @@ export function calculateDailyPortfolioValue(
 }
 
 /**
- * Group transactions by date (using date string as key)
+ * Group transactions by date key
  */
 function groupTransactionsByDate(
   transactions: Transaction[]
 ): Map<string, Transaction[]> {
-  const grouped = new Map<string, Transaction[]>();
-
+  const map = new Map<string, Transaction[]>();
+  
   for (const tx of transactions) {
-    const dateKey = toDateKey(tx.when);
-    if (!grouped.has(dateKey)) {
-      grouped.set(dateKey, []);
+    const dateKey = tx.when.toISOString().split('T')[0];
+    if (!map.has(dateKey)) {
+      map.set(dateKey, []);
     }
-    grouped.get(dateKey)!.push(tx);
+    map.get(dateKey)!.push(tx);
   }
-
-  return grouped;
+  
+  return map;
 }
 
 /**
- * Calculate total portfolio value for a set of transactions on the same date
- * Total Value = Σ(currentValue) - Sum of all fund positions' current values
+ * Calculate total portfolio value from transactions on a single date
  */
 function calculateTotalValue(transactions: Transaction[]): number {
-  if (transactions.length === 0) {
-    return 0;
-  }
-
-  // Calculate total portfolio value by summing currentValue of all funds
-  let totalValue = 0;
-  for (const tx of transactions) {
-    totalValue += tx.currentValue;
-  }
-
-  return totalValue;
+  return transactions.reduce((sum, tx) => sum + tx.currentValue, 0);
 }
 
 /**
- * Calculate net cash flow for a set of transactions on the same date
- * Cash Flow = Σ(amount) where negative = money invested, positive = money withdrawn
+ * Calculate net cash flow from transactions on a single date
  */
 function calculateCashFlow(transactions: Transaction[]): number {
-  let netCashFlow = 0;
-  for (const tx of transactions) {
-    // amount is negative for buy (money out), positive for sell (money in)
-    netCashFlow += tx.amount;
-  }
-  return netCashFlow;
-}
-
-/**
- * Convert date to string key (YYYY-MM-DD)
- */
-function toDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return transactions
+    .filter(tx => tx.type === 'buy')
+    .reduce((sum, tx) => sum + tx.amount, 0); // amount is negative for buy
 }
 

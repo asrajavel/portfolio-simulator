@@ -1,12 +1,12 @@
 import React from 'react';
 import { getQueryParams, setQueryParams } from '../utils/browser/queryParams';
 import { getDefaultAllocations } from '../utils/data/getDefaultAllocations';
-import { Portfolio } from '../types/portfolio';
+import { SipStrategy } from '../types/sipStrategy';
 import { Instrument } from '../types/instrument';
 import { DEFAULT_REBALANCING_THRESHOLD, ALLOCATION_TOTAL } from '../constants';
 
-export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [number, (v: number) => void], isActive: boolean = true) {
-  // Initialize portfolios and years from query params
+export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [number, (v: number) => void], isActive: boolean = true) {
+  // Initialize strategies and years from query params
   const initialParams = React.useMemo(() => getQueryParams(), []);
   const [sipAmount, setSipAmount] = sipAmountState;
   
@@ -17,7 +17,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
     }
   }, []); // Only run once on mount
   
-  const [portfolios, setPortfolios] = React.useState<Portfolio[]>(
+  const [sipStrategies, setSipStrategies] = React.useState<SipStrategy[]>(
     initialParams.portfolios && initialParams.portfolios.length > 0
       ? initialParams.portfolios.map((p: any) => ({
           selectedInstruments: p.selectedInstruments || [null],
@@ -28,7 +28,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
           stepUpPercentage: typeof p.stepUpPercentage === 'number' ? p.stepUpPercentage : 5,
         }))
       : [
-          // Default Portfolio 1: NIFTY 50 Index (100%)
+          // Default Strategy 1: NIFTY 50 Index (100%)
           { 
             selectedInstruments: [{
               type: 'index_fund',
@@ -43,7 +43,7 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
             stepUpEnabled: false,
             stepUpPercentage: 5
           },
-          // Default Portfolio 2: Mixed (70% scheme 122639, 30% scheme 120197, rebalancing enabled)
+          // Default Strategy 2: Mixed (70% scheme 122639, 30% scheme 120197, rebalancing enabled)
           { 
             selectedInstruments: [
               {
@@ -71,9 +71,9 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
   );
   const [years, setYears] = React.useState<number>(initialParams.years || 5);
 
-  // Handler to add a new portfolio
-  const handleAddPortfolio = () => {
-    setPortfolios(prev => [
+  // Handler to add a new strategy
+  const handleAddStrategy = () => {
+    setSipStrategies(prev => [
       ...prev,
       { 
         selectedInstruments: [null], 
@@ -86,10 +86,10 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
     ]);
   };
 
-  // Handlers for fund controls per portfolio
-  const handleInstrumentSelect = (portfolioIdx: number, idx: number, instrument: Instrument | null) => {
-    setPortfolios(prev => prev.map((p, i) => {
-      if (i !== portfolioIdx) return p;
+  // Handlers for fund controls per strategy
+  const handleInstrumentSelect = (strategyIdx: number, idx: number, instrument: Instrument | null) => {
+    setSipStrategies(prev => prev.map((p, i) => {
+      if (i !== strategyIdx) return p;
       
       const newInstruments = p.selectedInstruments.map((inst, j) => j === idx ? instrument : inst);
 
@@ -99,9 +99,9 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
       };
     }));
   };
-  const handleAddFund = (portfolioIdx: number) => {
-    setPortfolios(prev => prev.map((p, i) => {
-      if (i !== portfolioIdx) return p;
+  const handleAddFund = (strategyIdx: number) => {
+    setSipStrategies(prev => prev.map((p, i) => {
+      if (i !== strategyIdx) return p;
       const newInstruments = [...p.selectedInstruments, null];
       // Default: split using getDefaultAllocations
       const n = newInstruments.length;
@@ -109,9 +109,9 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
       return { ...p, selectedInstruments: newInstruments, allocations: newAlloc };
     }));
   };
-  const handleRemoveFund = (portfolioIdx: number, idx: number) => {
-    setPortfolios(prev => prev.map((p, i) => {
-      if (i !== portfolioIdx) return p;
+  const handleRemoveFund = (strategyIdx: number, idx: number) => {
+    setSipStrategies(prev => prev.map((p, i) => {
+      if (i !== strategyIdx) return p;
       const newInstruments = p.selectedInstruments.filter((_, j) => j !== idx);
       // Rebalance allocations for remaining funds
       const n = newInstruments.length;
@@ -119,59 +119,59 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
       return { ...p, selectedInstruments: newInstruments, allocations: newAlloc };
     }));
   };
-  const handleAllocationChange = (portfolioIdx: number, fundIdx: number, value: number) => {
-    setPortfolios(prev => prev.map((p, i) => {
-      if (i !== portfolioIdx) return p;
+  const handleAllocationChange = (strategyIdx: number, fundIdx: number, value: number) => {
+    setSipStrategies(prev => prev.map((p, i) => {
+      if (i !== strategyIdx) return p;
       const newAlloc = p.allocations.map((a, j) => j === fundIdx ? value : a);
       return { ...p, allocations: newAlloc };
     }));
   };
 
-  const handleToggleRebalancing = (portfolioIdx: number) => {
-    setPortfolios(prev => prev.map((p, i) =>
-      i === portfolioIdx
+  const handleToggleRebalancing = (strategyIdx: number) => {
+    setSipStrategies(prev => prev.map((p, i) =>
+      i === strategyIdx
         ? { ...p, rebalancingEnabled: !p.rebalancingEnabled }
         : p
     ));
   };
 
-  const handleRebalancingThresholdChange = (portfolioIdx: number, value: number) => {
-    setPortfolios(prev => prev.map((p, i) =>
-      i === portfolioIdx
+  const handleRebalancingThresholdChange = (strategyIdx: number, value: number) => {
+    setSipStrategies(prev => prev.map((p, i) =>
+      i === strategyIdx
         ? { ...p, rebalancingThreshold: Math.max(0, value) } // Ensure threshold is not negative
         : p
     ));
   };
 
-  const handleToggleStepUp = (portfolioIdx: number) => {
-    setPortfolios(prev => prev.map((p, i) =>
-      i === portfolioIdx
+  const handleToggleStepUp = (strategyIdx: number) => {
+    setSipStrategies(prev => prev.map((p, i) =>
+      i === strategyIdx
         ? { ...p, stepUpEnabled: !p.stepUpEnabled }
         : p
     ));
   };
 
-  const handleStepUpPercentageChange = (portfolioIdx: number, value: number) => {
-    setPortfolios(prev => prev.map((p, i) =>
-      i === portfolioIdx
+  const handleStepUpPercentageChange = (strategyIdx: number, value: number) => {
+    setSipStrategies(prev => prev.map((p, i) =>
+      i === strategyIdx
         ? { ...p, stepUpPercentage: Math.max(0, value) } // Ensure percentage is not negative
         : p
     ));
   };
 
-  // Sync portfolios, years, and sipAmount to query params (only when tab is active)
+  // Sync strategies, years, and sipAmount to query params (only when tab is active)
   React.useEffect(() => {
     if (isActive) {
-      setQueryParams(portfolios, years, sipAmount);
+      setQueryParams(sipStrategies, years, sipAmount);
     }
-  }, [portfolios, years, sipAmount, isActive]);
+  }, [sipStrategies, years, sipAmount, isActive]);
 
   return {
-    portfolios,
-    setPortfolios,
+    sipStrategies,
+    setSipStrategies,
     years,
     setYears,
-    handleAddPortfolio,
+    handleAddStrategy,
     handleInstrumentSelect,
     handleAddFund,
     handleRemoveFund,
@@ -181,4 +181,5 @@ export function usePortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [numb
     handleToggleStepUp,
     handleStepUpPercentageChange,
   };
-} 
+}
+

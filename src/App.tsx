@@ -6,9 +6,9 @@ import { useNavData } from './hooks/useNavData';
 import { Block } from 'baseui/block';
 import { LoadingErrorStates } from './components/common/LoadingErrorStates';
 import { AppNavBar } from 'baseui/app-nav-bar';
-import { PortfolioSipHelpModal } from './components/portfolio/PortfolioSipHelpModal';
+import { SipHelpModal } from './components/sip-simulator/SipHelpModal';
 import { useInstrumentNavData } from './hooks/useInstrumentNavData';
-import { PortfolioTab } from './pages/PortfolioTab';
+import { SipSimulatorTab } from './pages/SipSimulatorTab';
 import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
 
 const App: React.FC = () => {
@@ -20,7 +20,7 @@ const App: React.FC = () => {
   const location = useLocation();
 
   // Determine which tab is active based on route
-  const isPortfolioTab = location.pathname === '/portfolio';
+  const isSipTab = location.pathname === '/sip';
   const isHistoricalTab = location.pathname === '/historical';
 
   const handleHelpClick = () => {
@@ -44,7 +44,7 @@ const App: React.FC = () => {
               </svg>
             ),
             label: 'SIP Simulator',
-            active: isPortfolioTab
+            active: isSipTab
           },
           { 
             icon: () => (
@@ -57,7 +57,7 @@ const App: React.FC = () => {
           }
         ]}
         onMainItemSelect={(item) => {
-          navigate(item.label === 'SIP Simulator' ? '/portfolio' : '/historical');
+          navigate(item.label === 'SIP Simulator' ? '/sip' : '/historical');
         }}
         overrides={{
           Root: {
@@ -73,16 +73,18 @@ const App: React.FC = () => {
         
         {/* Route handler for redirects */}
         <Routes>
-          <Route path="/" element={<Navigate to="/portfolio" replace />} />
-          <Route path="/portfolio" element={null} />
+          <Route path="/" element={<Navigate to="/sip" replace />} />
+          <Route path="/sip" element={null} />
           <Route path="/historical" element={null} />
+          {/* Legacy route redirect */}
+          <Route path="/portfolio" element={<Navigate to="/sip" replace />} />
         </Routes>
         
         {!loading && !error && funds.length > 0 && (
           <>
             {/* Keep both tabs mounted, just toggle visibility */}
-            <Block display={isPortfolioTab ? 'block' : 'none'}>
-              <PortfolioTab funds={funds} loadNavData={loadNavData} />
+            <Block display={isSipTab ? 'block' : 'none'}>
+              <SipSimulatorTab funds={funds} loadNavData={loadNavData} />
             </Block>
             
             <Block display={isHistoricalTab ? 'block' : 'none'}>
@@ -92,7 +94,7 @@ const App: React.FC = () => {
         )}
         
         {/* Help Modal */}
-        <PortfolioSipHelpModal isOpen={isHelpModalOpen} onClose={closeHelpModal} />
+        <SipHelpModal isOpen={isHelpModalOpen} onClose={closeHelpModal} />
       </Block>
     </Container>
   );

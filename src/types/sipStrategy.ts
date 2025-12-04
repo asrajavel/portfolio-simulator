@@ -1,10 +1,11 @@
 import { Instrument } from './instrument';
 
-export interface Portfolio {
+export interface SipStrategy {
   selectedInstruments: (Instrument | null)[];
   allocations: number[];
   rebalancingEnabled: boolean;
   rebalancingThreshold: number;
   stepUpEnabled: boolean;
   stepUpPercentage: number;
-} 
+}
+
