@@ -2,6 +2,7 @@ import React from 'react';
 import { MultiFundCharts } from '../charts/MultiFundCharts';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { SipStrategy } from '../../types/sipStrategy';
+import { LumpsumStrategy } from '../../types/lumpsumStrategy';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { Block } from 'baseui/block';
 import { LabelMedium } from 'baseui/typography';
@@ -10,32 +11,36 @@ interface ChartAreaProps {
   xirrError: string | null;
   hasPlotted: boolean;
   navDatas: Record<number, any[]>;
-  lumpSumXirrDatas: Record<string, any[]>;
-  sipStrategyXirrData: Record<string, any[]>;
+  lumpsumStrategyXirrData?: Record<string, any[]>;
+  sipStrategyXirrData?: Record<string, any[]>;
   funds: mfapiMutualFund[];
   COLORS: string[];
   loadingNav?: boolean;
   loadingXirr?: boolean;
-  sipStrategies: SipStrategy[];
+  sipStrategies?: SipStrategy[];
+  lumpsumStrategies?: LumpsumStrategy[];
   years: number;
-  sipAmount: number;
+  amount: number; // Can be sipAmount or lumpsumAmount
   chartView: 'xirr' | 'corpus';
+  isLumpsum?: boolean;
 }
 
 export const ChartArea: React.FC<ChartAreaProps> = ({
   xirrError,
   hasPlotted,
   navDatas,
-  lumpSumXirrDatas,
+  lumpsumStrategyXirrData,
   sipStrategyXirrData,
   funds,
   COLORS,
   loadingNav = false,
   loadingXirr = false,
   sipStrategies,
+  lumpsumStrategies,
   years,
-  sipAmount,
+  amount,
   chartView,
+  isLumpsum = false,
 }) => (
   <>
     {xirrError && (
@@ -84,14 +89,16 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
         hasPlotted && Object.keys(navDatas).length > 0 && (
         <MultiFundCharts
           navDatas={navDatas}
-          lumpSumXirrDatas={lumpSumXirrDatas}
+          lumpsumStrategyXirrData={lumpsumStrategyXirrData}
           sipStrategyXirrData={sipStrategyXirrData}
           funds={funds}
           COLORS={COLORS}
           sipStrategies={sipStrategies}
+          lumpsumStrategies={lumpsumStrategies}
           years={years}
-          sipAmount={sipAmount}
+          amount={amount}
           chartView={chartView}
+          isLumpsum={isLumpsum}
         />
         )
       )}

@@ -4,29 +4,29 @@ import { Block } from 'baseui/block';
 import { LoadingOverlay } from '../components/common/LoadingOverlay';
 import { ChartArea } from '../components/layout/ChartArea';
 import { usePlotState } from '../hooks/usePlotState';
-import { useSipStrategies } from '../hooks/useSipStrategies';
-import { useSipPlot } from '../hooks/useSipPlot';
+import { useLumpsumStrategies } from '../hooks/useLumpsumStrategies';
+import { useLumpsumPlot } from '../hooks/useLumpsumPlot';
 import { useChartInvalidation } from '../hooks/useChartInvalidation';
-import { SipStrategyList } from '../components/sip-simulator/SipStrategyList';
-import { ControlsPanel } from '../components/controls/ControlsPanel';
+import { LumpsumStrategyList } from '../components/lumpsum-simulator/LumpsumStrategyList';
+import { LumpsumControlsPanel } from '../components/controls/LumpsumControlsPanel';
 import { mfapiMutualFund } from '../types/mfapiMutualFund';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from '../constants';
 
-interface SipSimulatorTabProps {
+interface LumpsumSimulatorTabProps {
   funds: mfapiMutualFund[];
   loadNavData: (schemeCode: number) => Promise<any[]>;
 }
 
-export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNavData }) => {
+export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds, loadNavData }) => {
   const location = useLocation();
-  const isActive = location.pathname === '/sip';
+  const isActive = location.pathname === '/lumpsum';
   const plotState = usePlotState(loadNavData, funds);
-  const [sipAmount, setSipAmount] = useState<number>(10000);
+  const [lumpsumAmount, setLumpsumAmount] = useState<number>(100000);
   const [chartView, setChartView] = useState<'xirr' | 'corpus'>('xirr');
   
   const {
-    sipStrategies,
-    setSipStrategies,
+    lumpsumStrategies,
+    setLumpsumStrategies,
     years,
     setYears,
     handleAddStrategy,
@@ -34,22 +34,18 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
     handleAddFund,
     handleRemoveFund,
     handleAllocationChange,
-    handleToggleRebalancing,
-    handleRebalancingThresholdChange,
-    handleToggleStepUp,
-    handleStepUpPercentageChange,
-  } = useSipStrategies(DEFAULT_SCHEME_CODE, [sipAmount, setSipAmount], isActive);
+  } = useLumpsumStrategies(DEFAULT_SCHEME_CODE, [lumpsumAmount, setLumpsumAmount], isActive);
 
-  const { handlePlotAllStrategies } = useSipPlot({
-    sipStrategies,
+  const { handlePlotAllStrategies } = useLumpsumPlot({
+    lumpsumStrategies,
     years,
     loadNavData,
     plotState,
-    sipAmount,
+    lumpsumAmount,
     chartView,
   });
 
-  const anyInvalidAlloc = sipStrategies.some(
+  const anyInvalidAlloc = lumpsumStrategies.some(
     p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
   );
 
@@ -62,10 +58,6 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
   const handleRemoveFundInvalidate = withInvalidation(handleRemoveFund);
   const handleAllocationChangeInvalidate = withInvalidation(handleAllocationChange);
   const handleInstrumentSelectInvalidate = withInvalidation(handleInstrumentSelect);
-  const handleToggleRebalancingInvalidate = withInvalidation(handleToggleRebalancing);
-  const handleRebalancingThresholdChangeInvalidate = withInvalidation(handleRebalancingThresholdChange);
-  const handleToggleStepUpInvalidate = withInvalidation(handleToggleStepUp);
-  const handleStepUpPercentageChangeInvalidate = withInvalidation(handleStepUpPercentageChange);
   const handleYearsChange = invalidateChart;
   
   // Handle chart view change - invalidate charts when switching between XIRR and Corpus
@@ -79,9 +71,9 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
       <LoadingOverlay active={plotState.loadingNav || plotState.loadingXirr} />
       
       <Block maxWidth="900px" margin="0 auto">
-        <SipStrategyList
-          sipStrategies={sipStrategies}
-          setSipStrategies={setSipStrategies}
+        <LumpsumStrategyList
+          lumpsumStrategies={lumpsumStrategies}
+          setLumpsumStrategies={setLumpsumStrategies}
           funds={funds}
           onInstrumentSelect={(pIdx: number, idx: number, instrument) => {
             invalidateChart();
@@ -90,10 +82,6 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
           onAddFund={handleAddFundInvalidate}
           onRemoveFund={handleRemoveFundInvalidate}
           onAllocationChange={handleAllocationChangeInvalidate}
-          onToggleRebalancing={handleToggleRebalancingInvalidate}
-          onRebalancingThresholdChange={handleRebalancingThresholdChangeInvalidate}
-          onToggleStepUp={handleToggleStepUpInvalidate}
-          onStepUpPercentageChange={handleStepUpPercentageChangeInvalidate}
           onAddStrategy={handleAddStrategyInvalidate}
           disableControls={plotState.loadingNav || plotState.loadingXirr}
           COLORS={plotState.COLORS}
@@ -101,15 +89,15 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
           defaultSchemeCode={DEFAULT_SCHEME_CODE}
         />
 
-        <ControlsPanel
+        <LumpsumControlsPanel
           years={years}
           setYears={setYears}
           onPlot={handlePlotAllStrategies}
           disabled={plotState.loadingNav || plotState.loadingXirr}
           anyInvalidAlloc={anyInvalidAlloc}
           onYearsChange={handleYearsChange}
-          sipAmount={sipAmount}
-          setSipAmount={setSipAmount}
+          lumpsumAmount={lumpsumAmount}
+          setLumpsumAmount={setLumpsumAmount}
           chartView={chartView}
           setChartView={handleChartViewChange}
         />
@@ -119,16 +107,16 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
         xirrError={plotState.xirrError}
         hasPlotted={plotState.hasPlotted}
         navDatas={plotState.navDatas}
+        lumpsumStrategyXirrData={plotState.lumpSumXirrDatas}
         sipStrategyXirrData={plotState.sipXirrDatas}
         funds={funds}
         COLORS={plotState.COLORS}
         loadingNav={plotState.loadingNav}
         loadingXirr={plotState.loadingXirr}
-        sipStrategies={sipStrategies}
         years={years}
-        amount={sipAmount}
+        amount={lumpsumAmount}
         chartView={chartView}
-        isLumpsum={false}
+        isLumpsum={true}
       />
     </Block>
   );

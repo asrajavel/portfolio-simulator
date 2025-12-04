@@ -2,23 +2,19 @@ import React from 'react';
 import { Block } from 'baseui/block';
 import { Button } from 'baseui/button';
 import { LabelLarge, LabelSmall } from 'baseui/typography';
-import { SipFundControls } from './SipFundControls';
+import { LumpsumFundControls } from './LumpsumFundControls';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
-import { SipStrategy } from '../../types/sipStrategy';
+import { LumpsumStrategy } from '../../types/lumpsumStrategy';
 import { Instrument } from '../../types/instrument';
 
-interface SipStrategyListProps {
-  sipStrategies: SipStrategy[];
-  setSipStrategies: React.Dispatch<React.SetStateAction<SipStrategy[]>>;
+interface LumpsumStrategyListProps {
+  lumpsumStrategies: LumpsumStrategy[];
+  setLumpsumStrategies: React.Dispatch<React.SetStateAction<LumpsumStrategy[]>>;
   funds: mfapiMutualFund[];
   onInstrumentSelect: (pIdx: number, idx: number, instrument: Instrument | null) => void;
   onAddFund: (pIdx: number) => void;
   onRemoveFund: (pIdx: number, idx: number) => void;
   onAllocationChange: (pIdx: number, idx: number, value: number) => void;
-  onToggleRebalancing: (pIdx: number) => void;
-  onRebalancingThresholdChange: (pIdx: number, value: number) => void;
-  onToggleStepUp: (pIdx: number) => void;
-  onStepUpPercentageChange: (pIdx: number, value: number) => void;
   onAddStrategy: () => void;
   disableControls: boolean;
   COLORS: string[];
@@ -26,18 +22,14 @@ interface SipStrategyListProps {
   defaultSchemeCode?: number;
 }
 
-export const SipStrategyList: React.FC<SipStrategyListProps> = ({
-  sipStrategies,
-  setSipStrategies,
+export const LumpsumStrategyList: React.FC<LumpsumStrategyListProps> = ({
+  lumpsumStrategies,
+  setLumpsumStrategies,
   funds,
   onInstrumentSelect,
   onAddFund,
   onRemoveFund,
   onAllocationChange,
-  onToggleRebalancing,
-  onRebalancingThresholdChange,
-  onToggleStepUp,
-  onStepUpPercentageChange,
   onAddStrategy,
   disableControls,
   COLORS,
@@ -46,7 +38,7 @@ export const SipStrategyList: React.FC<SipStrategyListProps> = ({
 }) => {
   return (
     <Block marginBottom="scale800">
-      {sipStrategies.map((strategy, pIdx) => {
+      {lumpsumStrategies.map((strategy, pIdx) => {
         const allocationSum = (strategy.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0);
         return (
           <Block
@@ -65,9 +57,9 @@ export const SipStrategyList: React.FC<SipStrategyListProps> = ({
               }
             }}
           >
-            {sipStrategies.length > 1 && (
+            {lumpsumStrategies.length > 1 && (
               <Button
-                onClick={() => setSipStrategies(prev => prev.filter((_, i) => i !== pIdx))}
+                onClick={() => setLumpsumStrategies(prev => prev.filter((_, i) => i !== pIdx))}
                 kind="tertiary"
                 size="mini"
                 overrides={{
@@ -105,7 +97,7 @@ export const SipStrategyList: React.FC<SipStrategyListProps> = ({
               </LabelLarge>
             </Block>
             
-            <SipFundControls
+            <LumpsumFundControls
               selectedInstruments={strategy.selectedInstruments || []}
               allocations={strategy.allocations}
               funds={funds}
@@ -114,14 +106,6 @@ export const SipStrategyList: React.FC<SipStrategyListProps> = ({
               onRemoveFund={idx => onRemoveFund(pIdx, idx)}
               onAllocationChange={(idx, value) => onAllocationChange(pIdx, idx, value)}
               disableControls={disableControls}
-              rebalancingEnabled={strategy.rebalancingEnabled}
-              onToggleRebalancing={() => onToggleRebalancing(pIdx)}
-              rebalancingThreshold={strategy.rebalancingThreshold}
-              onRebalancingThresholdChange={value => onRebalancingThresholdChange(pIdx, value)}
-              stepUpEnabled={strategy.stepUpEnabled}
-              onToggleStepUp={() => onToggleStepUp(pIdx)}
-              stepUpPercentage={strategy.stepUpPercentage}
-              onStepUpPercentageChange={value => onStepUpPercentageChange(pIdx, value)}
               useInstruments={useInstruments}
               defaultSchemeCode={defaultSchemeCode}
             />

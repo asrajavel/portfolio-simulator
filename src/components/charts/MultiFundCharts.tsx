@@ -3,6 +3,7 @@ import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { SipStrategy } from '../../types/sipStrategy';
+import { LumpsumStrategy } from '../../types/lumpsumStrategy';
 import { Block } from 'baseui/block';
 import { TransactionModal } from '../modals/TransactionModal';
 import { CHART_STYLES } from '../../constants';
@@ -15,14 +16,16 @@ import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates }
 
 interface MultiFundChartsProps {
   navDatas: Record<number, any[]>;
-  lumpSumXirrDatas: Record<number, any[]>;
-  sipStrategyXirrData: Record<string, any[]>;
+  lumpsumStrategyXirrData?: Record<string, any[]>;
+  sipStrategyXirrData?: Record<string, any[]>;
   funds: mfapiMutualFund[];
   COLORS: string[];
-  sipStrategies: SipStrategy[];
+  sipStrategies?: SipStrategy[];
+  lumpsumStrategies?: LumpsumStrategy[];
   years: number;
-  sipAmount: number;
+  amount: number; // Can be sipAmount or lumpsumAmount
   chartView: 'xirr' | 'corpus';
+  isLumpsum?: boolean;
 }
 
 interface ModalState {
@@ -58,11 +61,11 @@ const getFundName = (schemeCode: number, funds: mfapiMutualFund[]): string => {
 
 const getStrategyInstruments = (
   strategyName: string, 
-  sipStrategies: SipStrategy[], 
+  strategies: (SipStrategy | LumpsumStrategy)[], 
   funds: mfapiMutualFund[]
 ): Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }> => {
   const idx = parseInt(strategyName.replace('Strategy ', '')) - 1;
-  const strategy = sipStrategies[idx];
+  const strategy = strategies[idx];
   if (!strategy || !strategy.selectedInstruments) return [];
   
   return strategy.selectedInstruments
@@ -218,20 +221,29 @@ const getStockChartOptions = (title: string, sipStrategyXirrData: Record<string,
   }
 });
 
-const getSipSeries = (sipStrategyXirrData: Record<string, any[]>, COLORS: string[], chartView: 'xirr' | 'corpus') => {
-  const allDates = getAllDates(sipStrategyXirrData);
-  return Object.entries(sipStrategyXirrData).map(([strategyName, data], idx) => {
+const getStrategySeries = (strategyXirrData: Record<string, any[]>, COLORS: string[], chartView: 'xirr' | 'corpus', isLumpsum: boolean = false) => {
+  const allDates = getAllDates(strategyXirrData);
+  return Object.entries(strategyXirrData).map(([strategyName, data], idx) => {
     const dateToValue: Record<string, number> = {};
     (data || []).forEach((row: any) => {
       if (chartView === 'xirr') {
         dateToValue[formatDate(row.date)] = row.xirr * 100;
       } else {
-        // Calculate corpus from sell transactions
+        // Calculate corpus
         let corpusValue = 0;
         if (row.transactions) {
-          corpusValue = row.transactions
-            .filter((tx: any) => tx.type === 'sell')
-            .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
+          if (isLumpsum) {
+            // For lumpsum: transactions array has [buy, sell] with nav field
+            // The last transaction (index 1) is the final value
+            if (row.transactions.length >= 2) {
+              corpusValue = row.transactions[1].nav;
+            }
+          } else {
+            // For SIP: sum all sell transactions
+            corpusValue = row.transactions
+              .filter((tx: any) => tx.type === 'sell')
+              .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
+          }
         }
         dateToValue[formatDate(row.date)] = corpusValue;
       }
@@ -255,21 +267,27 @@ const getSipSeries = (sipStrategyXirrData: Record<string, any[]>, COLORS: string
 
 export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
   navDatas,
-  lumpSumXirrDatas,
+  lumpsumStrategyXirrData,
   sipStrategyXirrData,
   funds,
   COLORS,
   sipStrategies,
+  lumpsumStrategies,
   years,
-  sipAmount,
+  amount,
   chartView,
+  isLumpsum = false,
 }) => {
   const [modal, setModal] = useState<ModalState>(initialModalState);
 
+  // Use the appropriate data source based on mode
+  const strategyXirrData = isLumpsum ? lumpsumStrategyXirrData : sipStrategyXirrData;
+  const strategies = isLumpsum ? lumpsumStrategies : sipStrategies;
+
   const handlePointClick = (strategyName: string, pointDate: string) => {
-    const xirrEntry = (sipStrategyXirrData[strategyName] || []).find((row: any) => formatDate(row.date) === pointDate);
+    const xirrEntry = (strategyXirrData?.[strategyName] || []).find((row: any) => formatDate(row.date) === pointDate);
     if (xirrEntry) {
-      const strategyInstruments = getStrategyInstruments(strategyName, sipStrategies, funds);
+      const strategyInstruments = getStrategyInstruments(strategyName, strategies || [], funds);
       setModal({
         visible: true,
         transactions: xirrEntry.transactions || [],
@@ -284,21 +302,21 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
   const closeModal = () => setModal(initialModalState);
 
   const chartTitle = chartView === 'xirr' 
-    ? `SIP Rolling ${years}Y XIRR` 
-    : `SIP Corpus Value - Rolling ${years}Y`;
+    ? `${isLumpsum ? 'Lumpsum' : 'SIP'} Rolling ${years}Y XIRR` 
+    : `${isLumpsum ? 'Lumpsum' : 'SIP'} Corpus Value - Rolling ${years}Y`;
   
   const chartOptions = {
-    ...getStockChartOptions(chartTitle, sipStrategyXirrData, sipAmount, chartView),
-    series: getSipSeries(sipStrategyXirrData, COLORS, chartView),
+    ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView),
+    series: getStrategySeries(strategyXirrData || {}, COLORS, chartView, isLumpsum),
     chart: {
-      ...getStockChartOptions(chartTitle, sipStrategyXirrData, sipAmount, chartView).chart,
+      ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView).chart,
       height: 500,
       zooming: { mouseWheel: false },
       events: { click: closeModal }
     },
     plotOptions: {
       series: {
-        ...getStockChartOptions(chartTitle, sipStrategyXirrData, sipAmount, chartView).plotOptions.series,
+        ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView).plotOptions.series,
         point: {
           events: {
             click: function (this: Highcharts.Point) {
@@ -315,7 +333,7 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
 
   return (
     <Block marginTop="2rem">
-      <TransactionModal {...modal} onClose={closeModal} funds={modal.strategyInstruments} sipAmount={sipAmount} />
+      <TransactionModal {...modal} onClose={closeModal} funds={modal.strategyInstruments} sipAmount={amount} />
       <Block marginTop="1.5rem">
         <HighchartsReact
           highcharts={Highcharts}
@@ -324,8 +342,10 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
         />
       </Block>
       
-      {/* Volatility Chart */}
-      <VolatilityChart sipStrategyXirrData={sipStrategyXirrData} COLORS={COLORS} years={years} />
+      {/* Volatility Chart - only for SIP */}
+      {!isLumpsum && sipStrategyXirrData && (
+        <VolatilityChart sipStrategyXirrData={sipStrategyXirrData} COLORS={COLORS} years={years} />
+      )}
     </Block>
   );
 }; 

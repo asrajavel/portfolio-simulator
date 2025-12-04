@@ -1,4 +1,5 @@
 import { SipStrategy } from '../../types/sipStrategy';
+import { LumpsumStrategy } from '../../types/lumpsumStrategy';
 import { Instrument } from '../../types/instrument';
 
 // Utility functions for reading and writing portfolios and years to the query string
@@ -12,6 +13,8 @@ export function getQueryParams() {
   const defaultThreshold = 5; // Default threshold if not in query params
 
   return {
+    lumpsumStrategies: [], // Will be populated from lumpsumStrategiesParam when implemented
+    lumpsumAmount: 100000,
     instruments: instrumentsParam
       ? instrumentsParam.split(';').map(instrStr => {
           const parts = instrStr.split(':');
