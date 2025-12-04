@@ -3,6 +3,20 @@ import { NavEntry } from '../../../types/navData';
 import { areDatesContinuous, getNthPreviousMonthDate } from '../../date/dateUtils';
 import { fillMissingNavDates } from '../../data/fillMissingNavDates';
 
+/**
+ * Helper to create a date key for map lookups (same as SIP)
+ */
+function toDateKey(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+/**
+ * Helper to build a date map for O(1) lookups (same as SIP)
+ */
+function buildDateMap(fund: NavEntry[]): Map<string, NavEntry> {
+  return new Map(fund.map(entry => [toDateKey(entry.date), entry]));
+}
+
 export interface RollingXirrEntry {
   date: Date;
   xirr: number;
@@ -46,21 +60,15 @@ export function calculateLumpSumRollingXirr(
     return data;
   });
 
+  // Build date maps for O(1) lookups (same as SIP for performance)
+  const fundDateMaps = filledNavs.map(buildDateMap);
+
   // Get a consolidated list of dates from the first fund (after filling)
   const sorted = [...filledNavs[0]].sort((a, b) => a.date.getTime() - b.date.getTime());
   const dateList = sorted.map(entry => entry.date);
   const result: RollingXirrEntry[] = [];
   const firstDate = dateList[0];
   const months = 12 * years;
-
-  // Pre-calculate ALL daily portfolio values ONCE (for volatility)
-  // This is much faster than recalculating for each rolling period
-  const allDailyValues = calculateAllDailyPortfolioValues(
-    filledNavs,
-    actualAllocations,
-    investmentAmount,
-    sorted
-  );
 
   for (let i = 0; i < dateList.length; i++) {
     const endDate = dateList[i];
@@ -81,12 +89,7 @@ export function calculateLumpSumRollingXirr(
     
     // Calculate units purchased for each fund based on allocations
     for (let f = 0; f < numFunds; f++) {
-      const fundNav = filledNavs[f];
-      const startEntry = fundNav.find(entry => 
-        entry.date.getFullYear() === startDate.getFullYear() &&
-        entry.date.getMonth() === startDate.getMonth() &&
-        entry.date.getDate() === startDate.getDate()
-      );
+      const startEntry = fundDateMaps[f].get(toDateKey(startDate));
       
       if (!startEntry) { 
         valid = false; 
@@ -102,12 +105,7 @@ export function calculateLumpSumRollingXirr(
     // Calculate total portfolio value at end date
     let totalValue = 0;
     for (let f = 0; f < numFunds; f++) {
-      const fundNav = filledNavs[f];
-      const endEntry = fundNav.find(entry => 
-        entry.date.getFullYear() === endDate.getFullYear() &&
-        entry.date.getMonth() === endDate.getMonth() &&
-        entry.date.getDate() === endDate.getDate()
-      );
+      const endEntry = fundDateMaps[f].get(toDateKey(endDate));
       
       if (!endEntry) { 
         valid = false; 
@@ -138,12 +136,16 @@ export function calculateLumpSumRollingXirr(
       continue; // Skip if XIRR calculation fails
     }
     
-    // Slice daily values for this specific period (fast lookup)
-    const periodDailyValues = allDailyValues.filter(
-      dv => dv.date >= startDate && dv.date <= endDate
+    // Calculate daily portfolio values for this specific period
+    const periodDailyValues = calculatePeriodDailyPortfolioValues(
+      fundDateMaps,
+      fundUnits,
+      sorted,
+      startDate,
+      endDate
     );
     
-    // Calculate volatility from pre-calculated daily values
+    // Calculate volatility from daily values
     const volatility = calculateVolatilityFromDailyValues(periodDailyValues);
     
     result.push({ 
@@ -158,48 +160,39 @@ export function calculateLumpSumRollingXirr(
 }
 
 /**
- * Pre-calculate daily portfolio values for ALL dates
- * This is done ONCE, then sliced for each rolling period
+ * Calculate daily portfolio values for a specific rolling period
+ * Similar to SIP pattern - each period calculates its own daily values independently
+ * Uses date maps for O(1) lookups instead of O(n) array scans
  */
-function calculateAllDailyPortfolioValues(
-  filledNavs: NavEntry[][],
-  allocations: number[],
-  investmentAmount: number,
-  sorted: NavEntry[]
+function calculatePeriodDailyPortfolioValues(
+  fundDateMaps: Map<string, NavEntry>[],
+  fundUnits: number[],
+  sorted: NavEntry[],
+  startDate: Date,
+  endDate: Date
 ): Array<{ date: Date; totalValue: number }> {
-  const numFunds = filledNavs.length;
-  const firstDate = sorted[0].date;
-  
-  // Calculate units purchased on day 1 for each fund
-  const unitsPerFund: number[] = [];
-  for (let f = 0; f < numFunds; f++) {
-    const startNav = filledNavs[f].find(entry => 
-      entry.date.getTime() === firstDate.getTime()
-    );
-    if (!startNav) return [];
-    
-    const fundAllocation = (investmentAmount * allocations[f]) / 100;
-    unitsPerFund[f] = fundAllocation / startNav.nav;
-  }
-
-  // Calculate total value for each day
+  const numFunds = fundDateMaps.length;
   const dailyValues: Array<{ date: Date; totalValue: number }> = [];
   
-  for (const dateEntry of sorted) {
+  // Filter dates within the period
+  const periodDates = sorted.filter(
+    entry => entry.date >= startDate && entry.date <= endDate
+  );
+  
+  // Calculate total portfolio value for each day in the period
+  for (const dateEntry of periodDates) {
     let totalValue = 0;
     let valid = true;
 
     for (let f = 0; f < numFunds; f++) {
-      const navEntry = filledNavs[f].find(
-        entry => entry.date.getTime() === dateEntry.date.getTime()
-      );
+      const navEntry = fundDateMaps[f].get(toDateKey(dateEntry.date));
       
       if (!navEntry) {
         valid = false;
         break;
       }
       
-      totalValue += unitsPerFund[f] * navEntry.nav;
+      totalValue += fundUnits[f] * navEntry.nav;
     }
 
     if (valid && totalValue > 0) {
