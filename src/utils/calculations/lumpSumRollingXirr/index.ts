@@ -70,17 +70,19 @@ export function calculateLumpSumRollingXirr(
   const firstDate = dateList[0];
   const months = 12 * years;
 
+  // Build date-to-index map for O(1) lookups instead of O(n) findIndex
+  const dateToIndexMap = new Map<string, number>();
+  sorted.forEach((entry, idx) => {
+    dateToIndexMap.set(toDateKey(entry.date), idx);
+  });
+
   for (let i = 0; i < dateList.length; i++) {
     const endDate = dateList[i];
     const startDate = getNthPreviousMonthDate(endDate, months);
     if (startDate < firstDate) continue;
     
-    // Find start index in the first fund (all funds should be aligned after filling)
-    const startIdx = sorted.findIndex(entry =>
-      entry.date.getFullYear() === startDate.getFullYear() &&
-      entry.date.getMonth() === startDate.getMonth() &&
-      entry.date.getDate() === startDate.getDate()
-    );
+    // O(1) lookup using date map instead of O(n) findIndex
+    const startIdx = dateToIndexMap.get(toDateKey(startDate)) ?? -1;
     if (startIdx === -1) continue;
 
     // For each fund, calculate units bought at start and value at end
