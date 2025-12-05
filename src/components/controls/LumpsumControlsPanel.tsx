@@ -4,6 +4,7 @@ import { Button, KIND } from 'baseui/button';
 import { Input } from 'baseui/input';
 import { LabelMedium, LabelLarge } from 'baseui/typography';
 import { Select } from 'baseui/select';
+import { formatNumber, parseFormattedNumber } from '../../utils/numberFormat';
 
 interface LumpsumControlsPanelProps {
   years: number;
@@ -28,6 +29,14 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
   chartView,
   setChartView
 }) => {
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const numericValue = parseFormattedNumber(value);
+    if (numericValue <= 100000000) {
+      setLumpsumAmount(numericValue);
+    }
+  };
+
   return (
     <Block marginBottom="scale800">
       {/* Plot Options Panel */}
@@ -134,12 +143,10 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
           <Block display="flex" alignItems="center" gridGap="scale300">
             <LabelMedium>Lumpsum Amount (₹):</LabelMedium>
             <Input
-              type="number"
-              min={1000}
-              max={100000000}
-              value={lumpsumAmount}
-              onChange={e => setLumpsumAmount(Number((e.target as HTMLInputElement).value))}
-              placeholder="100000"
+              type="text"
+              value={formatNumber(lumpsumAmount)}
+              onChange={handleAmountChange}
+              placeholder="1,00,000"
               size="compact"
               disabled={chartView !== 'corpus'}
               overrides={{

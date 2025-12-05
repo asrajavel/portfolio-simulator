@@ -122,7 +122,7 @@ const getBaseChartOptions = (title: string) => ({
   }
 });
 
-const getStockChartOptions = (title: string, sipStrategyXirrData: Record<string, any[]>, sipAmount: number, chartView: 'xirr' | 'corpus') => ({
+const getStockChartOptions = (title: string, strategyXirrData: Record<string, any[]>, amount: number, chartView: 'xirr' | 'corpus', isLumpsum: boolean = false) => ({
   ...getBaseChartOptions(title),
   xAxis: {
     type: 'datetime',
@@ -176,17 +176,24 @@ const getStockChartOptions = (title: string, sipStrategyXirrData: Record<string,
         // Get the strategy data
         const strategyName = point.series.name;
         const pointDate = Highcharts.dateFormat('%Y-%m-%d', this.x);
-        const xirrEntry = sipStrategyXirrData[strategyName]?.find((row: any) => formatDate(row.date) === pointDate);
+        const xirrEntry = strategyXirrData[strategyName]?.find((row: any) => formatDate(row.date) === pointDate);
         
         // Get actual XIRR value from the entry (not from point.y which could be corpus)
         const xirrPercent = xirrEntry ? (xirrEntry.xirr * 100).toFixed(2) : '0.00';
         
         let corpusValue = 0;
         if (xirrEntry && xirrEntry.transactions) {
-          // Sum all final values from sell transactions
-          corpusValue = xirrEntry.transactions
-            .filter((tx: any) => tx.type === 'sell')
-            .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
+          if (isLumpsum) {
+            // For lumpsum: get the final value from second transaction
+            if (xirrEntry.transactions.length >= 2) {
+              corpusValue = xirrEntry.transactions[1].nav;
+            }
+          } else {
+            // For SIP: sum all final values from sell transactions
+            corpusValue = xirrEntry.transactions
+              .filter((tx: any) => tx.type === 'sell')
+              .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
+          }
         }
         
         const color = point.series.color;
@@ -306,17 +313,17 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
     : `${isLumpsum ? 'Lumpsum' : 'SIP'} Corpus Value - Rolling ${years}Y`;
   
   const chartOptions = {
-    ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView),
+    ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView, isLumpsum),
     series: getStrategySeries(strategyXirrData || {}, COLORS, chartView, isLumpsum),
     chart: {
-      ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView).chart,
+      ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView, isLumpsum).chart,
       height: 500,
       zooming: { mouseWheel: false },
       events: { click: closeModal }
     },
     plotOptions: {
       series: {
-        ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView).plotOptions.series,
+        ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView, isLumpsum).plotOptions.series,
         point: {
           events: {
             click: function (this: Highcharts.Point) {

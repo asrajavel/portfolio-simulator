@@ -1,9 +1,10 @@
 import React from 'react';
 import { Block } from 'baseui/block';
-import { Button, SHAPE, KIND } from 'baseui/button';
+import { Button, KIND } from 'baseui/button';
 import { Input } from 'baseui/input';
 import { LabelMedium, LabelLarge } from 'baseui/typography';
 import { Select } from 'baseui/select';
+import { formatNumber, parseFormattedNumber } from '../../utils/numberFormat';
 
 interface ControlsPanelProps {
   years: number;
@@ -28,6 +29,14 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
   chartView,
   setChartView
 }) => {
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const numericValue = parseFormattedNumber(value);
+    if (numericValue <= 1000000) {
+      setSipAmount(numericValue);
+    }
+  };
+
   return (
     <Block marginBottom="scale800">
       {/* Plot Options Panel - styled like portfolio panels */}
@@ -134,12 +143,10 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
           <Block display="flex" alignItems="center" gridGap="scale300">
             <LabelMedium>Monthly SIP (₹):</LabelMedium>
             <Input
-              type="number"
-              min={100}
-              max={1000000}
-              value={sipAmount}
-              onChange={e => setSipAmount(Number((e.target as HTMLInputElement).value))}
-              placeholder="10000"
+              type="text"
+              value={formatNumber(sipAmount)}
+              onChange={handleAmountChange}
+              placeholder="10,000"
               size="compact"
               disabled={chartView !== 'corpus'}
               overrides={{
