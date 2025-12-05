@@ -94,7 +94,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
     };
   });
 
-  const formatNumber = (num: number) => {
+  const formatNumberWithDecimals = (num: number) => {
     return new Intl.NumberFormat('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -146,7 +146,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
     }),
     NumericalColumn({
       title: "Amount",
-      format: formatNumber,
+      format: formatNumberWithDecimals,
       mapDataToValue: (data: TransactionRowDataT) => data[5],
       cellBlockAlign: 'end',
     }),
@@ -158,7 +158,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
     }),
     NumericalColumn({
       title: "Current Value",
-      format: formatNumber,
+      format: formatNumberWithDecimals,
       mapDataToValue: (data: TransactionRowDataT) => data[7],
       cellBlockAlign: 'end',
     }),
