@@ -14,7 +14,6 @@ interface BaseFundControlsProps {
   onAddFund: () => void;
   onRemoveFund: (idx: number) => void;
   onAllocationChange: (idx: number, value: number) => void;
-  disableControls: boolean;
   useInstruments?: boolean;
   defaultSchemeCode?: number;
   children?: React.ReactNode; // For additional controls (SIP-specific)
@@ -28,7 +27,6 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
   onAddFund,
   onRemoveFund,
   onAllocationChange,
-  disableControls,
   useInstruments = true,
   defaultSchemeCode,
   children,
@@ -124,7 +122,7 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
             max={100}
             value={allocations[idx] ?? 0}
             onChange={e => onAllocationChange(idx, Number((e.target as HTMLInputElement).value))}
-            disabled={disableControls || hasInflation}
+            disabled={hasInflation}
             size="compact"
             overrides={{
               Root: {
@@ -155,7 +153,7 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
             kind="tertiary"
             size="mini"
             onClick={() => onRemoveFund(idx)}
-            disabled={disableControls || (selectedInstruments?.length ?? 0) <= 1}
+            disabled={(selectedInstruments?.length ?? 0) <= 1}
             overrides={{
               BaseButton: {
                 style: ({ $theme }) => ({
@@ -181,7 +179,7 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
           kind="primary"
           size="compact"
           onClick={onAddFund}
-          disabled={disableControls || hasInflation}
+          disabled={hasInflation}
         >
           + Instrument
         </Button>

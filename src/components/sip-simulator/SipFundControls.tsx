@@ -13,7 +13,6 @@ interface SipFundControlsProps {
   onAddFund: () => void;
   onRemoveFund: (idx: number) => void;
   onAllocationChange: (idx: number, value: number) => void;
-  disableControls: boolean;
   rebalancingEnabled: boolean;
   onToggleRebalancing: () => void;
   rebalancingThreshold: number;
@@ -34,7 +33,6 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
   onAddFund,
   onRemoveFund,
   onAllocationChange,
-  disableControls,
   rebalancingEnabled,
   onToggleRebalancing,
   rebalancingThreshold,
@@ -55,7 +53,6 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
       onAddFund={onAddFund}
       onRemoveFund={onRemoveFund}
       onAllocationChange={onAllocationChange}
-      disableControls={disableControls}
       useInstruments={useInstruments}
       defaultSchemeCode={defaultSchemeCode}
     >
@@ -64,7 +61,7 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
         <Checkbox
           checked={rebalancingEnabled}
           onChange={onToggleRebalancing}
-          disabled={disableControls || (selectedInstruments?.length ?? 0) <= 1}
+          disabled={(selectedInstruments?.length ?? 0) <= 1}
         >
           Enable Rebalancing
         </Checkbox>
@@ -75,7 +72,7 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
             max={100}
             value={rebalancingThreshold}
             onChange={e => onRebalancingThresholdChange(Number((e.target as HTMLInputElement).value))}
-            disabled={disableControls || !rebalancingEnabled || (selectedInstruments?.length ?? 0) <= 1}
+            disabled={!rebalancingEnabled || (selectedInstruments?.length ?? 0) <= 1}
             placeholder="Threshold"
             size="compact"
             overrides={{
@@ -102,7 +99,6 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
         <Checkbox
           checked={stepUpEnabled}
           onChange={onToggleStepUp}
-          disabled={disableControls}
         >
           Annual Step-up
         </Checkbox>
@@ -113,7 +109,7 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
             max={100}
             value={stepUpPercentage}
             onChange={e => onStepUpPercentageChange(Number((e.target as HTMLInputElement).value))}
-            disabled={disableControls || !stepUpEnabled}
+            disabled={!stepUpEnabled}
             placeholder="Annual increase"
             size="compact"
             overrides={{

@@ -161,7 +161,7 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
                   kind="tertiary"
                   size="mini"
                   onClick={() => handleRemoveInstrument(idx)}
-                  disabled={loading || instruments.length <= 1}
+                  disabled={instruments.length <= 1}
                   overrides={{
                     BaseButton: {
                       style: ({ $theme }) => ({
@@ -189,7 +189,6 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
             <Button
               kind="secondary"
               onClick={handleAddInstrument}
-              disabled={loading}
               startEnhancer={() => <span style={{ fontSize: '16px', marginRight: '4px' }}>+</span>}
             >
               Add Instrument
@@ -243,7 +242,7 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
           <Button
             kind="primary"
             onClick={handlePlot}
-            disabled={anyInvalidSelection || loading}
+            disabled={anyInvalidSelection}
           >
             Plot Historical Values
           </Button>

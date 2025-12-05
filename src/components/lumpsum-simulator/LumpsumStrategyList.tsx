@@ -16,7 +16,6 @@ interface LumpsumStrategyListProps {
   onRemoveFund: (pIdx: number, idx: number) => void;
   onAllocationChange: (pIdx: number, idx: number, value: number) => void;
   onAddStrategy: () => void;
-  disableControls: boolean;
   COLORS: string[];
   useInstruments?: boolean;
   defaultSchemeCode?: number;
@@ -31,7 +30,6 @@ export const LumpsumStrategyList: React.FC<LumpsumStrategyListProps> = ({
   onRemoveFund,
   onAllocationChange,
   onAddStrategy,
-  disableControls,
   COLORS,
   useInstruments = false,
   defaultSchemeCode
@@ -105,7 +103,6 @@ export const LumpsumStrategyList: React.FC<LumpsumStrategyListProps> = ({
               onAddFund={() => onAddFund(pIdx)}
               onRemoveFund={idx => onRemoveFund(pIdx, idx)}
               onAllocationChange={(idx, value) => onAllocationChange(pIdx, idx, value)}
-              disableControls={disableControls}
               useInstruments={useInstruments}
               defaultSchemeCode={defaultSchemeCode}
             />

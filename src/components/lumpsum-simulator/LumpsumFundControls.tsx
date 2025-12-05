@@ -10,7 +10,6 @@ interface LumpsumFundControlsProps {
   onAddFund: () => void;
   onRemoveFund: (idx: number) => void;
   onAllocationChange: (idx: number, value: number) => void;
-  disableControls: boolean;
   useInstruments?: boolean;
   defaultSchemeCode?: number;
 }
@@ -23,7 +22,6 @@ export const LumpsumFundControls: React.FC<LumpsumFundControlsProps> = ({
   onAddFund,
   onRemoveFund,
   onAllocationChange,
-  disableControls,
   useInstruments = true,
   defaultSchemeCode,
 }) => {
@@ -36,7 +34,6 @@ export const LumpsumFundControls: React.FC<LumpsumFundControlsProps> = ({
       onAddFund={onAddFund}
       onRemoveFund={onRemoveFund}
       onAllocationChange={onAllocationChange}
-      disableControls={disableControls}
       useInstruments={useInstruments}
       defaultSchemeCode={defaultSchemeCode}
     >

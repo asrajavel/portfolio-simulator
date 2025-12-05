@@ -20,7 +20,6 @@ interface SipStrategyListProps {
   onToggleStepUp: (pIdx: number) => void;
   onStepUpPercentageChange: (pIdx: number, value: number) => void;
   onAddStrategy: () => void;
-  disableControls: boolean;
   COLORS: string[];
   useInstruments?: boolean;
   defaultSchemeCode?: number;
@@ -39,7 +38,6 @@ export const SipStrategyList: React.FC<SipStrategyListProps> = ({
   onToggleStepUp,
   onStepUpPercentageChange,
   onAddStrategy,
-  disableControls,
   COLORS,
   useInstruments = false,
   defaultSchemeCode
@@ -113,7 +111,6 @@ export const SipStrategyList: React.FC<SipStrategyListProps> = ({
               onAddFund={() => onAddFund(pIdx)}
               onRemoveFund={idx => onRemoveFund(pIdx, idx)}
               onAllocationChange={(idx, value) => onAllocationChange(pIdx, idx, value)}
-              disableControls={disableControls}
               rebalancingEnabled={strategy.rebalancingEnabled}
               onToggleRebalancing={() => onToggleRebalancing(pIdx)}
               rebalancingThreshold={strategy.rebalancingThreshold}

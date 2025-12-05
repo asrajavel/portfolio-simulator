@@ -9,7 +9,6 @@ interface LumpsumControlsPanelProps {
   years: number;
   setYears: (years: number) => void;
   onPlot: () => void;
-  disabled: boolean;
   anyInvalidAlloc: boolean;
   onYearsChange: () => void;
   lumpsumAmount: number;
@@ -22,7 +21,6 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
   years,
   setYears,
   onPlot,
-  disabled,
   anyInvalidAlloc,
   onYearsChange,
   lumpsumAmount,
@@ -80,7 +78,6 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
                 onYearsChange();
               }
             }}
-            disabled={disabled}
             size="compact"
             searchable={false}
             overrides={{
@@ -103,7 +100,6 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
                 onClick={() => setChartView('xirr')}
                 kind={chartView === 'xirr' ? KIND.primary : KIND.secondary}
                 size="compact"
-                disabled={disabled}
                 overrides={{
                   BaseButton: {
                     style: {
@@ -120,7 +116,6 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
                 onClick={() => setChartView('corpus')}
                 kind={chartView === 'corpus' ? KIND.primary : KIND.secondary}
                 size="compact"
-                disabled={disabled}
                 overrides={{
                   BaseButton: {
                     style: {
@@ -146,7 +141,7 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
               onChange={e => setLumpsumAmount(Number((e.target as HTMLInputElement).value))}
               placeholder="100000"
               size="compact"
-              disabled={disabled || chartView !== 'corpus'}
+              disabled={chartView !== 'corpus'}
               overrides={{
                 Root: {
                   style: {
@@ -164,7 +159,7 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
         <Button
           kind="primary"
           onClick={onPlot}
-          disabled={disabled || anyInvalidAlloc}
+          disabled={anyInvalidAlloc}
         >
           Plot
         </Button>
