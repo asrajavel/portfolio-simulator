@@ -11,6 +11,7 @@ import { useInstrumentNavData } from './hooks/useInstrumentNavData';
 import { LumpsumSimulatorTab } from './pages/LumpsumSimulatorTab';
 import { SipSimulatorTab } from './pages/SipSimulatorTab';
 import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
+import { BottomBar } from './components/layout/BottomBar';
 
 const App: React.FC = () => {
   const { funds, loading, error } = useMutualFunds();
@@ -82,7 +83,7 @@ const App: React.FC = () => {
         }}
       />
 
-      <Block position="relative" backgroundColor="white" padding="1.5rem">
+      <Block position="relative" backgroundColor="white" padding="1.5rem" flex="1" display="flex" flexDirection="column">
         <LoadingErrorStates loading={loading} error={error} />
         
         {/* Route handler for redirects */}
@@ -98,15 +99,15 @@ const App: React.FC = () => {
         {!loading && !error && funds.length > 0 && (
           <>
             {/* Keep all tabs mounted, just toggle visibility */}
-            <Block display={isLumpsumTab ? 'block' : 'none'}>
+            <Block display={isLumpsumTab ? 'block' : 'none'} flex="1">
               <LumpsumSimulatorTab funds={funds} loadNavData={loadNavData} />
             </Block>
             
-            <Block display={isSipTab ? 'block' : 'none'}>
+            <Block display={isSipTab ? 'block' : 'none'} flex="1">
               <SipSimulatorTab funds={funds} loadNavData={loadNavData} />
             </Block>
             
-            <Block display={isHistoricalTab ? 'block' : 'none'}>
+            <Block display={isHistoricalTab ? 'block' : 'none'} flex="1">
               <HistoricalValuesTab funds={funds} loadNavData={loadInstrumentNavData} />
             </Block>
           </>
@@ -115,6 +116,9 @@ const App: React.FC = () => {
         {/* Help Modal */}
         <SipHelpModal isOpen={isHelpModalOpen} onClose={closeHelpModal} />
       </Block>
+      
+      {/* Bottom Bar - always at bottom */}
+      <BottomBar />
     </Container>
   );
 };

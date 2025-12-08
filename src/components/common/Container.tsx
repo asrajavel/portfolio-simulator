@@ -10,6 +10,9 @@ export const Container: React.FC<ContainerProps> = ({ children }) => {
     <Block
       width="100%"
       backgroundColor="white"
+      display="flex"
+      flexDirection="column"
+      minHeight="100vh"
     >
       {children}
     </Block>
