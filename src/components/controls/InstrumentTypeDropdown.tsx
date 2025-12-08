@@ -9,7 +9,7 @@ interface InstrumentTypeDropdownProps {
   disableInflation?: boolean;
 }
 
-const options = [
+const baseOptions = [
   { label: 'Mutual Fund', id: 'mutual_fund' },
   { label: 'Index (TRI)', id: 'index_fund' },
   { label: 'Yahoo Finance', id: 'yahoo_finance' },
@@ -18,12 +18,13 @@ const options = [
 ];
 
 export const InstrumentTypeDropdown: React.FC<InstrumentTypeDropdownProps> = ({ value, onChange, disableInflation = false }) => {
-  const selectedValue = options.filter(option => option.id === value);
+  // Add disabled property to inflation option when needed
+  const options = baseOptions.map(option => ({
+    ...option,
+    disabled: disableInflation && option.id === 'inflation'
+  }));
 
-  // Filter out inflation option if it should be disabled
-  const availableOptions = disableInflation 
-    ? options.filter(opt => opt.id !== 'inflation')
-    : options;
+  const selectedValue = options.filter(option => option.id === value);
 
   const handleChange = (params: any) => {
     if (params.value && params.value.length > 0) {
@@ -43,7 +44,7 @@ export const InstrumentTypeDropdown: React.FC<InstrumentTypeDropdownProps> = ({ 
       }}
     >
       <Select
-        options={availableOptions}
+        options={options}
         value={selectedValue}
         onChange={handleChange}
         size="compact"
