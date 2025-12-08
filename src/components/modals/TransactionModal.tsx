@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StatefulDataTable,
   StringColumn,
@@ -8,6 +8,8 @@ import {
 import { Modal, ModalHeader, ModalBody, SIZE } from 'baseui/modal';
 import { HeadingSmall, LabelMedium, LabelLarge } from 'baseui/typography';
 import { Block } from 'baseui/block';
+import { Checkbox } from 'baseui/checkbox';
+import { TransactionChart } from '../charts/TransactionChart';
 
 function formatDate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -31,7 +33,6 @@ interface TransactionModalProps {
   xirr: number;
   strategyName: string;
   funds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
-  sipAmount: number;
 }
 
 type TransactionRowDataT = [string, string, string, number, number, number, number, number, string];
@@ -45,7 +46,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   strategyName, 
   funds 
 }) => {
-  // Sort transactions
+  const [excludeNilTransactions, setExcludeNilTransactions] = useState(true);
+
   const typeOrder = { buy: 0, rebalance: 1, sell: 2, nil: 3 };
   const transactionTypeDisplay = {
     buy: 'Buy',
@@ -68,30 +70,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     return fundA.localeCompare(fundB);
   });
 
-  // Convert to table rows
-  const rows = sortedTxs.map((tx, idx) => {
-    const fundName = funds[tx.fundIdx]?.schemeName || `Fund ${tx.fundIdx + 1}`;
-    const allocationText = tx.allocationPercentage !== undefined 
-      ? `${tx.allocationPercentage.toFixed(2)}%` 
-      : '';
-    
-    return {
-      id: String(idx),
-      data: [
-        fundName,
-        transactionTypeDisplay[tx.type] || '',
-        formatDate(tx.when),
-        tx.nav,
-        tx.units,
-        tx.amount,
-        tx.cumulativeUnits,
-        tx.currentValue,
-        allocationText,
-      ] as TransactionRowDataT,
-    };
-  });
+  const filteredTxs = excludeNilTransactions 
+    ? sortedTxs.filter(tx => tx.type !== 'nil')
+    : sortedTxs;
 
-  // Formatters
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('en-IN', {
       minimumFractionDigits: 2,
@@ -106,7 +88,6 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     }).format(num);
   };
 
-  // Define columns
   const columns = [
     StringColumn({
       title: "Fund",
@@ -151,6 +132,28 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     }),
   ];
 
+  const rows = filteredTxs.map((tx, idx) => {
+    const fundName = funds[tx.fundIdx]?.schemeName || `Fund ${tx.fundIdx + 1}`;
+    const allocationText = tx.allocationPercentage !== undefined 
+      ? `${tx.allocationPercentage.toFixed(2)}%` 
+      : '';
+    
+    return {
+      id: String(idx),
+      data: [
+        fundName,
+        transactionTypeDisplay[tx.type] || '',
+        formatDate(tx.when),
+        tx.nav,
+        tx.units,
+        tx.amount,
+        tx.cumulativeUnits,
+        tx.currentValue,
+        allocationText,
+      ] as TransactionRowDataT,
+    };
+  });
+
   return (
     <Modal
       onClose={onClose}
@@ -175,23 +178,38 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       </ModalHeader>
       
       <ModalBody>
-        {/* XIRR Info */}
-        <Block marginBottom="scale800">
-          <LabelMedium>
-            XIRR: <LabelLarge as="span" $style={{ fontWeight: 600 }}>{(xirr * 100).toFixed(2)}%</LabelLarge>
-          </LabelMedium>
-        </Block>
-        
-        {/* Table */}
-        <Block height="500px">
-          <StatefulDataTable
-            columns={columns}
-            rows={rows}
-            emptyMessage="No transactions to display"
-            loadingMessage="Loading..."
-            searchable={false}
-            filterable={false}
-          />
+        <Block $style={{ overflowY: 'auto', maxHeight: 'calc(90vh - 100px)' }}>
+          {/* XIRR Info */}
+          <Block marginBottom="scale800">
+            <LabelMedium>
+              XIRR: <LabelLarge as="span" $style={{ fontWeight: 600 }}>{(xirr * 100).toFixed(2)}%</LabelLarge>
+            </LabelMedium>
+          </Block>
+          
+          {/* Checkbox to exclude nil transactions */}
+          <Block marginBottom="scale600">
+            <Checkbox
+              checked={excludeNilTransactions}
+              onChange={e => setExcludeNilTransactions(e.currentTarget.checked)}
+            >
+              Exclude Non-Transaction Days
+            </Checkbox>
+          </Block>
+
+          {/* Table */}
+          <Block height="500px" marginBottom="scale800">
+            <StatefulDataTable
+              columns={columns}
+              rows={rows}
+              emptyMessage="No transactions to display"
+              loadingMessage="Loading..."
+              searchable={false}
+              filterable={false}
+            />
+          </Block>
+
+          {/* Chart - Investment vs Value */}
+          <TransactionChart transactions={transactions} />
         </Block>
       </ModalBody>
     </Modal>

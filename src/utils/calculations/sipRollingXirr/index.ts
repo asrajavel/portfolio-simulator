@@ -1,5 +1,5 @@
 import { NavEntry } from '../../../types/navData';
-import { SipRollingXirrEntry } from './types';
+import { SipRollingXirrEntry, Transaction } from './types';
 import { isValidInput, ensureContinuousDates, buildDateMap, getSortedDates } from './core/helpers';
 import { calculateTransactionsForDate } from './core/transactionBuilder';
 import { calculateXirrFromTransactions } from './core/xirrCalculator';
@@ -112,4 +112,57 @@ function computeSipXirrForDate(
     transactions: transactionsToReturn,
     volatility: Math.round(volatility * 10000) / 10000 // Round to 4 decimal places for precision
   }];
+}
+
+/**
+ * Recalculate transactions for a specific date with nil transactions included
+ * Used for on-demand calculation when viewing transaction details in modal
+ * 
+ * @param navDataList - Array of NAV data for each fund
+ * @param targetDate - The specific date to recalculate for
+ * @param years - Rolling period in years
+ * @param allocations - Target allocation percentages for each fund
+ * @param rebalancingEnabled - Whether rebalancing was enabled
+ * @param rebalancingThreshold - Threshold percentage for rebalancing
+ * @param stepUpEnabled - Whether step-up SIP was enabled
+ * @param stepUpPercentage - Annual percentage increase for step-up
+ * @param sipAmount - Monthly SIP amount
+ * @returns Transaction array with nil transactions included, or null if calculation fails
+ */
+export function recalculateTransactionsForDate(
+  navDataList: NavEntry[][],
+  targetDate: Date,
+  years: number,
+  allocations: number[],
+  rebalancingEnabled: boolean,
+  rebalancingThreshold: number,
+  stepUpEnabled: boolean,
+  stepUpPercentage: number,
+  sipAmount: number
+): Transaction[] | null {
+  // Validate input
+  if (!isValidInput(navDataList)) return null;
+
+  // Prepare data
+  const months = years * 12;
+  const filledNavs = navDataList.map(ensureContinuousDates);
+  const fundDateMaps = filledNavs.map(buildDateMap);
+  const baseDates = getSortedDates(filledNavs[0]);
+  const firstDate = baseDates[0];
+
+  // Calculate transactions for the target date with nil included
+  const allTransactions = calculateTransactionsForDate(
+    targetDate,
+    fundDateMaps,
+    months,
+    firstDate,
+    allocations,
+    rebalancingEnabled,
+    rebalancingThreshold,
+    stepUpEnabled,
+    stepUpPercentage,
+    sipAmount
+  );
+
+  return allTransactions;
 }

@@ -9,6 +9,7 @@ import { TransactionModal } from '../modals/TransactionModal';
 import { CHART_STYLES } from '../../constants';
 import { VolatilityChart } from './VolatilityChart';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
+import { recalculateTransactionsForDate } from '../../utils/calculations/sipRollingXirr';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -295,9 +296,72 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
     const xirrEntry = (strategyXirrData?.[strategyName] || []).find((row: any) => formatDate(row.date) === pointDate);
     if (xirrEntry) {
       const strategyInstruments = getStrategyInstruments(strategyName, strategies || [], funds);
+      
+      // For SIP mode, recalculate transactions with nil included
+      let transactionsWithNil = xirrEntry.transactions || [];
+      if (!isLumpsum && strategies) {
+        const strategyIdx = parseInt(strategyName.replace('Strategy ', '')) - 1;
+        const strategy = strategies[strategyIdx] as SipStrategy;
+        
+        if (strategy) {
+          // Extract NAV data list for this strategy from navDatas
+          const navDataList: any[][] = [];
+          if (strategy.selectedInstruments) {
+            for (const inst of strategy.selectedInstruments) {
+              if (!inst) continue;
+              
+              let identifier: string = '';
+              switch (inst.type) {
+                case 'mutual_fund':
+                  identifier = `${strategyIdx}_${inst.schemeCode}`;
+                  break;
+                case 'index_fund':
+                  identifier = `${strategyIdx}_${inst.indexName}`;
+                  break;
+                case 'yahoo_finance':
+                  identifier = `${strategyIdx}_${inst.symbol}`;
+                  break;
+                case 'fixed_return':
+                  identifier = `${strategyIdx}_fixed_${inst.annualReturnPercentage}`;
+                  break;
+                case 'inflation':
+                  identifier = `${strategyIdx}_inflation_${inst.countryCode}`;
+                  break;
+              }
+              
+              const navData = (navDatas as any)[identifier];
+              if (navData) {
+                navDataList.push(navData);
+              }
+            }
+          }
+          
+          // Recalculate transactions with nil included
+          if (navDataList.length > 0) {
+            const targetDate = new Date(pointDate);
+            const baseSipAmount = chartView === 'corpus' ? amount : 100;
+            const recalculated = recalculateTransactionsForDate(
+              navDataList,
+              targetDate,
+              years,
+              strategy.allocations,
+              strategy.rebalancingEnabled,
+              strategy.rebalancingThreshold,
+              strategy.stepUpEnabled,
+              strategy.stepUpPercentage,
+              baseSipAmount
+            );
+            
+            if (recalculated) {
+              transactionsWithNil = recalculated;
+            }
+          }
+        }
+      }
+      
       setModal({
         visible: true,
-        transactions: xirrEntry.transactions || [],
+        transactions: transactionsWithNil,
         date: pointDate,
         xirr: xirrEntry.xirr,
         strategyName,
@@ -340,7 +404,7 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
 
   return (
     <Block marginTop="2rem">
-      <TransactionModal {...modal} onClose={closeModal} funds={modal.strategyInstruments} sipAmount={amount} />
+      <TransactionModal {...modal} onClose={closeModal} funds={modal.strategyInstruments} />
       <Block marginTop="1.5rem">
         <HighchartsReact
           highcharts={Highcharts}
