@@ -1,12 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import {
   StatefulDataTable,
   StringColumn,
   CategoricalColumn,
   NumericalColumn,
-  NUMERICAL_FORMATS,
 } from "baseui/data-table";
-import { useStyletron } from 'baseui';
+import { Modal, ModalHeader, ModalBody, SIZE } from 'baseui/modal';
+import { HeadingSmall, LabelMedium, LabelLarge } from 'baseui/typography';
+import { Block } from 'baseui/block';
 
 function formatDate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -15,40 +16,36 @@ function formatDate(date: Date): string {
 interface TransactionModalProps {
   visible: boolean;
   onClose: () => void;
-  transactions: { fundIdx: number; nav: number; when: Date; units: number; amount: number; type: 'buy' | 'sell' | 'rebalance' | 'nil'; cumulativeUnits: number; currentValue: number; allocationPercentage?: number }[];
+  transactions: { 
+    fundIdx: number; 
+    nav: number; 
+    when: Date; 
+    units: number; 
+    amount: number; 
+    type: 'buy' | 'sell' | 'rebalance' | 'nil'; 
+    cumulativeUnits: number; 
+    currentValue: number; 
+    allocationPercentage?: number 
+  }[];
   date: string;
   xirr: number;
-  portfolioName: string;
+  strategyName: string;
   funds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
   sipAmount: number;
 }
 
-// Define the row data type for the DataTable
 type TransactionRowDataT = [string, string, string, number, number, number, number, number, string];
 
-export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onClose, transactions, date, xirr, portfolioName, funds, sipAmount }) => {
-  const [css] = useStyletron();
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!visible) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    const handleClick = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('mousedown', handleClick);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousedown', handleClick);
-    };
-  }, [visible, onClose]);
-
-  // Sort transactions by date, then by type (buy, rebalance, sell, nil), then by fund name
+export const TransactionModal: React.FC<TransactionModalProps> = ({ 
+  visible, 
+  onClose, 
+  transactions, 
+  date, 
+  xirr, 
+  strategyName, 
+  funds 
+}) => {
+  // Sort transactions
   const typeOrder = { buy: 0, rebalance: 1, sell: 2, nil: 3 };
   const transactionTypeDisplay = {
     buy: 'Buy',
@@ -56,6 +53,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
     rebalance: 'Rebalance',
     nil: 'Nil'
   };
+  
   const sortedTxs = [...transactions].sort((a, b) => {
     const dateA = a.when.getTime();
     const dateB = b.when.getTime();
@@ -70,8 +68,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
     return fundA.localeCompare(fundB);
   });
 
-  // Convert transactions to DataTable format
-  // No scaling needed - transactions already calculated with correct sipAmount
+  // Convert to table rows
   const rows = sortedTxs.map((tx, idx) => {
     const fundName = funds[tx.fundIdx]?.schemeName || `Fund ${tx.fundIdx + 1}`;
     const allocationText = tx.allocationPercentage !== undefined 
@@ -94,14 +91,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
     };
   });
 
-  const formatNumberWithDecimals = (num: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(num);
-  };
-
-  const formatNav = (num: number) => {
+  // Formatters
+  const formatNumber = (num: number) => {
     return new Intl.NumberFormat('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -115,128 +106,84 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
     }).format(num);
   };
 
-  // Define columns for the DataTable
+  // Define columns
   const columns = [
     StringColumn({
       title: "Fund",
       mapDataToValue: (data: TransactionRowDataT) => data[0],
-      cellBlockAlign: 'start',
     }),
     CategoricalColumn({
       title: "Type",
       mapDataToValue: (data: TransactionRowDataT) => data[1],
-      cellBlockAlign: 'start',
     }),
     StringColumn({
       title: "Date",
       mapDataToValue: (data: TransactionRowDataT) => data[2],
-      cellBlockAlign: 'start',
     }),
     NumericalColumn({
       title: "NAV",
-      format: formatNav,
+      format: formatNumber,
       mapDataToValue: (data: TransactionRowDataT) => data[3],
-      cellBlockAlign: 'end',
     }),
     NumericalColumn({
       title: "Units",
       format: formatUnits,
       mapDataToValue: (data: TransactionRowDataT) => data[4],
-      cellBlockAlign: 'end',
     }),
     NumericalColumn({
       title: "Amount",
-      format: formatNumberWithDecimals,
+      format: formatNumber,
       mapDataToValue: (data: TransactionRowDataT) => data[5],
-      cellBlockAlign: 'end',
     }),
     NumericalColumn({
       title: "Cumulative Units",
       format: formatUnits,
       mapDataToValue: (data: TransactionRowDataT) => data[6],
-      cellBlockAlign: 'end',
     }),
     NumericalColumn({
       title: "Current Value",
-      format: formatNumberWithDecimals,
+      format: formatNumber,
       mapDataToValue: (data: TransactionRowDataT) => data[7],
-      cellBlockAlign: 'end',
     }),
     StringColumn({
       title: "Allocation %",
       mapDataToValue: (data: TransactionRowDataT) => data[8],
-      cellBlockAlign: 'end',
     }),
   ];
 
-  if (!visible) return null;
-
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'rgba(0,0,0,0.3)',
-      zIndex: 1000
-    }}>
-      <div
-        ref={modalRef}
-        style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '8px',
-          width: '90vw',
-          maxWidth: '1200px',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          boxShadow: '0 2px 16px rgba(0,0,0,0.2)',
-          position: 'relative'
-        }}
-      >
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute',
-            top: '8px',
-            right: '12px',
-            background: 'none',
-            border: 'none',
-            fontSize: '22px',
-            color: '#888',
-            cursor: 'pointer',
-            padding: '0',
-            lineHeight: '1'
-          }}
-        >
-          &times;
-        </button>
-        
-        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>
-          {portfolioName} - {date}
-        </h3>
-        
-        <div style={{ marginBottom: '0.5rem' }}>
-          XIRR: <strong>{(xirr * 100).toFixed(2)}%</strong>
-        </div>
-        
-        <div style={{ marginBottom: '1rem' }}>
-          <strong>Transactions:</strong>
-        </div>
-        
-        <div className={css({
-          height: '400px',
-          width: '100%',
-          '.data-table': {
-            width: '100%',
-            display: 'table',
-            tableLayout: 'fixed'
+    <Modal
+      onClose={onClose}
+      isOpen={visible}
+      size={SIZE.auto}
+      overrides={{
+        Dialog: {
+          style: {
+            width: '95vw',
+            maxWidth: '1400px',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
           }
-        })}>
+        }
+      }}
+    >
+      <ModalHeader>
+        <HeadingSmall margin={0}>
+          {strategyName} - {date}
+        </HeadingSmall>
+      </ModalHeader>
+      
+      <ModalBody>
+        {/* XIRR Info */}
+        <Block marginBottom="scale800">
+          <LabelMedium>
+            XIRR: <LabelLarge as="span" $style={{ fontWeight: 600 }}>{(xirr * 100).toFixed(2)}%</LabelLarge>
+          </LabelMedium>
+        </Block>
+        
+        {/* Table */}
+        <Block height="500px">
           <StatefulDataTable
             columns={columns}
             rows={rows}
@@ -245,8 +192,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({ visible, onC
             searchable={false}
             filterable={false}
           />
-        </div>
-      </div>
-    </div>
+        </Block>
+      </ModalBody>
+    </Modal>
   );
-}; 
+};
