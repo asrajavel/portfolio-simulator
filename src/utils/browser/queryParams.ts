@@ -8,13 +8,95 @@ export function getQueryParams() {
   const portfoliosParam = params.get('portfolios');
   const years = params.get('years');
   const sipAmount = params.get('sipAmount');
+  const lumpsumStrategiesParam = params.get('lumpsumStrategies');
+  const lumpsumAmount = params.get('lumpsumAmount');
   const instrumentsParam = params.get('instruments');
   const logScale = params.get('logScale');
   const defaultThreshold = 5; // Default threshold if not in query params
 
   return {
-    lumpsumStrategies: [], // Will be populated from lumpsumStrategiesParam when implemented
-    lumpsumAmount: 100000,
+    lumpsumStrategies: lumpsumStrategiesParam
+      ? lumpsumStrategiesParam.split(';').map(strategyStr => {
+          // Format: instrument1:alloc1,instrument2:alloc2,...
+          // instrument format: type:id:allocation (e.g., mf:120716:50 or idx:NIFTY50:50 or fixed:8:50)
+          const selectedInstruments: (any | null)[] = [];
+          const allocations: number[] = [];
+
+          if (strategyStr) {
+            strategyStr.split(',').forEach(instrumentData => {
+              const instrumentParts = instrumentData.split(':');
+              
+              if (instrumentParts.length >= 2) {
+                const type = instrumentParts[0];
+                const alloc = Number(instrumentParts[instrumentParts.length - 1]);
+                allocations.push(isNaN(alloc) ? 0 : alloc);
+                
+                if (type === 'null') {
+                  selectedInstruments.push(null);
+                } else if (type === 'mf' && instrumentParts.length >= 3) {
+                  const schemeCode = Number(instrumentParts[1]);
+                  selectedInstruments.push({
+                    type: 'mutual_fund',
+                    id: schemeCode,
+                    name: `Scheme ${schemeCode}`,
+                    schemeCode: schemeCode,
+                    schemeName: `Scheme ${schemeCode}`
+                  });
+                } else if (type === 'idx' && instrumentParts.length >= 3) {
+                  const indexName = instrumentParts[1].replace(/_/g, ' ');
+                  selectedInstruments.push({
+                    type: 'index_fund',
+                    id: indexName,
+                    name: indexName,
+                    indexName: indexName,
+                    displayName: indexName
+                  });
+                } else if (type === 'yahoo' && instrumentParts.length >= 3) {
+                  const symbol = instrumentParts[1];
+                  selectedInstruments.push({
+                    type: 'yahoo_finance',
+                    id: symbol,
+                    name: symbol,
+                    symbol: symbol,
+                    displayName: symbol
+                  });
+                } else if (type === 'fixed' && instrumentParts.length >= 3) {
+                  const returnPercentage = parseFloat(instrumentParts[1]);
+                  selectedInstruments.push({
+                    type: 'fixed_return',
+                    id: `fixed_${returnPercentage}`,
+                    name: `Fixed ${returnPercentage}% Return`,
+                    annualReturnPercentage: returnPercentage,
+                    displayName: `Fixed ${returnPercentage}% Return`
+                  });
+                } else if (type === 'inflation' && instrumentParts.length >= 3) {
+                  const countryCode = instrumentParts[1];
+                  const countryNames: Record<string, string> = {
+                    'IND': 'India - Consumer Price Index',
+                    'USA': 'USA - Consumer Price Index'
+                  };
+                  const displayName = countryNames[countryCode] || `${countryCode} - Consumer Price Index`;
+                  selectedInstruments.push({
+                    type: 'inflation',
+                    id: `inflation_${countryCode}`,
+                    name: displayName,
+                    countryCode: countryCode,
+                    displayName: displayName
+                  });
+                } else {
+                  selectedInstruments.push(null);
+                }
+              }
+            });
+          }
+          
+          return {
+            selectedInstruments,
+            allocations
+          };
+        }).filter(s => s.allocations.length > 0)
+      : [],
+    lumpsumAmount: lumpsumAmount ? Number(lumpsumAmount) : 100000,
     instruments: instrumentsParam
       ? instrumentsParam.split(';').map(instrStr => {
           const parts = instrStr.split(':');

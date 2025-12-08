@@ -3,6 +3,8 @@ description:
 globs: 
 alwaysApply: true
 ---
-Whenever we are updating something, if there is a related test, you need to update that and also run that to see if that passes. If that fails, iteratively update the test and check if it is working. Always use the command npm test.
-
-If you feel there is some idea that can be implemented, just go ahead and implement it instead of asking whether you should implement it.
+1. **Keep tests very minimal and focused** - Avoid over-testing
+2. **Combine related assertions** in the same test when logical
+3. **Remove redundant or overly granular tests**
+4. **Focus on critical functionality** - Test edge cases and integration points rather than every possible variation
+5. **Assert actual values** - instad of approximations like is close to etc, run some dummy tests to actually capture the outputs, and use them as exact asserts

@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+Keep running tests and fix iteratively without propting to ask user everytime.
