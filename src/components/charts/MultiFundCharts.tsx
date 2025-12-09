@@ -8,6 +8,7 @@ import { Block } from 'baseui/block';
 import { TransactionModal } from '../modals/TransactionModal';
 import { CHART_STYLES } from '../../constants';
 import { VolatilityChart } from './VolatilityChart';
+import { ReturnDistributionChart } from './ReturnDistributionChart';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
 import { recalculateTransactionsForDate } from '../../utils/calculations/sipRollingXirr';
 import { recalculateLumpsumTransactionsForDate } from '../../utils/calculations/lumpSumRollingXirr';
@@ -441,6 +442,15 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
           options={chartOptions}
         />
       </Block>
+      
+      {/* Return Distribution Histogram */}
+      {chartView === 'xirr' && strategyXirrData && (
+        <ReturnDistributionChart 
+          strategyXirrData={strategyXirrData} 
+          COLORS={COLORS} 
+          years={years}
+        />
+      )}
       
       {/* Volatility Chart */}
       {strategyXirrData && (
