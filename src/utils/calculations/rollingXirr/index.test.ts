@@ -17,13 +17,20 @@ describe('calculateLumpSumRollingXirr', () => {
     expect(r2024).toBeDefined();
     expect(r2024!.xirr).toBeCloseTo(0.2, 3);
     expect(r2024!.transactions.length).toBe(2);
-    expect(r2024!.transactions[0]).toEqual({ nav: 100, when: new Date('2023-01-31') });
-    expect(r2024!.transactions[1]).toEqual({ nav: 120, when: new Date('2024-01-31') });
+    // Now returns detailed transactions with type 'buy' and 'sell'
+    expect(r2024!.transactions[0].nav).toBe(100);
+    expect(r2024!.transactions[0].when).toEqual(new Date('2023-01-31'));
+    expect(r2024!.transactions[0].type).toBe('buy');
+    expect(r2024!.transactions[1].nav).toBe(120);
+    expect(r2024!.transactions[1].when).toEqual(new Date('2024-01-31'));
+    expect(r2024!.transactions[1].type).toBe('sell');
     expect(r2025).toBeDefined();
     expect(r2025!.xirr).toBeCloseTo(0.1662, 3);
     expect(r2025!.transactions.length).toBe(2);
-    expect(r2025!.transactions[0]).toEqual({ nav: 100, when: new Date('2024-01-31') });
-    expect(r2025!.transactions[1]).toEqual({ nav: 116.66666666666667, when: new Date('2025-01-31') });
+    expect(r2025!.transactions[0].nav).toBe(120); // NAV on 2024-01-31 is 120
+    expect(r2025!.transactions[0].when).toEqual(new Date('2024-01-31'));
+    expect(r2025!.transactions[1].nav).toBe(140); // NAV on 2025-01-31 is 140
+    expect(r2025!.transactions[1].when).toEqual(new Date('2025-01-31'));
   });
 
   it('returns empty array if not enough data', () => {

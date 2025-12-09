@@ -10,6 +10,7 @@ import { HeadingSmall, LabelMedium, LabelLarge } from 'baseui/typography';
 import { Block } from 'baseui/block';
 import { Checkbox } from 'baseui/checkbox';
 import { TransactionChart } from '../charts/TransactionChart';
+import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
 
 function formatDate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -18,17 +19,7 @@ function formatDate(date: Date): string {
 interface TransactionModalProps {
   visible: boolean;
   onClose: () => void;
-  transactions: { 
-    fundIdx: number; 
-    nav: number; 
-    when: Date; 
-    units: number; 
-    amount: number; 
-    type: 'buy' | 'sell' | 'rebalance' | 'nil'; 
-    cumulativeUnits: number; 
-    currentValue: number; 
-    allocationPercentage?: number 
-  }[];
+  transactions: Transaction[];
   date: string;
   xirr: number;
   strategyName: string;
@@ -48,7 +39,13 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 }) => {
   const [excludeNilTransactions, setExcludeNilTransactions] = useState(true);
 
-  const typeOrder = { buy: 0, rebalance: 1, sell: 2, nil: 3 };
+  // Both SIP and Lumpsum now return the same transaction format
+  const isDetailedTransaction = (tx: any): tx is Transaction => {
+    return 'type' in tx && 'fundIdx' in tx;
+  };
+  const hasDetailedTransactions = transactions.length > 0 && isDetailedTransaction(transactions[0]);
+
+  const typeOrder = { buy: 0, sell: 1, rebalance: 2, nil: 3 };
   const transactionTypeDisplay = {
     buy: 'Buy',
     sell: 'Sell',
@@ -56,22 +53,26 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     nil: 'Nil'
   };
   
-  const sortedTxs = [...transactions].sort((a, b) => {
-    const dateA = a.when.getTime();
-    const dateB = b.when.getTime();
-    if (dateA !== dateB) return dateA - dateB;
+  // Sort transactions
+  const sortedTxs = hasDetailedTransactions
+    ? [...(transactions as Transaction[])].sort((a, b) => {
+        const dateA = a.when.getTime();
+        const dateB = b.when.getTime();
+        if (dateA !== dateB) return dateA - dateB;
 
-    const typeAOrder = typeOrder[a.type];
-    const typeBOrder = typeOrder[b.type];
-    if (typeAOrder !== typeBOrder) return typeAOrder - typeBOrder;
+        const typeAOrder = typeOrder[a.type];
+        const typeBOrder = typeOrder[b.type];
+        if (typeAOrder !== typeBOrder) return typeAOrder - typeBOrder;
 
-    const fundA = funds[a.fundIdx]?.schemeName || `Fund ${a.fundIdx + 1}`;
-    const fundB = funds[b.fundIdx]?.schemeName || `Fund ${b.fundIdx + 1}`;
-    return fundA.localeCompare(fundB);
-  });
+        const fundA = funds[a.fundIdx]?.schemeName || `Fund ${a.fundIdx + 1}`;
+        const fundB = funds[b.fundIdx]?.schemeName || `Fund ${b.fundIdx + 1}`;
+        return fundA.localeCompare(fundB);
+      })
+    : [...transactions].sort((a, b) => a.when.getTime() - b.when.getTime());
 
-  const filteredTxs = excludeNilTransactions 
-    ? sortedTxs.filter(tx => tx.type !== 'nil')
+  // Filter nil transactions if checkbox is checked
+  const filteredTxs = hasDetailedTransactions && excludeNilTransactions
+    ? (sortedTxs as Transaction[]).filter(tx => tx.type !== 'nil')
     : sortedTxs;
 
   const formatNumber = (num: number) => {
@@ -88,6 +89,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     }).format(num);
   };
 
+  // Columns for all detailed transactions (both SIP and Lumpsum)
   const columns = [
     StringColumn({
       title: "Fund",
@@ -132,27 +134,29 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     }),
   ];
 
-  const rows = filteredTxs.map((tx, idx) => {
-    const fundName = funds[tx.fundIdx]?.schemeName || `Fund ${tx.fundIdx + 1}`;
-    const allocationText = tx.allocationPercentage !== undefined 
-      ? `${tx.allocationPercentage.toFixed(2)}%` 
-      : '';
-    
-    return {
-      id: String(idx),
-      data: [
-        fundName,
-        transactionTypeDisplay[tx.type] || '',
-        formatDate(tx.when),
-        tx.nav,
-        tx.units,
-        tx.amount,
-        tx.cumulativeUnits,
-        tx.currentValue,
-        allocationText,
-      ] as TransactionRowDataT,
-    };
-  });
+  const rows = hasDetailedTransactions
+    ? (filteredTxs as Transaction[]).map((tx, idx) => {
+        const fundName = funds[tx.fundIdx]?.schemeName || `Fund ${tx.fundIdx + 1}`;
+        const allocationText = tx.allocationPercentage !== undefined 
+          ? `${tx.allocationPercentage.toFixed(2)}%` 
+          : '';
+        
+        return {
+          id: String(idx),
+          data: [
+            fundName,
+            transactionTypeDisplay[tx.type] || '',
+            formatDate(tx.when),
+            tx.nav,
+            tx.units,
+            tx.amount,
+            tx.cumulativeUnits,
+            tx.currentValue,
+            allocationText,
+          ] as TransactionRowDataT,
+        };
+      })
+    : [];
 
   return (
     <Modal
@@ -187,14 +191,16 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </Block>
           
           {/* Checkbox to exclude nil transactions */}
-          <Block marginBottom="scale600">
-            <Checkbox
-              checked={excludeNilTransactions}
-              onChange={e => setExcludeNilTransactions(e.currentTarget.checked)}
-            >
-              Exclude Non-Transaction Days
-            </Checkbox>
-          </Block>
+          {hasDetailedTransactions && (
+            <Block marginBottom="scale600">
+              <Checkbox
+                checked={excludeNilTransactions}
+                onChange={e => setExcludeNilTransactions(e.currentTarget.checked)}
+              >
+                Exclude Non-Transaction Days
+              </Checkbox>
+            </Block>
+          )}
 
           {/* Table */}
           <Block height="500px" marginBottom="scale800">
@@ -209,7 +215,9 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           </Block>
 
           {/* Chart - Investment vs Value */}
-          <TransactionChart transactions={transactions} />
+          {hasDetailedTransactions && (
+            <TransactionChart transactions={transactions as Transaction[]} />
+          )}
         </Block>
       </ModalBody>
     </Modal>

@@ -4,18 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { CHART_STYLES } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
-
-interface Transaction {
-  fundIdx: number;
-  nav: number;
-  when: Date;
-  units: number;
-  amount: number;
-  type: 'buy' | 'sell' | 'rebalance' | 'nil';
-  cumulativeUnits: number;
-  currentValue: number;
-  allocationPercentage?: number;
-}
+import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
 
 interface TransactionChartProps {
   transactions: Transaction[];

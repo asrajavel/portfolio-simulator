@@ -111,6 +111,7 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
         COLORS={plotState.COLORS}
         loadingNav={plotState.loadingNav}
         loadingXirr={plotState.loadingXirr}
+        lumpsumStrategies={lumpsumStrategies}
         years={years}
         amount={lumpsumAmount}
         chartView={chartView}
