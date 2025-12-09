@@ -216,7 +216,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 
           {/* Chart - Investment vs Value */}
           {hasDetailedTransactions && (
-            <TransactionChart transactions={transactions as Transaction[]} />
+            <TransactionChart 
+              transactions={transactions as Transaction[]} 
+              strategyName={strategyName}
+            />
           )}
         </Block>
       </ModalBody>

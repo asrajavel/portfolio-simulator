@@ -2,19 +2,27 @@ import React, { useMemo } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
-import { CHART_STYLES } from '../../constants';
+import { CHART_STYLES, COLORS } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
 
 interface TransactionChartProps {
   transactions: Transaction[];
+  strategyName?: string;
 }
 
 function formatDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-export const TransactionChart: React.FC<TransactionChartProps> = ({ transactions }) => {
+export const TransactionChart: React.FC<TransactionChartProps> = ({ 
+  transactions,
+  strategyName
+}) => {
+  // Extract strategy index and get its color
+  const strategyIdx = strategyName ? parseInt(strategyName.replace('Strategy ', '')) - 1 : 0;
+  const strategyColor = COLORS[strategyIdx % COLORS.length];
+
   // Process transactions for the chart
   const chartData = useMemo(() => {
     // Group transactions by date and calculate cumulative investment and current value
@@ -100,7 +108,12 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({ transactions
       style: CHART_STYLES.tooltip,
       formatter: function (this: any) {
         let html = `<div style="font-size: 12px; color: #ffffff;"><strong>${Highcharts.dateFormat('%e %b %Y', this.x)}</strong><br/>`;
-        this.points.forEach((point: any) => {
+        
+        // Sort points by value (highest first)
+        const sortedPoints = this.points ? 
+          [...this.points].sort((a: any, b: any) => (b.y as number) - (a.y as number)) : [];
+        
+        sortedPoints.forEach((point: any) => {
           const value = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(point.y);
           html += `<span style="color:${point.series.color}">●</span> ${point.series.name}: <strong>${value}</strong><br/>`;
         });
@@ -130,16 +143,16 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({ transactions
         type: 'line',
         step: 'left',
         data: chartData.map(d => [d.date.getTime(), d.cumulativeInvestment]),
-        color: '#3b82f6'
+        color: '#5A5A5A'  // Gray for invested amount
       },
       {
         name: 'Value',
         type: 'line',
         data: chartData.map(d => [d.date.getTime(), d.currentValue]),
-        color: '#10b981'
+        color: strategyColor  // Use strategy's color
       }
     ]
-  }), [chartData]);
+  }), [chartData, strategyColor]);
 
   return (
     <Block width="50%" margin="0 auto">
