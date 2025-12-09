@@ -11,6 +11,7 @@ import { Block } from 'baseui/block';
 import { Checkbox } from 'baseui/checkbox';
 import { TransactionChart } from '../charts/TransactionChart';
 import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
+import { COLORS } from '../../constants';
 
 function formatDate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -38,6 +39,10 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   funds 
 }) => {
   const [excludeNilTransactions, setExcludeNilTransactions] = useState(true);
+
+  // Extract strategy color
+  const strategyIdx = parseInt(strategyName.replace('Strategy ', '')) - 1;
+  const strategyColor = COLORS[strategyIdx % COLORS.length];
 
   // Both SIP and Lumpsum now return the same transaction format
   const isDetailedTransaction = (tx: any): tx is Transaction => {
@@ -176,9 +181,19 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       }}
     >
       <ModalHeader>
-        <HeadingSmall margin={0}>
-          {strategyName} - {date}
-        </HeadingSmall>
+        <Block display="flex" alignItems="center" gridGap="scale400">
+          <Block
+            $style={{
+              width: '4px',
+              height: '24px',
+              backgroundColor: strategyColor,
+              borderRadius: '2px',
+            }}
+          />
+          <HeadingSmall margin={0}>
+            {strategyName} - {date}
+          </HeadingSmall>
+        </Block>
       </ModalHeader>
       
       <ModalBody>
