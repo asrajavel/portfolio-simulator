@@ -4,6 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import histogramModule from 'highcharts/modules/histogram-bellcurve';
 import { Block } from 'baseui/block';
 import { CHART_STYLES } from '../../constants';
+import { formatNumber, formatCurrency } from '../../utils/numberFormat';
 
 // Initialize histogram module once (ESM/CommonJS safe)
 if (typeof Highcharts === 'object') {
@@ -19,17 +20,33 @@ interface ReturnDistributionChartProps {
   strategyXirrData: Record<string, any[]>;
   COLORS: string[];
   years: number;
+  chartView: 'xirr' | 'corpus';
 }
 
 export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = ({
   strategyXirrData,
   COLORS,
-  years
+  years,
+  chartView
 }) => {
+  const computeValue = (row: any): number | null => {
+    if (chartView === 'xirr') {
+      return typeof row.xirr === 'number' ? row.xirr * 100 : null;
+    }
+
+    if (!row || !row.transactions) return null;
+
+    // Corpus view: sum sell transaction amounts
+    const sells = row.transactions.filter((tx: any) => tx?.type === 'sell');
+    if (!sells.length) return null;
+    const total = sells.reduce((sum: number, tx: any) => sum + Math.abs(tx.amount || 0), 0);
+    return total || null;
+  };
+
   const series = useMemo(() => {
     return Object.entries(strategyXirrData || {}).flatMap(([strategyName, data], idx) => {
       const values = (data || [])
-        .map((row: any) => (typeof row.xirr === 'number' ? row.xirr * 100 : null))
+        .map((row: any) => computeValue(row))
         .filter((val: number | null): val is number => val !== null);
 
       if (!values.length) return [];
@@ -55,11 +72,16 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
           binsNumber: 20,
           tooltip: {
             pointFormatter: function (this: any) {
-              const start = this.x.toFixed(2);
-              const end = (this.x2 || this.x).toFixed(2);
-              const rangeLabel = `${start}% to ${end}%`;
+              const startRaw = this.x;
+              const endRaw = this.x2 || this.x;
+
+              const rangeLabel = chartView === 'xirr'
+                ? `${startRaw.toFixed(2)}% to ${endRaw.toFixed(2)}%`
+                : `${formatCurrency(startRaw, 0)} to ${formatCurrency(endRaw, 0)}`;
+
               const colorDot = `<span style="color:${this.series.color}">●</span>`;
-              return `${colorDot} ${this.series.name}: <strong>${this.y}</strong><br/><span style="color:#9ca3af">${rangeLabel}</span>`;
+              const freq = formatNumber(this.y);
+              return `${colorDot} ${this.series.name}: <strong>${freq}</strong><br/><span style="color:#9ca3af">${rangeLabel}</span>`;
             }
           }
         }
@@ -77,7 +99,7 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
       height: 450
     },
     title: {
-      text: `Return Distribution - Rolling ${years}Y`,
+      text: `${chartView === 'xirr' ? 'Return' : 'Corpus'} Distribution - Rolling ${years}Y`,
       style: CHART_STYLES.title
     },
     credits: { enabled: false },
@@ -87,7 +109,7 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
       itemHoverStyle: { color: '#1f2937' }
     },
     xAxis: {
-      title: { text: 'XIRR (%)', style: CHART_STYLES.axisTitle },
+      title: { text: chartView === 'xirr' ? 'XIRR (%)' : 'Corpus Value (₹)', style: CHART_STYLES.axisTitle },
       labels: { style: CHART_STYLES.axisLabels },
       gridLineColor: CHART_STYLES.colors.gridLine,
       lineColor: CHART_STYLES.colors.line,
@@ -96,7 +118,12 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
     yAxis: {
       opposite: false,
       title: { text: 'Frequency', style: CHART_STYLES.axisTitle },
-      labels: { style: CHART_STYLES.axisLabels },
+      labels: {
+        formatter: function (this: any) {
+          return formatNumber(this.value);
+        },
+        style: CHART_STYLES.axisLabels
+      },
       gridLineColor: CHART_STYLES.colors.gridLine,
       lineColor: CHART_STYLES.colors.line
     },

@@ -444,11 +444,12 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
       </Block>
       
       {/* Return Distribution Histogram */}
-      {chartView === 'xirr' && strategyXirrData && (
+      {strategyXirrData && (
         <ReturnDistributionChart 
           strategyXirrData={strategyXirrData} 
           COLORS={COLORS} 
           years={years}
+          chartView={chartView}
         />
       )}
       
