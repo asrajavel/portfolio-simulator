@@ -103,11 +103,6 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
       style: CHART_STYLES.title
     },
     credits: { enabled: false },
-    legend: {
-      enabled: true,
-      itemStyle: CHART_STYLES.legend,
-      itemHoverStyle: { color: '#1f2937' }
-    },
     xAxis: {
       title: { text: chartView === 'xirr' ? 'XIRR (%)' : 'Corpus Value (₹)', style: CHART_STYLES.axisTitle },
       labels: { style: CHART_STYLES.axisLabels },
