@@ -108,6 +108,14 @@ const getStrategyInstruments = (
 
 const getBaseChartOptions = (title: string) => ({
   title: { text: title, style: CHART_STYLES.title },
+  subtitle: {
+    text: 'Click on any point to view transactions for a specific date',
+    style: {
+      fontSize: '12px',
+      color: '#9ca3af',
+      fontStyle: 'italic'
+    }
+  },
   credits: { enabled: false },
   chart: {
     backgroundColor: CHART_STYLES.colors.background,
@@ -206,6 +214,8 @@ const getStockChartOptions = (title: string, strategyXirrData: Record<string, an
           tooltipHTML += `<span style="color:${color}">●</span> ${point.series.name}: <strong>${formattedCorpus}</strong> <span style="color:#aaa">(${xirrPercent}%)</span><br/>`;
         }
       });
+      
+      tooltipHTML += '<br/><span style="color:#9ca3af; font-size: 11px; font-style: italic;">Click for details</span>';
       
       return tooltipHTML + '</div>';
     }
