@@ -155,7 +155,8 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
       borderColor: CHART_STYLES.colors.tooltipBackground,
       borderRadius: 6,
       useHTML: true,
-      style: CHART_STYLES.tooltip
+      style: CHART_STYLES.tooltip,
+      headerFormat: '' // suppress default x-value header line
     },
     plotOptions: {
       column: {
