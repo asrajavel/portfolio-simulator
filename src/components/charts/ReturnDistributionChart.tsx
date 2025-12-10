@@ -1,20 +1,9 @@
 import React, { useMemo } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
-import histogramModule from 'highcharts/modules/histogram-bellcurve';
 import { Block } from 'baseui/block';
 import { CHART_STYLES } from '../../constants';
-import { formatNumber, formatCurrency } from '../../utils/numberFormat';
-
-// Initialize histogram module once (ESM/CommonJS safe)
-if (typeof Highcharts === 'object') {
-  const initHistogram =
-    (histogramModule as unknown as { default?: (H: typeof Highcharts) => void }).default ||
-    (histogramModule as unknown as (H: typeof Highcharts) => void);
-  if (typeof initHistogram === 'function') {
-    initHistogram(Highcharts);
-  }
-}
+import { formatCurrency } from '../../utils/numberFormat';
 
 interface ReturnDistributionChartProps {
   strategyXirrData: Record<string, any[]>;
@@ -44,50 +33,89 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
   };
 
   const series = useMemo(() => {
-    return Object.entries(strategyXirrData || {}).flatMap(([strategyName, data], idx) => {
+    const BINS = 20;
+    const entries = Object.entries(strategyXirrData || {});
+
+    const preparedValues = entries.map(([strategyName, data], idx) => {
       const values = (data || [])
         .map((row: any) => computeValue(row))
         .filter((val: number | null): val is number => val !== null);
 
+      return {
+        strategyName,
+        color: COLORS[idx % COLORS.length],
+        values
+      };
+    });
+
+    const allValues = preparedValues.flatMap(item => item.values);
+    if (!allValues.length) return [];
+
+    let globalMin = Math.min(...allValues);
+    let globalMax = Math.max(...allValues);
+
+    if (globalMin === globalMax) {
+      globalMin = globalMin - 0.5;
+      globalMax = globalMax + 0.5;
+    }
+
+    const binWidth = (globalMax - globalMin) / BINS || 1;
+
+    const buildBins = (values: number[]) => {
       if (!values.length) return [];
+      const counts = new Array(BINS).fill(0);
+      values.forEach(value => {
+        let binIndex = Math.floor((value - globalMin) / binWidth);
+        binIndex = Math.min(Math.max(binIndex, 0), BINS - 1);
+        counts[binIndex] += 1;
+      });
 
-      const baseId = `${strategyName.replace(/\s+/g, '-')}-data-${idx}`;
-      const color = COLORS[idx % COLORS.length];
+      const total = values.length;
+      return counts.map((count, idx) => {
+        const binStart = globalMin + idx * binWidth;
+        const binEnd = idx === BINS - 1 ? globalMax : binStart + binWidth;
+        const percentage = total ? (count / total) * 100 : 0;
+        return {
+          x: binStart + binWidth / 2,
+          y: percentage,
+          binStart,
+          binEnd
+        };
+      });
+    };
 
+    return preparedValues.flatMap(item => {
+      if (!item.values.length) return [];
       return [
         {
-          id: baseId,
-          type: 'scatter' as const,
-          data: values,
-          showInLegend: false,
-          visible: false
-        },
-        {
-          name: `${strategyName}`,
-          type: 'histogram' as const,
-          baseSeries: baseId,
-          color,
+          name: `${item.strategyName}`,
+          type: 'column' as const,
+          data: buildBins(item.values),
+          color: item.color,
           opacity: 0.7,
           borderWidth: 0,
-          binsNumber: 20,
+          pointPadding: 0,
+          groupPadding: 0,
+          pointPlacement: 0,
+          pointRange: binWidth,
           tooltip: {
             pointFormatter: function (this: any) {
-              const startRaw = this.x;
-              const endRaw = this.x2 || this.x;
+              const startRaw = this.binStart;
+              const endRaw = this.binEnd;
 
               const rangeLabel = chartView === 'xirr'
                 ? `${startRaw.toFixed(2)}% to ${endRaw.toFixed(2)}%`
                 : `${formatCurrency(startRaw, 0)} to ${formatCurrency(endRaw, 0)}`;
 
               const colorDot = `<span style="color:${this.series.color}">●</span>`;
-              const freq = formatNumber(this.y);
-              return `${colorDot} ${this.series.name}: <strong>${freq}</strong><br/><span style="color:#9ca3af">${rangeLabel}</span>`;
+              const percent = (this.y ?? 0).toFixed(2);
+              return `${colorDot} ${this.series.name}: <strong>${percent}%</strong><br/><span style="color:#9ca3af">${rangeLabel}</span>`;
             }
           }
         }
       ];
     });
-  }, [strategyXirrData, COLORS]);
+  }, [strategyXirrData, COLORS, chartView]);
 
   if (!series.length) return null;
 
@@ -112,10 +140,10 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
     },
     yAxis: {
       opposite: false,
-      title: { text: 'Frequency', style: CHART_STYLES.axisTitle },
+      title: { text: 'Percentage (%)', style: CHART_STYLES.axisTitle },
       labels: {
         formatter: function (this: any) {
-          return formatNumber(this.value);
+          return `${(this.value ?? 0).toFixed(1)}%`;
         },
         style: CHART_STYLES.axisLabels
       },
@@ -130,8 +158,9 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
       style: CHART_STYLES.tooltip
     },
     plotOptions: {
-      histogram: {
-        accessibility: { enabled: false }
+      column: {
+        accessibility: { enabled: false },
+        grouping: false
       },
       series: {
         animation: false,
