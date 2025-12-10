@@ -23,7 +23,7 @@ interface TransactionChartProps {
   funds?: Array<{ schemeName: string }>;
 }
 
-type ChartPoint = { date: Date; cumulativeInvestment: number; currentValue: number };
+type ChartPoint = { date: Date; cumulativeInvestment: number; currentValue: number; isRebalance?: boolean };
 type FundSeries = { fundIdx: number; data: ChartPoint[] };
 
 function formatDate(date: Date): string {
@@ -49,11 +49,13 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
     const fundInvestments = new Map<number, number>();
     const dateInvestmentMap = new Map<string, number>();
     const dateFundValueMap = new Map<string, { date: Date; perFund: Map<number, number> }>();
+    const rebalanceDates = new Set<string>();
 
     const chronologicalTxs = [...transactions].sort((a, b) => a.when.getTime() - b.when.getTime());
 
     for (const tx of chronologicalTxs) {
       const dateKey = formatDate(tx.when);
+      if (tx.type === 'rebalance') rebalanceDates.add(dateKey);
 
       // Buys add to investment. Rebalance can add (negative amount) or remove (positive amount).
       if (tx.type === 'buy') {
@@ -95,7 +97,8 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
       .map(([dateKey, { date, perFund }]) => ({
         date,
         cumulativeInvestment: dateInvestmentMap.get(dateKey) ?? totalInvestment,
-        currentValue: Array.from(perFund.values()).reduce((sum, val) => sum + val, 0)
+        currentValue: Array.from(perFund.values()).reduce((sum, val) => sum + val, 0),
+        isRebalance: rebalanceDates.has(dateKey)
       }))
       .sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -166,6 +169,26 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
     ...fundSeries
   ]), [chartData.totals, fundSeries, strategyColor]);
 
+  // Build vertical lines for rebalance days to keep visible when zoomed out
+  const rebalancePlotLines = useMemo(() => {
+    const lines: any[] = [];
+    const seen = new Set<number>();
+    chartData.totals.forEach(d => {
+      if (!d.isRebalance) return;
+      const x = d.date.getTime();
+      if (seen.has(x)) return;
+      seen.add(x);
+      lines.push({
+        value: x,
+        color: '#9CA3AF',
+        width: 1,
+        dashStyle: 'ShortDot',
+        zIndex: 3
+      });
+    });
+    return lines;
+  }, [chartData.totals]);
+
   // Create chart options
   const chartOptions = useMemo(() => ({
     chart: {
@@ -185,7 +208,8 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
       labels: { style: CHART_STYLES.axisLabels },
       gridLineColor: CHART_STYLES.colors.gridLine,
       lineColor: CHART_STYLES.colors.line,
-      tickColor: CHART_STYLES.colors.tick
+      tickColor: CHART_STYLES.colors.tick,
+      plotLines: rebalancePlotLines
     },
     yAxis: {
       opposite: false,
