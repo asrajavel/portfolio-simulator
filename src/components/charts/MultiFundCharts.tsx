@@ -195,10 +195,10 @@ const getStockChartOptions = (title: string, strategyXirrData: Record<string, an
         let corpusValue = 0;
         if (xirrEntry && xirrEntry.transactions) {
           if (isLumpsum) {
-            // For lumpsum: get the final value from second transaction
-            if (xirrEntry.transactions.length >= 2) {
-              corpusValue = xirrEntry.transactions[1].nav;
-            }
+            // For lumpsum: sum sell transaction amounts to get total corpus
+            corpusValue = xirrEntry.transactions
+              .filter((tx: any) => tx.type === 'sell')
+              .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
           } else {
             // For SIP: sum all final values from sell transactions
             corpusValue = xirrEntry.transactions
@@ -252,18 +252,9 @@ const getStrategySeries = (strategyXirrData: Record<string, any[]>, COLORS: stri
         // Calculate corpus
         let corpusValue = 0;
         if (row.transactions) {
-          if (isLumpsum) {
-            // For lumpsum: transactions array has [buy, sell] with nav field
-            // The last transaction (index 1) is the final value
-            if (row.transactions.length >= 2) {
-              corpusValue = row.transactions[1].nav;
-            }
-          } else {
-            // For SIP: sum all sell transactions
-            corpusValue = row.transactions
-              .filter((tx: any) => tx.type === 'sell')
-              .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
-          }
+          corpusValue = row.transactions
+            .filter((tx: any) => tx.type === 'sell')
+            .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
         }
         dateToValue[formatDate(row.date)] = corpusValue;
       }
