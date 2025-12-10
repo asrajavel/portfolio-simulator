@@ -5,6 +5,7 @@ import { Block } from 'baseui/block';
 import { CHART_STYLES, COLORS } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
+import { buildTransactionChartData, FundSeries } from './transactionChartData';
 
 // Base Web-aligned palette for per-fund series (kept distinct from existing COLORS)
 const BASEWEB_SERIES_COLORS = [
@@ -23,13 +24,6 @@ interface TransactionChartProps {
   funds?: Array<{ schemeName: string }>;
 }
 
-type ChartPoint = { date: Date; cumulativeInvestment: number; currentValue: number; isRebalance?: boolean };
-type FundSeries = { fundIdx: number; data: ChartPoint[] };
-
-function formatDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
-}
-
 export const TransactionChart: React.FC<TransactionChartProps> = ({ 
   transactions,
   strategyName,
@@ -40,76 +34,10 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
   const strategyColor = COLORS[strategyIdx % COLORS.length];
 
   // Process transactions for the chart
-  const chartData = useMemo(() => {
-    // Totals
-    let totalInvestment = 0;
-
-    // Per-fund tracking
-    const fundDateMap = new Map<number, Map<string, ChartPoint>>();
-    const fundInvestments = new Map<number, number>();
-    const dateInvestmentMap = new Map<string, number>();
-    const dateFundValueMap = new Map<string, { date: Date; perFund: Map<number, number> }>();
-    const rebalanceDates = new Set<string>();
-
-    const chronologicalTxs = [...transactions].sort((a, b) => a.when.getTime() - b.when.getTime());
-
-    for (const tx of chronologicalTxs) {
-      const dateKey = formatDate(tx.when);
-      if (tx.type === 'rebalance') rebalanceDates.add(dateKey);
-
-      // Buys add to investment. Rebalance can add (negative amount) or remove (positive amount).
-      if (tx.type === 'buy') {
-        const investAmount = Math.abs(tx.amount);
-        totalInvestment += investAmount;
-        fundInvestments.set(tx.fundIdx, (fundInvestments.get(tx.fundIdx) ?? 0) + investAmount);
-      } else if (tx.type === 'rebalance') {
-        const rebalanceFlow = tx.amount; // negative = buy, positive = sell
-        const absFlow = Math.abs(rebalanceFlow);
-        if (rebalanceFlow < 0) {
-          totalInvestment += absFlow;
-          fundInvestments.set(tx.fundIdx, (fundInvestments.get(tx.fundIdx) ?? 0) + absFlow);
-        } else if (rebalanceFlow > 0) {
-          totalInvestment = Math.max(0, totalInvestment - absFlow);
-          fundInvestments.set(tx.fundIdx, Math.max(0, (fundInvestments.get(tx.fundIdx) ?? 0) - absFlow));
-        }
-      }
-      // Track latest cumulative investment for the day (buys & rebalances affect it)
-      dateInvestmentMap.set(dateKey, totalInvestment);
-
-      // Capture per-fund value for the date (overwrite to avoid double-counting multiple tx on same day)
-      const existingFundValues = dateFundValueMap.get(dateKey) ?? { date: tx.when, perFund: new Map<number, number>() };
-      existingFundValues.date = tx.when;
-      existingFundValues.perFund.set(tx.fundIdx, tx.currentValue);
-      dateFundValueMap.set(dateKey, existingFundValues);
-
-      // Per fund
-      const perFundMap = fundDateMap.get(tx.fundIdx) ?? new Map<string, ChartPoint>();
-      perFundMap.set(dateKey, {
-        date: tx.when,
-        cumulativeInvestment: fundInvestments.get(tx.fundIdx) ?? 0,
-        currentValue: tx.currentValue // latest value for the day
-      });
-      fundDateMap.set(tx.fundIdx, perFundMap);
-    }
-
-    // Build totals from per-day fund values (summing latest values per fund for that date)
-    const totals = Array.from(dateFundValueMap.entries())
-      .map(([dateKey, { date, perFund }]) => ({
-        date,
-        cumulativeInvestment: dateInvestmentMap.get(dateKey) ?? totalInvestment,
-        currentValue: Array.from(perFund.values()).reduce((sum, val) => sum + val, 0),
-        isRebalance: rebalanceDates.has(dateKey)
-      }))
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    return {
-      totals,
-      perFund: Array.from(fundDateMap.entries()).map(([fundIdx, map]) => ({
-        fundIdx,
-        data: Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime())
-      })) as FundSeries[]
-    };
-  }, [transactions]);
+  const { totals, perFund, rebalancePlotLines } = useMemo(
+    () => buildTransactionChartData(transactions),
+    [transactions]
+  );
 
   // Choose colors from Base Web palette (already distinct from totals palette)
   const getFundColor = (fundIdx: number) => {
@@ -119,13 +47,15 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
 
   // Build per-fund series (investment + value)
   const fundSeries = useMemo(() => {
+    if (perFund.length <= 1) return [];
+
     const fundMeta = (funds ?? []).map((fund, idx) => ({
       fundIdx: idx,
       name: fund.schemeName || `Fund ${idx + 1}`,
       color: getFundColor(idx)
     }));
 
-    return chartData.perFund.flatMap(fundData => {
+    return perFund.flatMap(fundData => {
       const meta = fundMeta.find(m => m.fundIdx === fundData.fundIdx);
       const baseColor = meta?.color ?? getFundColor(fundData.fundIdx);
       // Small brighten to keep hue stable (avoid drifting amber -> yellow)
@@ -150,44 +80,24 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
         }
       ];
     });
-  }, [chartData.perFund, funds]);
+  }, [perFund, funds]);
 
   const combinedSeries = useMemo(() => ([
     {
       name: 'Total (Investment)',
       type: 'line',
       step: 'left',
-      data: chartData.totals.map(d => [d.date.getTime(), d.cumulativeInvestment]),
+      data: totals.map(d => [d.date.getTime(), d.cumulativeInvestment]),
       color: '#5A5A5A'  // Gray for invested amount
     },
     {
       name: 'Total (Value)',
       type: 'line',
-      data: chartData.totals.map(d => [d.date.getTime(), d.currentValue]),
+      data: totals.map(d => [d.date.getTime(), d.currentValue]),
       color: strategyColor  // Use strategy's color
     },
     ...fundSeries
-  ]), [chartData.totals, fundSeries, strategyColor]);
-
-  // Build vertical lines for rebalance days to keep visible when zoomed out
-  const rebalancePlotLines = useMemo(() => {
-    const lines: any[] = [];
-    const seen = new Set<number>();
-    chartData.totals.forEach(d => {
-      if (!d.isRebalance) return;
-      const x = d.date.getTime();
-      if (seen.has(x)) return;
-      seen.add(x);
-      lines.push({
-        value: x,
-        color: '#9CA3AF',
-        width: 1,
-        dashStyle: 'ShortDot',
-        zIndex: 3
-      });
-    });
-    return lines;
-  }, [chartData.totals]);
+  ]), [totals, fundSeries, strategyColor]);
 
   // Create chart options
   const chartOptions = useMemo(() => ({
