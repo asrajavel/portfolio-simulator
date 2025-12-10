@@ -115,13 +115,15 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
           type: 'line' as const,
           step: 'left',
           data: fundData.data.map(d => [d.date.getTime(), d.cumulativeInvestment]),
-          color: investmentColor
+          color: investmentColor,
+          visible: false
         },
         {
           name: `${fundName} (Value)`,
           type: 'line' as const,
           data: fundData.data.map(d => [d.date.getTime(), d.currentValue]),
-          color: baseColor // darker than investment
+          color: baseColor, // darker than investment
+          visible: false
         }
       ];
     });
