@@ -6,10 +6,25 @@ import { CHART_STYLES, COLORS } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
 
+// Base Web-aligned palette for per-fund series (kept distinct from existing COLORS)
+const BASEWEB_SERIES_COLORS = [
+  '#FFB020', // amber
+  '#0B6E4F', // deep green
+  '#9B51E0', // violet
+  '#D64545', // red
+  '#1192E8', // blue-cyan
+  '#8D6E63', // brown
+  '#6C5B7B', // muted purple
+] as const;
+
 interface TransactionChartProps {
   transactions: Transaction[];
   strategyName?: string;
+  funds?: Array<{ schemeName: string }>;
 }
+
+type ChartPoint = { date: Date; cumulativeInvestment: number; currentValue: number };
+type FundSeries = { fundIdx: number; data: ChartPoint[] };
 
 function formatDate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -17,7 +32,8 @@ function formatDate(date: Date): string {
 
 export const TransactionChart: React.FC<TransactionChartProps> = ({ 
   transactions,
-  strategyName
+  strategyName,
+  funds
 }) => {
   // Extract strategy index and get its color
   const strategyIdx = strategyName ? parseInt(strategyName.replace('Strategy ', '')) - 1 : 0;
@@ -25,39 +41,108 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
 
   // Process transactions for the chart
   const chartData = useMemo(() => {
-    // Group transactions by date and calculate cumulative investment and current value
-    const dateMap = new Map<string, { date: Date; cumulativeInvestment: number; currentValue: number }>();
-    
-    let cumulativeInvestment = 0;
-    
-    // Sort transactions by date
+    // Totals
+    const totalDateMap = new Map<string, ChartPoint>();
+    let totalInvestment = 0;
+
+    // Per-fund tracking
+    const fundDateMap = new Map<number, Map<string, ChartPoint>>();
+    const fundInvestments = new Map<number, number>();
+
     const chronologicalTxs = [...transactions].sort((a, b) => a.when.getTime() - b.when.getTime());
-    
+
     for (const tx of chronologicalTxs) {
       const dateKey = formatDate(tx.when);
-      
-      // Update cumulative investment only for buy transactions
-      // Buy transactions have negative amounts (cash outflow), so we use Math.abs to get positive investment
+
       if (tx.type === 'buy') {
-        cumulativeInvestment += Math.abs(tx.amount);
+        const buyAmount = Math.abs(tx.amount);
+        totalInvestment += buyAmount;
+        fundInvestments.set(tx.fundIdx, (fundInvestments.get(tx.fundIdx) ?? 0) + buyAmount);
       }
-      
-      // Get total current value for this date (sum across all funds)
-      const existing = dateMap.get(dateKey);
-      const totalCurrentValue = existing 
-        ? existing.currentValue + tx.currentValue 
-        : tx.currentValue;
-      
-      dateMap.set(dateKey, {
+
+      // Totals (all funds)
+      const existingTotal = totalDateMap.get(dateKey);
+      totalDateMap.set(dateKey, {
         date: tx.when,
-        cumulativeInvestment,
-        currentValue: totalCurrentValue
+        cumulativeInvestment: totalInvestment,
+        currentValue: (existingTotal?.currentValue ?? 0) + tx.currentValue
       });
+
+      // Per fund
+      const perFundMap = fundDateMap.get(tx.fundIdx) ?? new Map<string, ChartPoint>();
+      const existingFund = perFundMap.get(dateKey);
+      perFundMap.set(dateKey, {
+        date: tx.when,
+        cumulativeInvestment: fundInvestments.get(tx.fundIdx) ?? 0,
+        currentValue: (existingFund?.currentValue ?? 0) + tx.currentValue
+      });
+      fundDateMap.set(tx.fundIdx, perFundMap);
     }
-    
-    // Convert to sorted array
-    return Array.from(dateMap.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    return {
+      totals: Array.from(totalDateMap.values()).sort((a, b) => a.date.getTime() - b.date.getTime()),
+      perFund: Array.from(fundDateMap.entries()).map(([fundIdx, map]) => ({
+        fundIdx,
+        data: Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime())
+      })) as FundSeries[]
+    };
   }, [transactions]);
+
+  // Choose colors from Base Web palette (already distinct from totals palette)
+  const getFundColor = (fundIdx: number) => {
+    const base = BASEWEB_SERIES_COLORS[fundIdx % BASEWEB_SERIES_COLORS.length];
+    return base;
+  };
+
+  // Build per-fund series (investment + value)
+  const fundSeries = useMemo(() => {
+    const fundMeta = (funds ?? []).map((fund, idx) => ({
+      fundIdx: idx,
+      name: fund.schemeName || `Fund ${idx + 1}`,
+      color: getFundColor(idx)
+    }));
+
+    return chartData.perFund.flatMap(fundData => {
+      const meta = fundMeta.find(m => m.fundIdx === fundData.fundIdx);
+      const baseColor = meta?.color ?? getFundColor(fundData.fundIdx);
+      // Small brighten to keep hue stable (avoid drifting amber -> yellow)
+      const investmentColor = (Highcharts.color(baseColor)?.brighten(0.1).get() as string) ?? baseColor;
+      const fundName = meta?.name ?? `Fund ${fundData.fundIdx + 1}`;
+
+      return [
+        {
+          name: `${fundName} (Investment)`,
+          type: 'line' as const,
+          step: 'left',
+          data: fundData.data.map(d => [d.date.getTime(), d.cumulativeInvestment]),
+          color: investmentColor
+        },
+        {
+          name: `${fundName} (Value)`,
+          type: 'line' as const,
+          data: fundData.data.map(d => [d.date.getTime(), d.currentValue]),
+          color: baseColor // darker than investment
+        }
+      ];
+    });
+  }, [chartData.perFund, funds]);
+
+  const combinedSeries = useMemo(() => ([
+    {
+      name: 'Total (Investment)',
+      type: 'line',
+      step: 'left',
+      data: chartData.totals.map(d => [d.date.getTime(), d.cumulativeInvestment]),
+      color: '#5A5A5A'  // Gray for invested amount
+    },
+    {
+      name: 'Total (Value)',
+      type: 'line',
+      data: chartData.totals.map(d => [d.date.getTime(), d.currentValue]),
+      color: strategyColor  // Use strategy's color
+    },
+    ...fundSeries
+  ]), [chartData.totals, fundSeries, strategyColor]);
 
   // Create chart options
   const chartOptions = useMemo(() => ({
@@ -137,22 +222,8 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
         showInNavigator: true
       }
     },
-    series: [
-      {
-        name: 'Investment',
-        type: 'line',
-        step: 'left',
-        data: chartData.map(d => [d.date.getTime(), d.cumulativeInvestment]),
-        color: '#5A5A5A'  // Gray for invested amount
-      },
-      {
-        name: 'Value',
-        type: 'line',
-        data: chartData.map(d => [d.date.getTime(), d.currentValue]),
-        color: strategyColor  // Use strategy's color
-      }
-    ]
-  }), [chartData, strategyColor]);
+    series: combinedSeries
+  }), [combinedSeries]);
 
   return (
     <Block width="50%" margin="0 auto">

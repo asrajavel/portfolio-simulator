@@ -234,6 +234,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             <TransactionChart 
               transactions={transactions as Transaction[]} 
               strategyName={strategyName}
+              funds={funds}
             />
           )}
         </Block>
