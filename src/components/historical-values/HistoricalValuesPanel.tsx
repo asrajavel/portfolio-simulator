@@ -38,7 +38,27 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
         instrument: inst
       }));
     }
-    return [{ instrumentType: 'mutual_fund', instrument: null }];
+
+    const defaultIndexInstrument: Instrument = {
+      type: 'index_fund',
+      id: 'NIFTY 50',
+      name: 'NIFTY 50',
+      indexName: 'NIFTY 50',
+      displayName: 'NIFTY 50'
+    };
+
+    const defaultYahooInstrument: Instrument = {
+      type: 'yahoo_finance',
+      id: 'GOOG',
+      name: 'GOOG',
+      symbol: 'GOOG',
+      displayName: 'GOOG'
+    };
+
+    return [
+      { instrumentType: 'index_fund', instrument: defaultIndexInstrument },
+      { instrumentType: 'yahoo_finance', instrument: defaultYahooInstrument }
+    ];
   });
   
   const [navDatas, setNavDatas] = useState<Record<string, any[]>>({});

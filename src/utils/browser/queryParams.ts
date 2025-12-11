@@ -158,7 +158,8 @@ export function getQueryParams() {
           return null;
         }).filter((inst): inst is Instrument => inst !== null)
       : [],
-    logScale: logScale === '1',
+    // Default to logarithmic scale when not specified
+    logScale: logScale ? logScale === '1' : true,
     portfolios: portfoliosParam
       ? portfoliosParam.split(';').map(p_str => {
           // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
