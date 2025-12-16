@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Container } from './components/common/Container';
 import { useMutualFunds } from './hooks/useMutualFunds';
@@ -6,7 +6,6 @@ import { useNavData } from './hooks/useNavData';
 import { Block } from 'baseui/block';
 import { LoadingErrorStates } from './components/common/LoadingErrorStates';
 import { AppNavBar } from 'baseui/app-nav-bar';
-import { SipHelpModal } from './components/sip-simulator/SipHelpModal';
 import { useInstrumentNavData } from './hooks/useInstrumentNavData';
 import { LumpsumSimulatorTab } from './pages/LumpsumSimulatorTab';
 import { SipSimulatorTab } from './pages/SipSimulatorTab';
@@ -17,7 +16,6 @@ const App: React.FC = () => {
   const { funds, loading, error } = useMutualFunds();
   const { loadNavData } = useNavData();
   const { loadNavData: loadInstrumentNavData } = useInstrumentNavData();
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,14 +23,6 @@ const App: React.FC = () => {
   const isLumpsumTab = location.pathname === '/lumpsum';
   const isSipTab = location.pathname === '/sip';
   const isHistoricalTab = location.pathname === '/historical';
-
-  const handleHelpClick = () => {
-    setIsHelpModalOpen(true);
-  };
-
-  const closeHelpModal = () => {
-    setIsHelpModalOpen(false);
-  };
 
   return (
     <Container>
@@ -95,9 +85,6 @@ const App: React.FC = () => {
             </Block>
           </>
         )}
-        
-        {/* Help Modal */}
-        <SipHelpModal isOpen={isHelpModalOpen} onClose={closeHelpModal} />
       </Block>
       
       {/* Bottom Bar - always at bottom */}
