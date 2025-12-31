@@ -3,6 +3,7 @@ import { Drawer, ANCHOR } from 'baseui/drawer';
 import { LabelLarge, ParagraphSmall } from 'baseui/typography';
 import { Block } from 'baseui/block';
 import { Navigation } from 'baseui/side-navigation';
+import { StyledLink } from 'baseui/link';
 import { useHelp } from './HelpContext';
 import { helpContent, getTopicsByCategory } from './helpContent';
 
@@ -133,14 +134,37 @@ export const HelpDrawer: React.FC = () => {
   );
 };
 
-// Simple formatting for bold text
+// Simple formatting for bold text and links
 const formatLine = (line: string) => {
-  const parts = line.split(/(\*\*[^*]+\*\*)/g);
+  // First split by links [text](url), then by bold **text**
+  const linkRegex = /(\[[^\]]+\]\([^)]+\))/g;
+  const boldRegex = /(\*\*[^*]+\*\*)/g;
+  
+  const parts = line.split(linkRegex);
   return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    // Check if it's a link
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (linkMatch) {
+      return (
+        <StyledLink 
+          key={i} 
+          href={linkMatch[2]} 
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
+          {linkMatch[1]}
+        </StyledLink>
+      );
     }
-    return part;
+    
+    // Otherwise, handle bold within this part
+    const boldParts = part.split(boldRegex);
+    return boldParts.map((boldPart, j) => {
+      if (boldPart.startsWith('**') && boldPart.endsWith('**')) {
+        return <strong key={`${i}-${j}`}>{boldPart.slice(2, -2)}</strong>;
+      }
+      return boldPart;
+    });
   });
 };
 

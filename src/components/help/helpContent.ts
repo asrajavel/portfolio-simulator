@@ -212,11 +212,11 @@ Use log scale to compare actual performance, not just absolute values.`,
     title: 'Supported Instruments',
     content: `**Mutual Funds:**
 All AMFI-registered Indian mutual funds.
-Source: MFAPI (mfapi.in), updated daily.
+Source: [MFAPI](https://mfapi.in), updated daily.
 
 **Index Funds:**
 NIFTY 50, SENSEX, and other indices.
-Source: Yahoo Finance, end of day data.
+Primary source: [NSE India](https://www.niftyindices.com/reports/historical-data). Since the official site can sometimes be unreliable, index data is periodically backed up to [this repository](https://github.com/asrajavel/mf-index-data) (updated quarterly).
 
 **Yahoo Finance:**
 Any ticker available on Yahoo Finance — stocks, global indices, ETFs.
@@ -227,6 +227,7 @@ Useful for comparing against guaranteed return instruments.
 
 **Inflation:**
 CPI-based data showing how money loses value over time.
+Source: [World Bank](https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=IN) (Consumer Price Index).
 Use to understand real (inflation-adjusted) returns.
 
 ---
