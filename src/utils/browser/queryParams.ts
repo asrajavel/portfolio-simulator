@@ -162,7 +162,7 @@ export function getQueryParams() {
     logScale: logScale ? logScale === '1' : true,
     portfolios: portfoliosParam
       ? portfoliosParam.split(';').map(p_str => {
-          // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
+          // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage|transitionFlag|endAlloc1,endAlloc2|transitionYears
           // instrument format: type:id:allocation (e.g., mf:120716:50 or idx:NIFTY50:50 or fixed:8:50)
           const parts = p_str.split('|');
           const instrumentsStr = parts[0];
@@ -170,6 +170,9 @@ export function getQueryParams() {
           const rebalThresholdStr = parts[2];
           const stepUpFlagStr = parts[3];
           const stepUpPercentageStr = parts[4];
+          const transitionFlagStr = parts[5];
+          const endAllocationsStr = parts[6];
+          const transitionYearsStr = parts[7];
 
           const selectedInstruments: (any | null)[] = [];
           const allocations: number[] = [];
@@ -251,13 +254,26 @@ export function getQueryParams() {
           const stepUpEnabled = stepUpFlagStr === '1';
           const stepUpPercentage = stepUpPercentageStr ? parseInt(stepUpPercentageStr, 10) : 5;
           
+          // Parse allocation transition params
+          const allocationTransitionEnabled = transitionFlagStr === '1';
+          const endAllocations = endAllocationsStr 
+            ? endAllocationsStr.split(',').map(a => {
+                const val = Number(a);
+                return isNaN(val) ? 0 : val;
+              })
+            : allocations; // Default to same as start allocations
+          const transitionYears = transitionYearsStr ? parseInt(transitionYearsStr, 10) : 10;
+          
           return {
             selectedInstruments,
             allocations,
             rebalancingEnabled,
             rebalancingThreshold: isNaN(rebalancingThreshold) ? defaultThreshold : rebalancingThreshold,
             stepUpEnabled,
-            stepUpPercentage: isNaN(stepUpPercentage) ? 5 : stepUpPercentage
+            stepUpPercentage: isNaN(stepUpPercentage) ? 5 : stepUpPercentage,
+            allocationTransitionEnabled,
+            endAllocations,
+            transitionYears: isNaN(transitionYears) ? 10 : transitionYears
           };
         }).filter(p => p.allocations.length > 0) // Filter out empty portfolios
       : [],
@@ -267,7 +283,7 @@ export function getQueryParams() {
 }
 
 export function setQueryParams(sipStrategies: SipStrategy[], years: number, sipAmount: number = 10000) {
-  // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
+  // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage|transitionFlag|endAlloc1,endAlloc2|transitionYears
   // instrument format: type:id (e.g., mf:120716 or idx:NIFTY50 or fixed:8)
   const portfoliosStr = sipStrategies
     .map(p => {
@@ -294,7 +310,9 @@ export function setQueryParams(sipStrategies: SipStrategy[], years: number, sipA
         })
         .join(',');
       
-      return `${instrumentsStr}|${p.rebalancingEnabled ? '1' : '0'}|${p.rebalancingThreshold}|${p.stepUpEnabled ? '1' : '0'}|${p.stepUpPercentage}`;
+      const endAllocationsStr = p.endAllocations.join(',');
+      
+      return `${instrumentsStr}|${p.rebalancingEnabled ? '1' : '0'}|${p.rebalancingThreshold}|${p.stepUpEnabled ? '1' : '0'}|${p.stepUpPercentage}|${p.allocationTransitionEnabled ? '1' : '0'}|${endAllocationsStr}|${p.transitionYears}`;
     })
     .join(';');
   

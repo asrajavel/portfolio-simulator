@@ -11,7 +11,7 @@ export interface Transaction {
   nav: number;
   units: number;
   amount: number;
-  type: 'buy' | 'sell' | 'rebalance' | 'nil';
+  type: 'buy' | 'sell' | 'rebalance' | 'nil' | 'annual_adjustment';
   cumulativeUnits: number;
   currentValue: number;
   allocationPercentage?: number;

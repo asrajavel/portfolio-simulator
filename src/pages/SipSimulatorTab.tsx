@@ -38,6 +38,9 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
     handleRebalancingThresholdChange,
     handleToggleStepUp,
     handleStepUpPercentageChange,
+    handleToggleAllocationTransition,
+    handleEndAllocationChange,
+    handleTransitionYearsChange,
   } = useSipStrategies(DEFAULT_SCHEME_CODE, [sipAmount, setSipAmount], isActive);
 
   const { handlePlotAllStrategies } = useSipPlot({
@@ -66,6 +69,9 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
   const handleRebalancingThresholdChangeInvalidate = withInvalidation(handleRebalancingThresholdChange);
   const handleToggleStepUpInvalidate = withInvalidation(handleToggleStepUp);
   const handleStepUpPercentageChangeInvalidate = withInvalidation(handleStepUpPercentageChange);
+  const handleToggleAllocationTransitionInvalidate = withInvalidation(handleToggleAllocationTransition);
+  const handleEndAllocationChangeInvalidate = withInvalidation(handleEndAllocationChange);
+  const handleTransitionYearsChangeInvalidate = withInvalidation(handleTransitionYearsChange);
   const handleYearsChange = invalidateChart;
   
   // Handle chart view change - invalidate charts when switching between XIRR and Corpus
@@ -83,6 +89,7 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
           sipStrategies={sipStrategies}
           setSipStrategies={setSipStrategies}
           funds={funds}
+          rollingYears={years}
           onInstrumentSelect={(pIdx: number, idx: number, instrument) => {
             invalidateChart();
             handleInstrumentSelect(pIdx, idx, instrument);
@@ -94,6 +101,9 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
           onRebalancingThresholdChange={handleRebalancingThresholdChangeInvalidate}
           onToggleStepUp={handleToggleStepUpInvalidate}
           onStepUpPercentageChange={handleStepUpPercentageChangeInvalidate}
+          onToggleAllocationTransition={handleToggleAllocationTransitionInvalidate}
+          onEndAllocationChange={handleEndAllocationChangeInvalidate}
+          onTransitionYearsChange={handleTransitionYearsChangeInvalidate}
           onAddStrategy={handleAddStrategyInvalidate}
           COLORS={plotState.COLORS}
           useInstruments={true}

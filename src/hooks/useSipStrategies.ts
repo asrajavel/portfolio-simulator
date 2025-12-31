@@ -26,6 +26,9 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
           rebalancingThreshold: typeof p.rebalancingThreshold === 'number' ? p.rebalancingThreshold : DEFAULT_REBALANCING_THRESHOLD,
           stepUpEnabled: typeof p.stepUpEnabled === 'boolean' ? p.stepUpEnabled : false,
           stepUpPercentage: typeof p.stepUpPercentage === 'number' ? p.stepUpPercentage : 5,
+          allocationTransitionEnabled: typeof p.allocationTransitionEnabled === 'boolean' ? p.allocationTransitionEnabled : false,
+          endAllocations: p.endAllocations && p.endAllocations.length > 0 ? p.endAllocations : (p.allocations || [ALLOCATION_TOTAL]),
+          transitionYears: typeof p.transitionYears === 'number' ? p.transitionYears : 10,
         }))
       : [
           // Default Strategy 1: NIFTY 50 Index (100%)
@@ -41,7 +44,10 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
             rebalancingEnabled: false, 
             rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
             stepUpEnabled: false,
-            stepUpPercentage: 5
+            stepUpPercentage: 5,
+            allocationTransitionEnabled: false,
+            endAllocations: [ALLOCATION_TOTAL],
+            transitionYears: 10
           },
           // Default Strategy 2: Mixed (70% scheme 122639, 30% scheme 120197, rebalancing enabled)
           { 
@@ -65,7 +71,10 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
             rebalancingEnabled: true, 
             rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
             stepUpEnabled: false,
-            stepUpPercentage: 5
+            stepUpPercentage: 5,
+            allocationTransitionEnabled: false,
+            endAllocations: [70, 30],
+            transitionYears: 10
           }
         ]
   );
@@ -81,7 +90,10 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
         rebalancingEnabled: false, 
         rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
         stepUpEnabled: false,
-        stepUpPercentage: 5
+        stepUpPercentage: 5,
+        allocationTransitionEnabled: false,
+        endAllocations: [ALLOCATION_TOTAL],
+        transitionYears: 10
       }
     ]);
   };
@@ -106,7 +118,9 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
       // Default: split using getDefaultAllocations
       const n = newInstruments.length;
       const newAlloc = getDefaultAllocations(n);
-      return { ...p, selectedInstruments: newInstruments, allocations: newAlloc };
+      // Also update endAllocations to match new structure
+      const newEndAlloc = p.allocationTransitionEnabled ? getDefaultAllocations(n) : newAlloc;
+      return { ...p, selectedInstruments: newInstruments, allocations: newAlloc, endAllocations: newEndAlloc };
     }));
   };
   const handleRemoveFund = (strategyIdx: number, idx: number) => {
@@ -116,7 +130,9 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
       // Rebalance allocations for remaining funds
       const n = newInstruments.length;
       const newAlloc = n > 0 ? getDefaultAllocations(n) : [];
-      return { ...p, selectedInstruments: newInstruments, allocations: newAlloc };
+      // Also remove corresponding endAllocation
+      const newEndAlloc = p.endAllocations.filter((_, j) => j !== idx);
+      return { ...p, selectedInstruments: newInstruments, allocations: newAlloc, endAllocations: newEndAlloc };
     }));
   };
   const handleAllocationChange = (strategyIdx: number, fundIdx: number, value: number) => {
@@ -159,6 +175,31 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
     ));
   };
 
+  // Allocation Transition handlers
+  const handleToggleAllocationTransition = (strategyIdx: number) => {
+    setSipStrategies(prev => prev.map((p, i) =>
+      i === strategyIdx
+        ? { ...p, allocationTransitionEnabled: !p.allocationTransitionEnabled }
+        : p
+    ));
+  };
+
+  const handleEndAllocationChange = (strategyIdx: number, fundIdx: number, value: number) => {
+    setSipStrategies(prev => prev.map((p, i) => {
+      if (i !== strategyIdx) return p;
+      const newEndAlloc = p.endAllocations.map((a, j) => j === fundIdx ? value : a);
+      return { ...p, endAllocations: newEndAlloc };
+    }));
+  };
+
+  const handleTransitionYearsChange = (strategyIdx: number, value: number) => {
+    setSipStrategies(prev => prev.map((p, i) =>
+      i === strategyIdx
+        ? { ...p, transitionYears: Math.max(1, value) } // Ensure at least 1 year
+        : p
+    ));
+  };
+
   // Sync strategies, years, and sipAmount to query params (only when tab is active)
   React.useEffect(() => {
     if (isActive) {
@@ -180,6 +221,9 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
     handleRebalancingThresholdChange,
     handleToggleStepUp,
     handleStepUpPercentageChange,
+    handleToggleAllocationTransition,
+    handleEndAllocationChange,
+    handleTransitionYearsChange,
   };
 }
 

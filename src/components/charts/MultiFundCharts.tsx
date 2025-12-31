@@ -33,7 +33,7 @@ interface MultiFundChartsProps {
 
 interface ModalState {
   visible: boolean;
-  transactions: { fundIdx: number; nav: number; when: Date; units: number; amount: number; type: 'buy' | 'sell' | 'rebalance' | 'nil'; cumulativeUnits: number; currentValue: number; allocationPercentage?: number }[];
+  transactions: { fundIdx: number; nav: number; when: Date; units: number; amount: number; type: 'buy' | 'sell' | 'rebalance' | 'nil' | 'annual_adjustment'; cumulativeUnits: number; currentValue: number; allocationPercentage?: number }[];
   date: string;
   xirr: number;
   strategyName: string;
@@ -370,7 +370,10 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
               sipStrategy.rebalancingThreshold,
               sipStrategy.stepUpEnabled,
               sipStrategy.stepUpPercentage,
-              baseSipAmount
+              baseSipAmount,
+              sipStrategy.allocationTransitionEnabled,
+              sipStrategy.endAllocations,
+              sipStrategy.transitionYears
             );
             
             if (recalculated) {

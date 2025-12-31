@@ -13,13 +13,16 @@ export type { SipRollingXirrEntry, Transaction } from './types';
  * 
  * @param navDataList - Array of NAV data for each fund
  * @param years - Rolling period in years (default: 1)
- * @param allocations - Target allocation percentages for each fund
+ * @param allocations - Starting allocation percentages for each fund
  * @param rebalancingEnabled - Whether to enable portfolio rebalancing (default: false)
  * @param rebalancingThreshold - Threshold percentage for triggering rebalancing (default: 5)
  * @param includeNilTransactions - Whether to include nil transactions in result (default: false, set true for tests)
  * @param stepUpEnabled - Whether to enable step-up SIP (default: false)
  * @param stepUpPercentage - Annual percentage increase for step-up SIP (default: 0)
  * @param sipAmount - Monthly SIP amount (default: 100)
+ * @param allocationTransitionEnabled - Whether to enable allocation transition (glide path) (default: false)
+ * @param endAllocations - Target end allocation percentages (default: same as start)
+ * @param transitionYears - Number of years for transition (default: 10)
  * @returns Array of SIP Rolling XIRR entries for each date
  */
 export function calculateSipRollingXirr(
@@ -31,7 +34,10 @@ export function calculateSipRollingXirr(
   includeNilTransactions: boolean = false,
   stepUpEnabled: boolean = false,
   stepUpPercentage: number = 0,
-  sipAmount: number = 100
+  sipAmount: number = 100,
+  allocationTransitionEnabled: boolean = false,
+  endAllocations: number[] = [],
+  transitionYears: number = 10
 ): SipRollingXirrEntry[] {
   // Validate input
   if (!isValidInput(navDataList)) return [];
@@ -42,6 +48,11 @@ export function calculateSipRollingXirr(
   const fundDateMaps = filledNavs.map(buildDateMap);
   const baseDates = getSortedDates(filledNavs[0]);
   const firstDate = baseDates[0];
+
+  // Default endAllocations to startAllocations if not provided
+  const finalEndAllocations = endAllocations.length === allocations.length 
+    ? endAllocations 
+    : allocations;
 
   // Calculate XIRR for each date
   return baseDates.flatMap(date =>
@@ -56,7 +67,11 @@ export function calculateSipRollingXirr(
       includeNilTransactions,
       stepUpEnabled,
       stepUpPercentage,
-      sipAmount
+      sipAmount,
+      allocationTransitionEnabled,
+      finalEndAllocations,
+      transitionYears,
+      years
     )
   );
 }
@@ -76,9 +91,13 @@ function computeSipXirrForDate(
   includeNilTransactions: boolean,
   stepUpEnabled: boolean,
   stepUpPercentage: number,
-  sipAmount: number
+  sipAmount: number,
+  allocationTransitionEnabled: boolean,
+  endAllocations: number[],
+  transitionYears: number,
+  rollingYears: number
 ): SipRollingXirrEntry[] {
-  // Build all transactions (buy, sell, rebalance, nil)
+  // Build all transactions (buy, sell, rebalance, nil, annual_adjustment)
   const allTransactions = calculateTransactionsForDate(
     currentDate,
     fundDateMaps,
@@ -89,7 +108,11 @@ function computeSipXirrForDate(
     rebalancingThreshold,
     stepUpEnabled,
     stepUpPercentage,
-    sipAmount
+    sipAmount,
+    allocationTransitionEnabled,
+    endAllocations,
+    transitionYears,
+    rollingYears
   );
 
   if (!allTransactions) return [];
@@ -121,12 +144,15 @@ function computeSipXirrForDate(
  * @param navDataList - Array of NAV data for each fund
  * @param targetDate - The specific date to recalculate for
  * @param years - Rolling period in years
- * @param allocations - Target allocation percentages for each fund
+ * @param allocations - Starting allocation percentages for each fund
  * @param rebalancingEnabled - Whether rebalancing was enabled
  * @param rebalancingThreshold - Threshold percentage for rebalancing
  * @param stepUpEnabled - Whether step-up SIP was enabled
  * @param stepUpPercentage - Annual percentage increase for step-up
  * @param sipAmount - Monthly SIP amount
+ * @param allocationTransitionEnabled - Whether allocation transition was enabled
+ * @param endAllocations - Target end allocation percentages
+ * @param transitionYears - Number of years for transition
  * @returns Transaction array with nil transactions included, or null if calculation fails
  */
 export function recalculateTransactionsForDate(
@@ -138,7 +164,10 @@ export function recalculateTransactionsForDate(
   rebalancingThreshold: number,
   stepUpEnabled: boolean,
   stepUpPercentage: number,
-  sipAmount: number
+  sipAmount: number,
+  allocationTransitionEnabled: boolean = false,
+  endAllocations: number[] = [],
+  transitionYears: number = 10
 ): Transaction[] | null {
   // Validate input
   if (!isValidInput(navDataList)) return null;
@@ -149,6 +178,11 @@ export function recalculateTransactionsForDate(
   const fundDateMaps = filledNavs.map(buildDateMap);
   const baseDates = getSortedDates(filledNavs[0]);
   const firstDate = baseDates[0];
+
+  // Default endAllocations to startAllocations if not provided
+  const finalEndAllocations = endAllocations.length === allocations.length 
+    ? endAllocations 
+    : allocations;
 
   // Calculate transactions for the target date with nil included
   const allTransactions = calculateTransactionsForDate(
@@ -161,7 +195,11 @@ export function recalculateTransactionsForDate(
     rebalancingThreshold,
     stepUpEnabled,
     stepUpPercentage,
-    sipAmount
+    sipAmount,
+    allocationTransitionEnabled,
+    finalEndAllocations,
+    transitionYears,
+    years
   );
 
   return allTransactions;

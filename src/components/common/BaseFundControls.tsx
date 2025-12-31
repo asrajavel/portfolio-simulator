@@ -17,6 +17,9 @@ interface BaseFundControlsProps {
   useInstruments?: boolean;
   defaultSchemeCode?: number;
   children?: React.ReactNode; // For additional controls (SIP-specific)
+  showAllocationTransition?: boolean; // Show end allocation inputs
+  endAllocations?: (number | null)[];
+  onEndAllocationChange?: (idx: number, value: number) => void;
 }
 
 export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
@@ -30,6 +33,9 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
   useInstruments = true,
   defaultSchemeCode,
   children,
+  showAllocationTransition = false,
+  endAllocations = [],
+  onEndAllocationChange,
 }) => {
   const [instrumentTypes, setInstrumentTypes] = useState<InstrumentType[]>(() => {
     return selectedInstruments.map(inst => inst?.type || 'mutual_fund' as InstrumentType);
@@ -149,6 +155,44 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
               ),
             }}
           />
+          {showAllocationTransition && (
+            <>
+              <span style={{ fontSize: '18px', color: '#9ca3af', margin: '0 4px' }}>→</span>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={endAllocations[idx] ?? 0}
+                onChange={e => onEndAllocationChange?.(idx, Number((e.target as HTMLInputElement).value))}
+                disabled={hasInflation}
+                size="compact"
+                overrides={{
+                  Root: {
+                    style: {
+                      width: '100px',
+                      flexShrink: 0
+                    }
+                  },
+                  After: () => (
+                    <Block
+                      overrides={{
+                        Block: {
+                          style: {
+                            fontSize: '14px',
+                            color: '#6b7280',
+                            paddingRight: '8px',
+                            alignSelf: 'center'
+                          }
+                        }
+                      }}
+                    >
+                      %
+                    </Block>
+                  ),
+                }}
+              />
+            </>
+          )}
           <Button
             kind="tertiary"
             size="mini"

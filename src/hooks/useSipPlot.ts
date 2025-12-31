@@ -139,6 +139,9 @@ export function useSipPlot({
         const rebalancingThreshold = sipStrategies[pIdx].rebalancingThreshold;
         const stepUpEnabled = sipStrategies[pIdx].stepUpEnabled;
         const stepUpPercentage = sipStrategies[pIdx].stepUpPercentage;
+        const allocationTransitionEnabled = sipStrategies[pIdx].allocationTransitionEnabled;
+        const endAllocations = sipStrategies[pIdx].endAllocations;
+        const transitionYears = sipStrategies[pIdx].transitionYears;
         
         if (!navDataList || navDataList.length === 0) {
           allSipXirrDatas[`Strategy ${pIdx + 1}`] = [];
@@ -155,7 +158,20 @@ export function useSipPlot({
           const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url));
           // Use 100 as base for XIRR view, actual sipAmount for corpus view
           const baseSipAmount = chartView === 'corpus' ? sipAmount : 100;
-          worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount: baseSipAmount });
+          worker.postMessage({ 
+            navDataList, 
+            years, 
+            allocations, 
+            rebalancingEnabled, 
+            rebalancingThreshold, 
+            includeNilTransactions: false, 
+            stepUpEnabled, 
+            stepUpPercentage, 
+            sipAmount: baseSipAmount,
+            allocationTransitionEnabled,
+            endAllocations,
+            transitionYears
+          });
           worker.onmessage = (event: MessageEvent) => {
             let resultData = event.data;
             

@@ -50,11 +50,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   };
   const hasDetailedTransactions = transactions.length > 0 && isDetailedTransaction(transactions[0]);
 
-  const typeOrder = { buy: 0, sell: 1, rebalance: 2, nil: 3 };
+  const typeOrder = { buy: 0, annual_adjustment: 1, sell: 2, rebalance: 3, nil: 4 };
   const transactionTypeDisplay = {
     buy: 'Buy',
     sell: 'Sell',
     rebalance: 'Rebalance',
+    annual_adjustment: 'Annual Adjustment',
     nil: 'Nil'
   };
   

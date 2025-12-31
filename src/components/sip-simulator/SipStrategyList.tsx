@@ -17,7 +17,11 @@ interface SipStrategyListProps {
   onRebalancingThresholdChange: (pIdx: number, value: number) => void;
   onToggleStepUp: (pIdx: number) => void;
   onStepUpPercentageChange: (pIdx: number, value: number) => void;
+  onToggleAllocationTransition: (pIdx: number) => void;
+  onEndAllocationChange: (pIdx: number, idx: number, value: number) => void;
+  onTransitionYearsChange: (pIdx: number, value: number) => void;
   onAddStrategy: () => void;
+  rollingYears: number;
   COLORS: string[];
   useInstruments?: boolean;
   defaultSchemeCode?: number;
@@ -35,7 +39,11 @@ export const SipStrategyList: React.FC<SipStrategyListProps> = ({
   onRebalancingThresholdChange,
   onToggleStepUp,
   onStepUpPercentageChange,
+  onToggleAllocationTransition,
+  onEndAllocationChange,
+  onTransitionYearsChange,
   onAddStrategy,
+  rollingYears,
   COLORS,
   useInstruments = false,
   defaultSchemeCode
@@ -60,6 +68,13 @@ export const SipStrategyList: React.FC<SipStrategyListProps> = ({
       onToggleStepUp={() => onToggleStepUp(pIdx)}
       stepUpPercentage={strategy.stepUpPercentage}
       onStepUpPercentageChange={value => onStepUpPercentageChange(pIdx, value)}
+      allocationTransitionEnabled={strategy.allocationTransitionEnabled}
+      onToggleAllocationTransition={() => onToggleAllocationTransition(pIdx)}
+      endAllocations={strategy.endAllocations}
+      onEndAllocationChange={(idx, value) => onEndAllocationChange(pIdx, idx, value)}
+      transitionYears={strategy.transitionYears}
+      onTransitionYearsChange={value => onTransitionYearsChange(pIdx, value)}
+      rollingYears={rollingYears}
       useInstruments={useInstruments}
       defaultSchemeCode={defaultSchemeCode}
     />
