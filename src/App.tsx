@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Container } from './components/common/Container';
 import { useMutualFunds } from './hooks/useMutualFunds';
@@ -12,6 +12,7 @@ import { SipSimulatorTab } from './pages/SipSimulatorTab';
 import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
 import { BottomBar } from './components/layout/BottomBar';
 import { HelpProvider, HelpDrawer, useHelp } from './components/help';
+import { trackPageView } from './utils/analytics';
 
 const AppContent: React.FC = () => {
   const { funds, loading, error } = useMutualFunds();
@@ -20,6 +21,11 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { openHelp } = useHelp();
+
+  // Track page views on route changes
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
   // Determine which tab is active based on route
   const isLumpsumTab = location.pathname === '/lumpsum';

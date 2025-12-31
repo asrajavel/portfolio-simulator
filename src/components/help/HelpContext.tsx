@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { trackHelp } from '../../utils/analytics';
 
 interface HelpContextType {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export const HelpProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const openHelp = useCallback((topic: string) => {
     setCurrentTopic(topic);
     setIsOpen(true);
+    trackHelp(topic);
   }, []);
 
   const closeHelp = useCallback(() => {

@@ -4,6 +4,7 @@ import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { fixedReturnService } from '../services/fixedReturnService';
 import { inflationService } from '../services/inflationService';
+import { trackSimulation } from '../utils/analytics';
 
 export function useSipPlot({
   sipStrategies,
@@ -15,6 +16,7 @@ export function useSipPlot({
 }) {
   // Handler for plotting all strategies
   const handlePlotAllStrategies = useCallback(async () => {
+    trackSimulation('SIP', 'Plot');
     plotState.setLoadingNav(true);
     plotState.setLoadingXirr(false);
     plotState.setHasPlotted(false);

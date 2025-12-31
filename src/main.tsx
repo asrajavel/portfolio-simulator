@@ -8,6 +8,10 @@ import { Client as Styletron } from 'styletron-engine-atomic';
 import { BaseProvider, LightTheme } from 'baseui';
 import Highcharts from 'highcharts/highstock';
 import 'normalize.css';
+import { initializeAnalytics } from './utils/analytics';
+
+// Initialize Google Analytics
+initializeAnalytics();
 
 // Suppress known BaseWeb warnings
 // 1. defaultProps warning (until they fully migrate to React 18)
