@@ -4,6 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { CHART_STYLES } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
+import { HelpButton } from '../help';
 
 interface VolatilityChartProps {
   sipStrategyXirrData: Record<string, any[]>;
@@ -41,7 +42,7 @@ interface VolatilityChartProps {
 };
 
 const getChartOptions = (years: number, sipStrategyXirrData: Record<string, any[]>, COLORS: string[]) => ({
-  title: { text: `Strategy Volatility (Annualized) - Rolling ${years}Y`, style: CHART_STYLES.title },
+  title: { text: `Volatility (Annualized) - Rolling ${years}Y`, style: CHART_STYLES.title },
   credits: { enabled: false },
   chart: {
     backgroundColor: CHART_STYLES.colors.background,
@@ -129,7 +130,10 @@ export const VolatilityChart: React.FC<VolatilityChartProps> = ({ sipStrategyXir
   const chartOptions = getChartOptions(years, sipStrategyXirrData, COLORS);
 
   return (
-    <Block marginTop="2rem">
+    <Block marginTop="2rem" position="relative">
+      <Block position="absolute" top="8px" right="8px" $style={{ zIndex: 10 }}>
+        <HelpButton topic="volatility" />
+      </Block>
       <HighchartsReact
         highcharts={Highcharts}
         constructorType={'stockChart'}

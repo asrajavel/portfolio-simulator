@@ -267,7 +267,11 @@ GC=F -> Gold Futures (USD)
 GOLDBEES.BO -> Gold ETF (INR)
 
 **Finding tickers:**
-Google "[stock/index name] yahoo finance" and use the symbol shown in the page .`,
+Google "[stock/index name] yahoo finance" and use the symbol shown in the page.
+
+---
+
+**Note on currency:** This tool does not perform currency conversion. Each ticker is displayed in its native currency (e.g., AAPL in USD, TCS.NS in INR). Please verify the currency on the Yahoo Finance page before comparing instruments across different currencies.`,
   },
 
   // Understanding Charts section

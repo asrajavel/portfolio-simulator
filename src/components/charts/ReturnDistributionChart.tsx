@@ -4,6 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { CHART_STYLES } from '../../constants';
 import { formatCurrency } from '../../utils/numberFormat';
+import { HelpButton } from '../help';
 
 interface ReturnDistributionChartProps {
   strategyXirrData: Record<string, any[]>;
@@ -172,7 +173,10 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
   };
 
   return (
-    <Block marginTop="2rem">
+    <Block marginTop="2rem" position="relative">
+      <Block position="absolute" top="8px" right="8px" $style={{ zIndex: 10 }}>
+        <HelpButton topic="histogram" />
+      </Block>
       <HighchartsReact
         highcharts={Highcharts}
         options={chartOptions}

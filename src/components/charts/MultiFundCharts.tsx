@@ -12,6 +12,7 @@ import { ReturnDistributionChart } from './ReturnDistributionChart';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
 import { recalculateTransactionsForDate } from '../../utils/calculations/sipRollingXirr';
 import { recalculateLumpsumTransactionsForDate } from '../../utils/calculations/lumpSumRollingXirr';
+import { HelpButton } from '../help';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -394,7 +395,7 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
   const closeModal = () => setModal(initialModalState);
 
   const chartTitle = chartView === 'xirr' 
-    ? `${isLumpsum ? 'Lumpsum' : 'SIP'} Rolling ${years}Y XIRR` 
+    ? `${isLumpsum ? 'Lumpsum' : 'SIP'} XIRR - Rolling ${years}Y` 
     : `${isLumpsum ? 'Lumpsum' : 'SIP'} Corpus Value - Rolling ${years}Y`;
   
   const chartOptions = {
@@ -426,7 +427,10 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
   return (
     <Block marginTop="2rem">
       <TransactionModal {...modal} onClose={closeModal} funds={modal.strategyInstruments} />
-      <Block marginTop="1.5rem">
+      <Block marginTop="1.5rem" position="relative">
+        <Block position="absolute" top="8px" right="8px" $style={{ zIndex: 10 }}>
+          <HelpButton topic="rolling-xirr" />
+        </Block>
         <HighchartsReact
           highcharts={Highcharts}
           constructorType={'stockChart'}
