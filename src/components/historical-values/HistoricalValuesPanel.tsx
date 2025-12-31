@@ -132,14 +132,6 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
     }
   }, [instruments, useLogScale, isActive]);
 
-  // Auto-plot if instruments are loaded from URL params
-  useEffect(() => {
-    if (queryParams.instruments.length > 0) {
-      handlePlot();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const anyInvalidSelection = instruments.some(entry => entry.instrument === null);
 
   return (
