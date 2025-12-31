@@ -11,14 +11,15 @@ import { LumpsumSimulatorTab } from './pages/LumpsumSimulatorTab';
 import { SipSimulatorTab } from './pages/SipSimulatorTab';
 import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
 import { BottomBar } from './components/layout/BottomBar';
-import { HelpProvider, HelpDrawer } from './components/help';
+import { HelpProvider, HelpDrawer, useHelp } from './components/help';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const { funds, loading, error } = useMutualFunds();
   const { loadNavData } = useNavData();
   const { loadNavData: loadInstrumentNavData } = useInstrumentNavData();
   const navigate = useNavigate();
   const location = useLocation();
+  const { openHelp } = useHelp();
 
   // Determine which tab is active based on route
   const isLumpsumTab = location.pathname === '/lumpsum';
@@ -26,7 +27,6 @@ const App: React.FC = () => {
   const isHistoricalTab = location.pathname === '/historical';
 
   return (
-    <HelpProvider>
     <Container>
       <AppNavBar
         title="Indian Investment Analysis"
@@ -42,11 +42,16 @@ const App: React.FC = () => {
           { 
             label: 'Historical Values',
             active: isHistoricalTab
+          },
+          {
+            label: 'Help',
+            info: { id: 'help' }
           }
         ]}
         onMainItemSelect={(item) => {
           if (item.label === 'Lumpsum Simulator') navigate('/lumpsum');
           else if (item.label === 'SIP Simulator') navigate('/sip');
+          else if (item.label === 'Help') openHelp('getting-started');
           else navigate('/historical');
         }}
         overrides={{
@@ -95,6 +100,13 @@ const App: React.FC = () => {
       {/* Help Drawer - accessible from anywhere */}
       <HelpDrawer />
     </Container>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <HelpProvider>
+      <AppContent />
     </HelpProvider>
   );
 };

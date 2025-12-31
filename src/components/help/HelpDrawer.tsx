@@ -29,6 +29,11 @@ export const HelpDrawer: React.FC = () => {
       anchor={ANCHOR.right}
       size="auto"
       overrides={{
+        Root: {
+          style: {
+            zIndex: 1000, // Ensure drawer is above LoadingOverlay
+          },
+        },
         DrawerBody: {
           style: {
             width: '750px',

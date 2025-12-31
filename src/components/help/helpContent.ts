@@ -36,9 +36,11 @@ A combination of one or more instruments with allocation percentages.
 You can compare different approaches side by side:
 - Strategy 1: Pure equity (100% NIFTY 50)
 - Strategy 2: Balanced (70% equity + 30% debt)
-- Strategy 3: Conservative (40% equity + 60% debt)
+- Strategy 3: Diversified (60% equity + 30% debt + 10% gold)
 
-Each strategy appears as a separate line on the chart.`,
+Each strategy appears as a separate line on the chart.
+
+**Important:** Allocations within a strategy must add up to exactly 100%. The app shows a warning if they don't.`,
   },
 
   'xirr-explained': {
@@ -72,6 +74,24 @@ Instead of one 5-year return, you see ALL possible 5-year returns the instrument
 An instrument's 5Y return today is 12%. But rolling returns show it ranged from 6% to 18% over the last decade. Now you know what to realistically expect.`,
   },
 
+  'url-sharing': {
+    title: 'URL Sharing',
+    content: `Your entire setup is automatically saved to the URL.
+
+**What's saved:**
+- All strategies and their instruments
+- Allocation percentages
+- Investment amount and duration
+- Settings like step-up, rebalancing, log scale
+
+**How to use:**
+- Just copy the URL from your browser's address bar
+- Share it with anyone — they'll see your exact setup
+- Bookmark it to save your analysis for later
+
+No login or account needed. The URL is your saved state.`,
+  },
+
   // Lumpsum Simulator
   'lumpsum-simulator': {
     title: 'Lumpsum Simulator',
@@ -91,7 +111,10 @@ You invested ₹x once on 10-Jan-2020.
 Shows all possible returns/values for any 3-year lumpsum in this strategy.
 
 **Multi-instrument strategies:**
-Allocate across multiple instruments (e.g., 70% equity, 30% debt) to see combined performance.`,
+Allocate across multiple instruments (e.g., 70% equity, 30% debt) to see combined performance.
+
+**Transaction Details:**
+Click any point on the chart to see the complete transaction history — every buy with date, NAV, units, and amount.`,
   },
 
   // SIP Simulator
@@ -112,7 +135,10 @@ You invested ₹x monthly from 10-Jan-2020 to 10-Dec-2022 (36 investments).
 Shows all possible returns/values for any 3-year SIP in this strategy.
 
 **Multi-instrument SIP:**
-Your monthly amount is split across instruments based on allocation percentages.`,
+Your monthly amount is split across instruments based on allocation percentages.
+
+**Transaction Details:**
+Click any point on the chart to see complete transaction history — all monthly investments, rebalances (if enabled), with dates, NAV, units, and amounts.`,
   },
 
   'sip-stepup': {
@@ -208,6 +234,41 @@ Use to understand real (inflation-adjusted) returns.
 Note: NAV data is only available on trading days. For weekends/holidays, the next available NAV is used to fill the gap, ensuring continuous date coverage for calculations.`,
   },
 
+  'yahoo-tickers': {
+    title: 'Common Yahoo Finance Tickers',
+    content: `**Indian Stocks:**
+TCS.NS -> Tata Consultancy Services (NSE)
+RELIANCE.BO -> Reliance Industries (BSE)
+HDFCBANK.NS -> HDFC Bank (NSE)
+
+**US Stocks (USD):**
+AAPL -> Apple Inc.
+TSLA -> Tesla
+MSFT -> Microsoft
+
+**Indices:**
+^NSEI -> NIFTY 50 (INR)
+^BSESN -> SENSEX (INR)
+^GSPC -> S&P 500 (USD)
+^IXIC -> NASDAQ Composite (USD)
+^N225 -> Nikkei 225 (JPY)
+
+**Currency:**
+USDINR=X -> USD to INR
+EURUSD=X -> Euro to USD
+
+**Crypto:**
+BTC-USD -> Bitcoin in USD
+ETH-USD -> Ethereum in USD
+
+**Commodities:**
+GC=F -> Gold Futures (USD)
+GOLDBEES.BO -> Gold ETF (INR)
+
+**Finding tickers:**
+Google "[stock/index name] yahoo finance" and use the symbol shown in the page .`,
+  },
+
   // Understanding Charts section
   'understanding-charts': {
     title: 'Understanding Charts',
@@ -289,11 +350,11 @@ If Strategy A's 10-12% bar shows 25%, it means 25% of all historical returns for
 export const getTopicsByCategory = () => ({
   'Getting Started': {
     topicId: 'getting-started',
-    subTopics: ['strategies-instruments', 'xirr-explained', 'why-rolling'],
+    subTopics: ['strategies-instruments', 'xirr-explained', 'why-rolling', 'url-sharing'],
   },
   'Supported Instruments': {
     topicId: 'data-sources',
-    subTopics: [],
+    subTopics: ['yahoo-tickers'],
   },
   'Understanding Charts': {
     topicId: 'understanding-charts',
