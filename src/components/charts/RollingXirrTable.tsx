@@ -27,6 +27,7 @@ export const RollingXirrTable: React.FC<RollingXirrTableProps> = ({ data }) => {
       yAxisTitle="XIRR (%)"
       getChartX={row => formatDate(row.date)}
       getChartY={row => row.xirr * 100}
+      helpTopic="rolling-xirr"
     />
   );
 }; 

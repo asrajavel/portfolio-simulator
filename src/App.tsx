@@ -11,6 +11,7 @@ import { LumpsumSimulatorTab } from './pages/LumpsumSimulatorTab';
 import { SipSimulatorTab } from './pages/SipSimulatorTab';
 import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
 import { BottomBar } from './components/layout/BottomBar';
+import { HelpProvider, HelpDrawer } from './components/help';
 
 const App: React.FC = () => {
   const { funds, loading, error } = useMutualFunds();
@@ -25,6 +26,7 @@ const App: React.FC = () => {
   const isHistoricalTab = location.pathname === '/historical';
 
   return (
+    <HelpProvider>
     <Container>
       <AppNavBar
         title="Indian Investment Analysis"
@@ -89,7 +91,11 @@ const App: React.FC = () => {
       
       {/* Bottom Bar - always at bottom */}
       <BottomBar />
+      
+      {/* Help Drawer - accessible from anywhere */}
+      <HelpDrawer />
     </Container>
+    </HelpProvider>
   );
 };
 

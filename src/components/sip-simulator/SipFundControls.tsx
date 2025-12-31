@@ -4,6 +4,7 @@ import { Checkbox } from 'baseui/checkbox';
 import { Input } from 'baseui/input';
 import { BaseFundControls } from '../common/BaseFundControls';
 import { Instrument } from '../../types/instrument';
+import { HelpButton } from '../help';
 
 interface SipFundControlsProps {
   selectedInstruments: (Instrument | null)[];
@@ -58,13 +59,16 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
     >
       {/* SIP-specific controls */}
       <Block display="flex" alignItems="center" marginTop="scale300" gridGap="scale800">
-        <Checkbox
-          checked={rebalancingEnabled}
-          onChange={onToggleRebalancing}
-          disabled={(selectedInstruments?.length ?? 0) <= 1}
-        >
-          Enable Rebalancing
-        </Checkbox>
+        <Block display="flex" alignItems="center" gridGap="scale100">
+          <Checkbox
+            checked={rebalancingEnabled}
+            onChange={onToggleRebalancing}
+            disabled={(selectedInstruments?.length ?? 0) <= 1}
+          >
+            Enable Rebalancing
+          </Checkbox>
+          <HelpButton topic="sip-rebalancing" />
+        </Block>
         <Block display="flex" alignItems="center" gridGap="scale200">
           <Input
             type="number"
@@ -96,12 +100,15 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
             id="rebal-threshold-input"
           />
         </Block>
-        <Checkbox
-          checked={stepUpEnabled}
-          onChange={onToggleStepUp}
-        >
-          Annual Step-up
-        </Checkbox>
+        <Block display="flex" alignItems="center" gridGap="scale100">
+          <Checkbox
+            checked={stepUpEnabled}
+            onChange={onToggleStepUp}
+          >
+            Annual Step-up
+          </Checkbox>
+          <HelpButton topic="sip-stepup" />
+        </Block>
         <Block display="flex" alignItems="center" gridGap="scale200">
           <Input
             type="number"

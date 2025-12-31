@@ -2,7 +2,9 @@ import React from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
+import { LabelSmall } from 'baseui/typography';
 import { CHART_STYLES } from '../../constants';
+import { HelpButton } from '../help';
 
 interface Column<T> {
   label: string;
@@ -18,6 +20,7 @@ interface TableWithChartProps<T> {
   yAxisTitle: string;
   getChartX: (row: T) => string;
   getChartY: (row: T) => number;
+  helpTopic?: string;
 }
 
 export function TableWithChart<T>({
@@ -29,6 +32,7 @@ export function TableWithChart<T>({
   yAxisTitle,
   getChartX,
   getChartY,
+  helpTopic,
 }: TableWithChartProps<T>) {
   if (!data.length) return null;
   // For the chart, always sort by x (low to high)
@@ -39,6 +43,14 @@ export function TableWithChart<T>({
       maxWidth="100%" 
       marginTop="1.5rem"
     >
+      {helpTopic && (
+        <Block display="flex" justifyContent="flex-end" marginBottom="scale200">
+          <Block display="flex" alignItems="center" gridGap="scale100">
+            <LabelSmall color="contentSecondary">What's this?</LabelSmall>
+            <HelpButton topic={helpTopic} />
+          </Block>
+        </Block>
+      )}
       <HighchartsReact
         highcharts={Highcharts}
         options={{
