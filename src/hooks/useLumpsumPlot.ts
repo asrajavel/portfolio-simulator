@@ -166,7 +166,7 @@ export function useLumpsumPlot({
               });
             }
             
-            console.log(`[Lumpsum] Strategy ${pIdx + 1} total: ${(strategyEndTime - strategyStartTime).toFixed(0)}ms (${resultData.length} data points)`);
+            console.log(`[Lumpsum] Strategy ${pIdx + 1} total: ${((strategyEndTime - strategyStartTime) / 1000).toFixed(2)}s (${resultData.length} data points)`);
             
             allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = resultData;
             worker.terminate();

@@ -71,7 +71,7 @@ export function calculateSipRollingXirr(
   );
   
   // Log timing breakdown
-  console.log(`[SIP Calc] Transactions: ${_transactionTime.toFixed(0)}ms | XIRR: ${_xirrTime.toFixed(0)}ms | Volatility: ${_volatilityTime.toFixed(0)}ms | Total entries: ${results.length}`);
+  console.log(`[SIP Calc] Transactions: ${(_transactionTime / 1000).toFixed(2)}s | XIRR: ${(_xirrTime / 1000).toFixed(2)}s | Volatility: ${(_volatilityTime / 1000).toFixed(2)}s | Total entries: ${results.length}`);
   
   return results;
 }

@@ -172,7 +172,7 @@ export function useSipPlot({
               });
             }
             
-            console.log(`[SIP] Strategy ${pIdx + 1} total: ${(strategyEndTime - strategyStartTime).toFixed(0)}ms (${resultData.length} data points)`);
+            console.log(`[SIP] Strategy ${pIdx + 1} total: ${((strategyEndTime - strategyStartTime) / 1000).toFixed(2)}s (${resultData.length} data points)`);
             
             allSipXirrDatas[`Strategy ${pIdx + 1}`] = resultData;
             worker.terminate();

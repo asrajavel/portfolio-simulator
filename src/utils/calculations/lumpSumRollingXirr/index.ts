@@ -194,7 +194,7 @@ export function calculateLumpSumRollingXirr(
   }
   
   // Log timing breakdown
-  console.log(`[Lumpsum Calc] Precompute: ${_precomputeTime.toFixed(0)}ms | XIRR: ${_xirrTime.toFixed(0)}ms | Volatility: ${_volatilityTime.toFixed(0)}ms | Total entries: ${results.length}`);
+  console.log(`[Lumpsum Calc] Precompute: ${(_precomputeTime / 1000).toFixed(2)}s | XIRR: ${(_xirrTime / 1000).toFixed(2)}s | Volatility: ${(_volatilityTime / 1000).toFixed(2)}s | Total entries: ${results.length}`);
   
   return results;
 }
