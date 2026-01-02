@@ -12,6 +12,8 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ topic, size = 'mini' }) 
   const [css] = useStyletron();
   const { openHelp } = useHelp();
 
+  const paddingValue = size === 'mini' ? '4px' : '6px';
+
   return (
     <Button
       onClick={() => openHelp(topic)}
@@ -21,7 +23,10 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ topic, size = 'mini' }) 
       overrides={{
         BaseButton: {
           style: {
-            padding: size === 'mini' ? '4px' : '6px',
+            paddingTop: paddingValue,
+            paddingRight: paddingValue,
+            paddingBottom: paddingValue,
+            paddingLeft: paddingValue,
           },
         },
       }}

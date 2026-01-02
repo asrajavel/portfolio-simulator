@@ -62,7 +62,10 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
                 style: ({ $theme }) => ({
                   color: $theme.colors.primary,
                   fontWeight: '600',
-                  margin: 0
+                  marginTop: 0,
+                  marginRight: 0,
+                  marginBottom: 0,
+                  marginLeft: 0,
                 })
               }
             }}

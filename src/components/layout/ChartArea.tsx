@@ -49,7 +49,10 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
             Block: {
               style: {
                 color: '#dc2626',
-                margin: 0
+                marginTop: 0,
+                marginRight: 0,
+                marginBottom: 0,
+                marginLeft: 0,
               }
             }
           }}

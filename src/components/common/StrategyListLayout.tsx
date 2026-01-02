@@ -77,7 +77,10 @@ export function StrategyListLayout<T>({
                     style: ({ $theme }) => ({
                       color: $theme.colors.primary,
                       fontWeight: '600',
-                      margin: 0
+                      marginTop: 0,
+                      marginRight: 0,
+                      marginBottom: 0,
+                      marginLeft: 0,
                     })
                   }
                 }}
@@ -101,7 +104,10 @@ export function StrategyListLayout<T>({
                       style: ({ $theme }) => ({
                         color: $theme.colors.negative,
                         fontWeight: '500',
-                        margin: 0
+                        marginTop: 0,
+                        marginRight: 0,
+                        marginBottom: 0,
+                        marginLeft: 0,
                       })
                     }
                   }}

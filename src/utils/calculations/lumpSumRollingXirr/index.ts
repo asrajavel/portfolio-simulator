@@ -57,6 +57,11 @@ function getSortedDates(fund: NavEntry[]): NavEntry[] {
  * @param includeNilTransactions - Whether to include nil transactions in result (default: false)
  * @returns Array of Lumpsum Rolling XIRR entries for each date
  */
+// Timing accumulators for performance analysis
+let _xirrTime = 0;
+let _volatilityTime = 0;
+let _transactionTime = 0;
+
 export function calculateLumpSumRollingXirr(
   navDataList: NavEntry[][],
   years: number = 1,
@@ -64,6 +69,11 @@ export function calculateLumpSumRollingXirr(
   investmentAmount: number = 100,
   includeNilTransactions: boolean = false
 ): RollingXirrEntry[] {
+  // Reset timing accumulators
+  _xirrTime = 0;
+  _volatilityTime = 0;
+  _transactionTime = 0;
+  
   // Validate input
   if (!isValidInput(navDataList)) return [];
 
@@ -80,7 +90,7 @@ export function calculateLumpSumRollingXirr(
   const months = years * 12;
 
   // Calculate XIRR for each date
-  return sorted.flatMap(entry =>
+  const results = sorted.flatMap(entry =>
     computeLumpsumXirrForDate(
       entry.date,
       fundDateMaps,
@@ -92,6 +102,11 @@ export function calculateLumpSumRollingXirr(
       includeNilTransactions
     )
   );
+  
+  // Log timing breakdown
+  console.log(`[Lumpsum Calc] XIRR: ${_xirrTime.toFixed(0)}ms | Transactions: ${_transactionTime.toFixed(0)}ms | Volatility: ${_volatilityTime.toFixed(0)}ms | Total entries: ${results.length}`);
+  
+  return results;
 }
 
 // ============================================================================
@@ -129,11 +144,14 @@ function computeLumpsumXirrForDate(
   const totalValue = calculateTotalValue(fundDateMaps, endDate, fundUnits);
   if (totalValue === null) return [];
 
-  // Calculate XIRR
+  // Calculate XIRR (timed)
+  const xirrStart = performance.now();
   const xirrValue = calculateXirr(investmentAmount, totalValue, startDate, endDate);
+  _xirrTime += performance.now() - xirrStart;
   if (xirrValue === null) return [];
 
-  // Build detailed transactions and calculate volatility
+  // Build detailed transactions (timed)
+  const txStart = performance.now();
   const allTransactions = buildDetailedTransactions(
     fundDateMaps,
     fundUnits,
@@ -143,8 +161,12 @@ function computeLumpsumXirrForDate(
     endDate,
     investmentAmount
   );
+  _transactionTime += performance.now() - txStart;
 
+  // Calculate volatility (timed)
+  const volStart = performance.now();
   const volatility = calculateVolatilityForEntry(allTransactions);
+  _volatilityTime += performance.now() - volStart;
 
   // Filter nil transactions if not needed (for memory efficiency)
   const transactionsToReturn = includeNilTransactions

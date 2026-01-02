@@ -146,6 +146,8 @@ export function useLumpsumPlot({
           inst => inst?.type === 'inflation'
         );
         
+        const strategyStartTime = performance.now();
+        
         await new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/lumpSumRollingXirr/worker.ts', import.meta.url));
           // Use actual lumpsumAmount for corpus view, 100 for XIRR view
@@ -153,6 +155,7 @@ export function useLumpsumPlot({
           worker.postMessage({ navDataList, years, allocations, investmentAmount: baseAmount });
           
           worker.onmessage = (event: MessageEvent) => {
+            const strategyEndTime = performance.now();
             let resultData = event.data;
             
             // Strip volatility for inflation instruments (not meaningful for smooth daily compounding)
@@ -162,6 +165,8 @@ export function useLumpsumPlot({
                 return rest;
               });
             }
+            
+            console.log(`[Lumpsum] Strategy ${pIdx + 1} total: ${(strategyEndTime - strategyStartTime).toFixed(0)}ms (${resultData.length} data points)`);
             
             allLumpsumXirrDatas[`Strategy ${pIdx + 1}`] = resultData;
             worker.terminate();

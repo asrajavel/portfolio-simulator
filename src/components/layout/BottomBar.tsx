@@ -14,9 +14,10 @@ export const BottomBar: React.FC = () => {
   return (
     <Block
       backgroundColor="transparent"
-      padding="scale300"
       paddingTop="scale400"
+      paddingRight="scale300"
       paddingBottom="scale400"
+      paddingLeft="scale300"
       display="flex"
       justifyContent="center"
       alignItems="center"
@@ -35,7 +36,10 @@ export const BottomBar: React.FC = () => {
           overrides={{
             Block: {
               style: {
-                margin: 0,
+                marginTop: 0,
+                marginRight: 0,
+                marginBottom: 0,
+                marginLeft: 0,
                 fontSize: '12px',
               },
             },
