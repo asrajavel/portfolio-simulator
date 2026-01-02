@@ -99,41 +99,22 @@ export function calculateLumpSumRollingXirr(
     dateIndexMap.set(toDateKey(entry.date), idx);
   });
 
-  // Pre-compute daily portfolio values for the ENTIRE date range
-  // This is the key optimization - compute once, slice many times
+  // Pre-compute raw NAVs per fund per date for fast lookups
+  // We store NAVs instead of normalized values because portfolio value calculation
+  // requires NAV ratios relative to each window's start date, not a global base date.
+  // For multi-fund portfolios: Value[date] = Σ(alloc[f] × NAV[f,date] / NAV[f,startDate]) × investment
   const precomputeStart = performance.now();
-  const allDailyValues: DailyPortfolioValue[] = [];
   
-  // We need to compute values for all dates, using units purchased at the earliest possible start
-  // For now, we'll compute raw NAV-weighted values that can be scaled by units later
-  // Actually, we need units which depend on start date... let me think differently
-  
-  // For each unique start date, units are different. But we can pre-compute the SUM of (NAV[fund] * allocation[fund])
-  // and then divide by start NAV sum to get the value ratio.
-  // Value at date D for window starting at S = investmentAmount * (sum of alloc[f] * NAV[f,D] / NAV[f,S])
-  
-  // Simpler approach: Pre-compute normalized portfolio value where each fund starts at 1.0
-  // normalizedValue[date] = sum(allocation[f] * NAV[f,date] / NAV[f,0]) / 100
-  // Then actual value = investmentAmount * normalizedValue[date] / normalizedValue[startDate]
-  
-  const baseNavs: number[] = [];
-  const firstDateKey = toDateKey(firstDate);
-  for (let f = 0; f < numFunds; f++) {
-    const entry = fundDateMaps[f].get(firstDateKey);
-    baseNavs[f] = entry?.nav ?? 1;
-  }
-  
+  // Build array of NAVs per date: allNavs[dateIdx][fundIdx] = NAV
+  const allNavs: number[][] = [];
   for (const entry of sorted) {
     const dateKey = toDateKey(entry.date);
-    let normalizedValue = 0;
+    const navsForDate: number[] = [];
     for (let f = 0; f < numFunds; f++) {
       const navEntry = fundDateMaps[f].get(dateKey);
-      if (navEntry) {
-        // Weighted by allocation, normalized to base NAV
-        normalizedValue += (actualAllocations[f] / 100) * (navEntry.nav / baseNavs[f]);
-      }
+      navsForDate.push(navEntry?.nav ?? 0);
     }
-    allDailyValues.push({ date: entry.date, totalValue: normalizedValue });
+    allNavs.push(navsForDate);
   }
   _precomputeTime = performance.now() - precomputeStart;
 
@@ -163,16 +144,24 @@ export function calculateLumpSumRollingXirr(
     _xirrTime += performance.now() - xirrStart;
     if (xirrValue === null) continue;
     
-    // Calculate volatility using pre-computed values (timed)
-    // Slice the pre-computed array for this window
+    // Calculate volatility using pre-computed NAVs (timed)
+    // For each date in the window, compute portfolio value using correct formula:
+    // Value[date] = Σ(alloc[f] × NAV[f,date] / NAV[f,startDate]) × investment
     const volStart = performance.now();
-    const windowDailyValues = allDailyValues.slice(startIdx, i + 1);
-    // Scale the normalized values to actual investment amount (ratio-based, so scaling is consistent)
-    const scaledDailyValues: DailyPortfolioValue[] = windowDailyValues.map((dv, idx) => ({
-      date: dv.date,
-      totalValue: idx === 0 ? investmentAmount : investmentAmount * (dv.totalValue / windowDailyValues[0].totalValue)
-    }));
-    const volatility = calculateVolatility(scaledDailyValues);
+    const startNavs = allNavs[startIdx];
+    const dailyValues: DailyPortfolioValue[] = [];
+    
+    for (let j = startIdx; j <= i; j++) {
+      const dateNavs = allNavs[j];
+      let portfolioValue = 0;
+      for (let f = 0; f < numFunds; f++) {
+        if (startNavs[f] > 0) {
+          portfolioValue += (actualAllocations[f] / 100) * (dateNavs[f] / startNavs[f]) * investmentAmount;
+        }
+      }
+      dailyValues.push({ date: sorted[j].date, totalValue: portfolioValue });
+    }
+    const volatility = calculateVolatility(dailyValues);
     _volatilityTime += performance.now() - volStart;
     
     // Build only buy/sell transactions (skip nil - major performance gain)

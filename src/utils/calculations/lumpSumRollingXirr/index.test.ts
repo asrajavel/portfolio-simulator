@@ -127,4 +127,33 @@ describe('calculateLumpSumRollingXirr', () => {
     expect(r2024).toBeDefined();
     expect(r2024!.volatility).toBe(8.8906);
   });
+
+  it('calculates correct volatility for multi-fund portfolios', () => {
+    const fund1: NavEntry[] = [
+      { date: new Date('2023-01-01'), nav: 100 },
+      { date: new Date('2023-01-02'), nav: 110 }, // +10%
+      { date: new Date('2023-01-03'), nav: 108 }, // -1.82%
+      { date: new Date('2024-01-01'), nav: 120 },
+    ];
+    const fund2: NavEntry[] = [
+      { date: new Date('2023-01-01'), nav: 50 },
+      { date: new Date('2023-01-02'), nav: 51 }, // +2%
+      { date: new Date('2023-01-03'), nav: 52 }, // +1.96%
+      { date: new Date('2024-01-01'), nav: 55 },
+    ];
+    const filled1 = fillMissingNavDates(fund1);
+    const filled2 = fillMissingNavDates(fund2);
+    
+    const result = calculateLumpSumRollingXirr([filled1, filled2], 1, [50, 50], 100000);
+    const r2024 = result.find(r => r.date.getTime() === new Date('2024-01-01').getTime());
+    
+    expect(r2024).toBeDefined();
+    // With 50-50 allocation, portfolio value at each date:
+    // Day 0: 100,000 (50k in each fund)
+    // Day 1: 50k*(110/100) + 50k*(51/50) = 55k + 51k = 106k
+    // Day 2: 50k*(108/100) + 50k*(52/50) = 54k + 52k = 106k
+    // Volatility should be calculated from these multi-fund portfolio values
+    expect(r2024!.volatility).toBeGreaterThan(0);
+    expect(r2024!.volatility).toBeLessThan(20); // Reasonable range for volatility
+  });
 }); 
