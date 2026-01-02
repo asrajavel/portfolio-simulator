@@ -1,12 +1,17 @@
 import { NavEntry } from '../../../types/navData';
 import { SipRollingXirrEntry, Transaction } from './types';
 import { isValidInput, ensureContinuousDates, buildDateMap, getSortedDates } from './core/helpers';
-import { calculateTransactionsForDate } from './core/transactionBuilder';
+import { calculateTransactionsForDate, calculateTransactionsForDateWithNil } from './core/transactionBuilder';
 import { calculateXirrFromTransactions } from './core/xirrCalculator';
-import { calculateVolatilityForEntry } from './volatility';
+import { calculateVolatility } from './volatility/volatilityCalculator';
 
 // Re-export types for backward compatibility
 export type { SipRollingXirrEntry, Transaction } from './types';
+
+// Timing accumulators for performance analysis
+let _xirrTime = 0;
+let _volatilityTime = 0;
+let _transactionTime = 0;
 
 /**
  * Calculate SIP Rolling XIRR for given NAV data
@@ -33,6 +38,11 @@ export function calculateSipRollingXirr(
   stepUpPercentage: number = 0,
   sipAmount: number = 100
 ): SipRollingXirrEntry[] {
+  // Reset timing accumulators
+  _xirrTime = 0;
+  _volatilityTime = 0;
+  _transactionTime = 0;
+  
   // Validate input
   if (!isValidInput(navDataList)) return [];
 
@@ -44,7 +54,7 @@ export function calculateSipRollingXirr(
   const firstDate = baseDates[0];
 
   // Calculate XIRR for each date
-  return baseDates.flatMap(date =>
+  const results = baseDates.flatMap(date =>
     computeSipXirrForDate(
       date,
       fundDateMaps,
@@ -59,11 +69,17 @@ export function calculateSipRollingXirr(
       sipAmount
     )
   );
+  
+  // Log timing breakdown
+  console.log(`[SIP Calc] Transactions: ${_transactionTime.toFixed(0)}ms | XIRR: ${_xirrTime.toFixed(0)}ms | Volatility: ${_volatilityTime.toFixed(0)}ms | Total entries: ${results.length}`);
+  
+  return results;
 }
 
 /**
  * Compute SIP XIRR for a single date
- * This is the orchestration function that coordinates transaction building and XIRR calculation
+ * OPTIMIZED: Uses pre-computed daily values for volatility instead of nil transactions
+ * Falls back to old path when nil transactions are explicitly requested (for tests/modal)
  */
 function computeSipXirrForDate(
   currentDate: Date,
@@ -78,8 +94,17 @@ function computeSipXirrForDate(
   stepUpPercentage: number,
   sipAmount: number
 ): SipRollingXirrEntry[] {
-  // Build all transactions (buy, sell, rebalance, nil)
-  const allTransactions = calculateTransactionsForDate(
+  // If nil transactions are explicitly requested, use the old path (slower but includes nil)
+  if (includeNilTransactions) {
+    return computeSipXirrForDateWithNil(
+      currentDate, fundDateMaps, months, firstDate, allocations,
+      rebalancingEnabled, rebalancingThreshold, stepUpEnabled, stepUpPercentage, sipAmount
+    );
+  }
+
+  // OPTIMIZED PATH: Build transactions and compute daily values inline (no nil transactions)
+  const txStart = performance.now();
+  const result = calculateTransactionsForDate(
     currentDate,
     fundDateMaps,
     months,
@@ -91,27 +116,118 @@ function computeSipXirrForDate(
     stepUpPercentage,
     sipAmount
   );
+  _transactionTime += performance.now() - txStart;
 
-  if (!allTransactions) return [];
+  if (!result) return [];
 
-  // Calculate XIRR from transactions
-  const xirrValue = calculateXirrFromTransactions(allTransactions, currentDate);
+  // Calculate XIRR from transactions (only buy/sell/rebalance) - timed
+  const xirrStart = performance.now();
+  const xirrValue = calculateXirrFromTransactions(result.transactions, currentDate);
+  _xirrTime += performance.now() - xirrStart;
   if (xirrValue === null) return [];
 
-  // Calculate volatility from all transactions (includes nil for accurate daily tracking)
-  const volatility = calculateVolatilityForEntry(allTransactions);
-
-  // Filter nil transactions if not needed (for memory efficiency)
-  const transactionsToReturn = includeNilTransactions
-    ? allTransactions
-    : allTransactions.filter(tx => tx.type !== 'nil');
+  // Calculate volatility from pre-computed daily values - timed
+  const volStart = performance.now();
+  const volatility = calculateVolatility(result.dailyValues);
+  _volatilityTime += performance.now() - volStart;
 
   return [{
     date: currentDate,
-    xirr: Math.round(xirrValue * 10000) / 10000, // Round to 4 decimal places for precision
-    transactions: transactionsToReturn,
-    volatility: Math.round(volatility * 10000) / 10000 // Round to 4 decimal places for precision
+    xirr: Math.round(xirrValue * 10000) / 10000,
+    transactions: result.transactions, // Already filtered (no nil)
+    volatility: Math.round(volatility * 10000) / 10000
   }];
+}
+
+/**
+ * OLD PATH: Compute with nil transactions included (for tests and modal display)
+ */
+function computeSipXirrForDateWithNil(
+  currentDate: Date,
+  fundDateMaps: Map<string, NavEntry>[],
+  months: number,
+  firstDate: Date,
+  allocations: number[],
+  rebalancingEnabled: boolean,
+  rebalancingThreshold: number,
+  stepUpEnabled: boolean,
+  stepUpPercentage: number,
+  sipAmount: number
+): SipRollingXirrEntry[] {
+  const txStart = performance.now();
+  const allTransactions = calculateTransactionsForDateWithNil(
+    currentDate,
+    fundDateMaps,
+    months,
+    firstDate,
+    allocations,
+    rebalancingEnabled,
+    rebalancingThreshold,
+    stepUpEnabled,
+    stepUpPercentage,
+    sipAmount
+  );
+  _transactionTime += performance.now() - txStart;
+
+  if (!allTransactions) return [];
+
+  const xirrStart = performance.now();
+  const xirrValue = calculateXirrFromTransactions(allTransactions, currentDate);
+  _xirrTime += performance.now() - xirrStart;
+  if (xirrValue === null) return [];
+
+  // Calculate volatility from transactions (extract daily values from nil transactions)
+  const volStart = performance.now();
+  const dailyValues = extractDailyValuesFromTransactions(allTransactions);
+  const volatility = calculateVolatility(dailyValues);
+  _volatilityTime += performance.now() - volStart;
+
+  return [{
+    date: currentDate,
+    xirr: Math.round(xirrValue * 10000) / 10000,
+    transactions: allTransactions, // Includes nil
+    volatility: Math.round(volatility * 10000) / 10000
+  }];
+}
+
+/**
+ * Extract daily values from nil/buy transactions (for old path)
+ */
+function extractDailyValuesFromTransactions(transactions: Transaction[]): { date: Date; totalValue: number; cashFlow: number }[] {
+  const relevantTransactions = transactions.filter(
+    tx => tx.type === 'nil' || tx.type === 'buy'
+  );
+
+  const transactionsByDate = new Map<string, Transaction[]>();
+  
+  for (const tx of relevantTransactions) {
+    const dateKey = tx.when.toISOString().split('T')[0];
+    if (!transactionsByDate.has(dateKey)) {
+      transactionsByDate.set(dateKey, []);
+    }
+    transactionsByDate.get(dateKey)!.push(tx);
+  }
+
+  const dailyValues: { date: Date; totalValue: number; cashFlow: number }[] = [];
+  
+  for (const [, txs] of transactionsByDate.entries()) {
+    const totalValue = txs.reduce((sum, tx) => sum + tx.currentValue, 0);
+    const cashFlow = txs
+      .filter(tx => tx.type === 'buy')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+    
+    if (totalValue > 0) {
+      dailyValues.push({
+        date: txs[0].when,
+        totalValue,
+        cashFlow
+      });
+    }
+  }
+
+  dailyValues.sort((a, b) => a.date.getTime() - b.date.getTime());
+  
+  return dailyValues;
 }
 
 /**
@@ -150,8 +266,8 @@ export function recalculateTransactionsForDate(
   const baseDates = getSortedDates(filledNavs[0]);
   const firstDate = baseDates[0];
 
-  // Calculate transactions for the target date with nil included
-  const allTransactions = calculateTransactionsForDate(
+  // Calculate transactions for the target date with nil included (slower path)
+  const allTransactions = calculateTransactionsForDateWithNil(
     targetDate,
     fundDateMaps,
     months,

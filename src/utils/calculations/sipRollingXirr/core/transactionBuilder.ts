@@ -5,12 +5,72 @@ import { createBuyTransactions } from '../transactions/buy';
 import { createRebalanceTransactions } from '../transactions/rebalance';
 import { createNilTransactions } from '../transactions/nil';
 import { createFinalSellTransactions } from '../transactions/sell';
+import { DailySipPortfolioValue } from '../volatility/sipPortfolioValue';
 
 /**
- * Calculate all transactions for a given date, including buy/rebalance/nil transactions
- * and the final sell transaction at the end date
+ * Result of transaction calculation - includes both transactions and daily values for volatility
+ */
+export interface TransactionResult {
+  transactions: Transaction[];
+  dailyValues: DailySipPortfolioValue[];
+}
+
+/**
+ * Calculate all transactions for a given date, including buy/rebalance transactions
+ * and the final sell transaction at the end date.
+ * Also computes daily portfolio values inline for volatility calculation.
+ * 
+ * OPTIMIZATION: Nil transactions are NOT created as objects - daily values are computed directly.
  */
 export function calculateTransactionsForDate(
+  currentDate: Date,
+  fundDateMaps: Map<string, NavEntry>[],
+  months: number,
+  firstDate: Date,
+  allocations: number[],
+  rebalancingEnabled: boolean,
+  rebalancingThreshold: number,
+  stepUpEnabled: boolean,
+  stepUpPercentage: number,
+  sipAmount: number
+): TransactionResult | null {
+  const sipDates = generateSipDates(currentDate, months, firstDate);
+  if (!sipDates.earliestDate) {
+    return null;
+  }
+
+  const state = initializeState(fundDateMaps.length);
+  const result = buildDailyTransactions(
+    sipDates.earliestDate,
+    currentDate,
+    sipDates.dateSet,
+    fundDateMaps,
+    allocations,
+    rebalancingEnabled,
+    rebalancingThreshold,
+    stepUpEnabled,
+    stepUpPercentage,
+    sipAmount,
+    state
+  );
+
+  if (!result) return null;
+
+  // Add final selling transactions at current date
+  const sellTransactions = createFinalSellTransactions(currentDate, fundDateMaps, state.unitsPerFund);
+  if (!sellTransactions) return null;
+
+  return {
+    transactions: [...result.transactions, ...sellTransactions],
+    dailyValues: result.dailyValues
+  };
+}
+
+/**
+ * Calculate transactions WITH nil transactions included (for modal display)
+ * This is the slower path, only used when user clicks on a data point
+ */
+export function calculateTransactionsForDateWithNil(
   currentDate: Date,
   fundDateMaps: Map<string, NavEntry>[],
   months: number,
@@ -28,7 +88,7 @@ export function calculateTransactionsForDate(
   }
 
   const state = initializeState(fundDateMaps.length);
-  const transactions = buildDailyTransactions(
+  const transactions = buildDailyTransactionsWithNil(
     sipDates.earliestDate,
     currentDate,
     sipDates.dateSet,
@@ -65,7 +125,59 @@ function initializeState(numFunds: number): TransactionState {
   };
 }
 
+/**
+ * OPTIMIZED: Build transactions WITHOUT creating nil transaction objects.
+ * Daily portfolio values are computed inline for volatility calculation.
+ */
 function buildDailyTransactions(
+  startDate: Date,
+  endDate: Date,
+  sipDates: Set<string>,
+  fundDateMaps: Map<string, NavEntry>[],
+  allocations: number[],
+  rebalancingEnabled: boolean,
+  rebalancingThreshold: number,
+  stepUpEnabled: boolean,
+  stepUpPercentage: number,
+  sipAmount: number,
+  state: TransactionState
+): { transactions: Transaction[]; dailyValues: DailySipPortfolioValue[] } | null {
+  const transactions: Transaction[] = [];
+  const dailyValues: DailySipPortfolioValue[] = [];
+  const loopDate = new Date(startDate);
+  const firstSipDate = new Date(startDate);
+
+  while (loopDate < endDate) {
+    const dateKey = toDateKey(loopDate);
+    const isSipDate = sipDates.has(dateKey);
+
+    let cashFlowForDay = 0;
+    if (isSipDate) {
+      const result = processSipDate(dateKey, loopDate, fundDateMaps, allocations, rebalancingEnabled, rebalancingThreshold, firstSipDate, stepUpEnabled, stepUpPercentage, sipAmount, state);
+      if (!result) return null;
+      transactions.push(...result);
+      
+      // Calculate actual cash flow from transactions created (handles step-up and rebalancing)
+      cashFlowForDay = result
+        .filter(tx => tx.type === 'buy')
+        .reduce((sum, tx) => sum + tx.amount, 0);
+    }
+
+    // Compute daily portfolio value inline (no nil transactions created)
+    const dailyValue = computeDailyPortfolioValue(dateKey, loopDate, fundDateMaps, state, cashFlowForDay);
+    if (!dailyValue) return null;
+    dailyValues.push(dailyValue);
+
+    loopDate.setDate(loopDate.getDate() + 1);
+  }
+
+  return { transactions, dailyValues };
+}
+
+/**
+ * OLD PATH: Build transactions WITH nil transaction objects (for modal display)
+ */
+function buildDailyTransactionsWithNil(
   startDate: Date,
   endDate: Date,
   sipDates: Set<string>,
@@ -80,7 +192,7 @@ function buildDailyTransactions(
 ): Transaction[] | null {
   const transactions: Transaction[] = [];
   const loopDate = new Date(startDate);
-  const firstSipDate = new Date(startDate); // Store first SIP date for step-up calculation
+  const firstSipDate = new Date(startDate);
 
   while (loopDate < endDate) {
     const dateKey = toDateKey(loopDate);
@@ -97,6 +209,33 @@ function buildDailyTransactions(
   }
 
   return transactions;
+}
+
+/**
+ * Compute daily portfolio value without creating transaction objects
+ */
+function computeDailyPortfolioValue(
+  dateKey: string,
+  date: Date,
+  fundDateMaps: Map<string, NavEntry>[],
+  state: TransactionState,
+  cashFlow: number
+): DailySipPortfolioValue | null {
+  let totalValue = 0;
+
+  for (let fundIdx = 0; fundIdx < fundDateMaps.length; fundIdx++) {
+    const entry = fundDateMaps[fundIdx].get(dateKey);
+    if (!entry) return null;
+
+    const currentValue = state.cumulativeUnits[fundIdx] * entry.nav;
+    totalValue += currentValue;
+  }
+
+  return {
+    date: new Date(date),
+    totalValue,
+    cashFlow
+  };
 }
 
 function processSipDate(

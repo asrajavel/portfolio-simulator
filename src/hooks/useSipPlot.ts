@@ -153,12 +153,15 @@ export function useSipPlot({
           inst => inst?.type === 'inflation'
         );
         
+        const strategyStartTime = performance.now();
+        
         await new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url));
           // Use 100 as base for XIRR view, actual sipAmount for corpus view
           const baseSipAmount = chartView === 'corpus' ? sipAmount : 100;
           worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount: baseSipAmount });
           worker.onmessage = (event: MessageEvent) => {
+            const strategyEndTime = performance.now();
             let resultData = event.data;
             
             // Strip volatility for inflation instruments (not meaningful for smooth daily compounding)
@@ -168,6 +171,8 @@ export function useSipPlot({
                 return rest;
               });
             }
+            
+            console.log(`[SIP] Strategy ${pIdx + 1} total: ${(strategyEndTime - strategyStartTime).toFixed(0)}ms (${resultData.length} data points)`);
             
             allSipXirrDatas[`Strategy ${pIdx + 1}`] = resultData;
             worker.terminate();
