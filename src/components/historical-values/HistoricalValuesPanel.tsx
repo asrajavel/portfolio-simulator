@@ -105,18 +105,23 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
     if (validInstruments.length === 0) return;
     
     setLoading(true);
-    const newNavDatas: Record<string, any[]> = {};
-    const instrumentsToPlot = validInstruments.map(e => e.instrument!);
-    
-    for (const entry of validInstruments) {
-      const data = await loadNavData(entry.instrument!);
-      const filledData = fillMissingNavDates(data);
-      newNavDatas[entry.instrument!.id.toString()] = filledData;
+    try {
+      const newNavDatas: Record<string, any[]> = {};
+      const instrumentsToPlot = validInstruments.map(e => e.instrument!);
+      
+      for (const entry of validInstruments) {
+        const data = await loadNavData(entry.instrument!);
+        const filledData = fillMissingNavDates(data);
+        newNavDatas[entry.instrument!.id.toString()] = filledData;
+      }
+      
+      setNavDatas(newNavDatas);
+      setPlottedInstruments(instrumentsToPlot);
+    } catch (error) {
+      console.error('Error plotting historical values:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    setNavDatas(newNavDatas);
-    setPlottedInstruments(instrumentsToPlot);
-    setLoading(false);
   };
 
   // Update URL params when instruments (current selection) or log scale changes

@@ -13,6 +13,8 @@ import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
 import { BottomBar } from './components/layout/BottomBar';
 import { HelpProvider, HelpDrawer, useHelp } from './components/help';
 import { trackPageView } from './utils/analytics';
+import { ToasterContainer } from 'baseui/toast';
+import { setGlobalOpenHelp } from './services/yahooFinanceService';
 
 const AppContent: React.FC = () => {
   const { funds, loading, error } = useMutualFunds();
@@ -27,6 +29,11 @@ const AppContent: React.FC = () => {
     trackPageView(location.pathname);
   }, [location.pathname]);
 
+  // Register openHelp for toast error messages
+  useEffect(() => {
+    setGlobalOpenHelp(openHelp);
+  }, [openHelp]);
+
   // Determine which tab is active based on route
   const isLumpsumTab = location.pathname === '/lumpsum';
   const isSipTab = location.pathname === '/sip';
@@ -34,6 +41,7 @@ const AppContent: React.FC = () => {
 
   return (
     <Container>
+      <ToasterContainer autoHideDuration={5000} />
       <AppNavBar
         title="Indian Investment Analysis"
         mainItems={[

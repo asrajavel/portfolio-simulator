@@ -59,23 +59,18 @@ export function useSipPlot({
                   continue;
                 }
               } else if (instrument.type === 'yahoo_finance') {
-                try {
-                  const stockData = await yahooFinanceService.fetchStockData(instrument.symbol);
-                  
-                  if (!stockData || stockData.length === 0) {
-                    continue;
-                  }
-                  
-                  // Convert stock data to NAV format (keep Date objects for fillMissingNavDates)
-                  nav = stockData.map(item => ({
-                    date: item.date, // Keep as Date object
-                    nav: item.nav
-                  }));
-                  identifier = `${pIdx}_${instrument.symbol}`;
-                } catch (stockError) {
-                  console.error(`Failed to fetch stock data for ${instrument.symbol}:`, stockError);
+                const stockData = await yahooFinanceService.fetchStockData(instrument.symbol);
+                
+                if (!stockData || stockData.length === 0) {
                   continue;
                 }
+                
+                // Convert stock data to NAV format (keep Date objects for fillMissingNavDates)
+                nav = stockData.map(item => ({
+                  date: item.date, // Keep as Date object
+                  nav: item.nav
+                }));
+                identifier = `${pIdx}_${instrument.symbol}`;
               } else if (instrument.type === 'fixed_return') {
                 try {
                   const fixedReturnData = fixedReturnService.generateFixedReturnData(
@@ -123,6 +118,7 @@ export function useSipPlot({
               allNavsFlat[identifier] = filled;
             } catch (error) {
               console.error(`Error fetching data for instrument ${instrument.name}:`, error);
+              throw error;
             }
           }
         }
@@ -193,7 +189,9 @@ export function useSipPlot({
       plotState.setLoadingXirr(false);
     } catch (e) {
       const errorMsg = e instanceof Error ? e.message : String(e);
-      plotState.setXirrError('Error loading or calculating data: ' + errorMsg);
+      if (!(e instanceof Error && errorMsg.includes('Yahoo Finance ticker'))) {
+        plotState.setXirrError('Error loading or calculating data: ' + errorMsg);
+      }
       console.error('Error loading or calculating data:', e);
       plotState.setLoadingNav(false);
       plotState.setLoadingXirr(false);

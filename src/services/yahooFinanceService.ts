@@ -1,4 +1,41 @@
 import { ProcessedIndexData } from '../types/index';
+import { toaster } from 'baseui/toast';
+import React from 'react';
+
+let globalOpenHelp: ((topic: string) => void) | null = null;
+
+export const setGlobalOpenHelp = (openHelp: (topic: string) => void) => {
+  globalOpenHelp = openHelp;
+};
+
+const showErrorToast = (message: string) => {
+  const handleHelpClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (globalOpenHelp) {
+      globalOpenHelp('yahoo-tickers');
+    }
+  };
+
+  toaster.negative(
+    React.createElement(
+      'div',
+      null,
+      message,
+      React.createElement('br'),
+      React.createElement('br'),
+      React.createElement(
+        'a',
+        {
+          href: '#',
+          onClick: handleHelpClick,
+          style: { color: 'white', textDecoration: 'underline', cursor: 'pointer' }
+        },
+        '📖 Help?'
+      )
+    ),
+    { autoHideDuration: 7000 }
+  );
+};
 
 interface YahooFinanceResponse {
   chart: {
@@ -45,7 +82,9 @@ class YahooFinanceService {
       const response = await fetch(proxyUrl);
       
       if (!response.ok) {
-        throw new Error(`Failed to fetch stock data for ${symbol}`);
+        const errorMsg = `Yahoo Finance ticker "${symbol}" not found or unavailable. Please check the ticker symbol and try again.`;
+        showErrorToast(errorMsg);
+        throw new Error(errorMsg);
       }
 
       const proxyData = await response.json();
@@ -54,11 +93,15 @@ class YahooFinanceService {
       const yahooData: YahooFinanceResponse = proxyData;
       
       if (yahooData.chart.error) {
-        throw new Error(`Yahoo Finance API error: ${yahooData.chart.error}`);
+        const errorMsg = `Yahoo Finance ticker "${symbol}" returned an error. Please check the ticker symbol and try again.`;
+        showErrorToast(errorMsg);
+        throw new Error(errorMsg);
       }
 
       if (!yahooData.chart.result || yahooData.chart.result.length === 0) {
-        throw new Error(`No data available for symbol ${symbol}`);
+        const errorMsg = `No data available for Yahoo Finance ticker "${symbol}". The ticker might be delisted or invalid.`;
+        showErrorToast(errorMsg);
+        throw new Error(errorMsg);
       }
 
       const chartResult = yahooData.chart.result[0];
@@ -66,7 +109,9 @@ class YahooFinanceService {
       const adjClosePrices = chartResult.indicators.adjclose[0].adjclose;
 
       if (!timestamps || !adjClosePrices || timestamps.length !== adjClosePrices.length) {
-        throw new Error(`Invalid data structure for symbol ${symbol}`);
+        const errorMsg = `Invalid data structure for Yahoo Finance ticker "${symbol}". The data format is unexpected.`;
+        showErrorToast(errorMsg);
+        throw new Error(errorMsg);
       }
 
       const processedData = timestamps.map((timestamp, index) => {
@@ -86,8 +131,13 @@ class YahooFinanceService {
       this.stockDataCache[symbol] = finalData;
       return finalData;
     } catch (error) {
-      console.error(`Error fetching stock data for ${symbol}:`, error);
-      throw error;
+      if (error instanceof Error && error.message.includes('ticker')) {
+        throw error;
+      }
+      const errorMsg = `Error fetching Yahoo Finance ticker "${symbol}". Please verify the ticker symbol.`;
+      console.error(errorMsg, error);
+      showErrorToast(errorMsg);
+      throw new Error(errorMsg);
     }
   }
 
@@ -138,9 +188,9 @@ class YahooFinanceService {
     }
 
     if (outlierFreeData.length < 2) {
-      throw new Error(
-        `Insufficient valid data points for symbol ${symbol} after cleaning`
-      );
+      const errorMsg = `Insufficient valid data points for Yahoo Finance ticker "${symbol}" after cleaning. Not enough historical data available.`;
+      showErrorToast(errorMsg);
+      throw new Error(errorMsg);
     }
 
     // Remove any duplicate dates (keep the first occurrence)
