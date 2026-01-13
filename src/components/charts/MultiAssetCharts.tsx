@@ -19,7 +19,7 @@ import { HelpButton } from '../help';
 // ============================================================================
 
 interface MultiAssetChartsProps {
-  navDatas: Record<number, any[]>;
+  navDatas: Record<string, any[]>;
   lumpsumPortfolioXirrData?: Record<string, any[]>;
   sipPortfolioXirrData?: Record<string, any[]>;
   funds: mfapiMutualFund[];
@@ -29,7 +29,7 @@ interface MultiAssetChartsProps {
   years: number;
   amount: number; // Can be sipAmount or lumpsumAmount
   chartView: 'xirr' | 'corpus';
-  isLumpsum?: boolean;
+  isLumpsum: boolean;
 }
 
 interface ModalState {
@@ -288,7 +288,7 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
   years,
   amount,
   chartView,
-  isLumpsum = false,
+  isLumpsum,
 }) => {
   const [modal, setModal] = useState<ModalState>(initialModalState);
 
@@ -332,7 +332,7 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
                 break;
             }
             
-            const navData = (navDatas as any)[identifier];
+            const navData = navDatas[identifier];
             if (navData) {
               navDataList.push(navData);
             }

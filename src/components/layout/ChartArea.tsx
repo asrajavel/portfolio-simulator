@@ -21,7 +21,7 @@ interface ChartAreaProps {
   years: number;
   amount: number; // Can be sipAmount or lumpsumAmount
   chartView: 'xirr' | 'corpus';
-  isLumpsum?: boolean;
+  isLumpsum: boolean;
 }
 
 export const ChartArea: React.FC<ChartAreaProps> = ({
@@ -39,7 +39,7 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
   years,
   amount,
   chartView,
-  isLumpsum = false,
+  isLumpsum,
 }) => (
   <>
     {xirrError && (
