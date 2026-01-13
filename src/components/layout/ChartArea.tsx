@@ -1,5 +1,5 @@
 import React from 'react';
-import { MultiFundCharts } from '../charts/MultiFundCharts';
+import { MultiAssetCharts } from '../charts/MultiAssetCharts';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { SipPortfolio } from '../../types/sipPortfolio';
 import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
@@ -67,7 +67,7 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
       margin="0 auto"
     >
       {hasPlotted && Object.keys(navDatas).length > 0 && (
-        <MultiFundCharts
+        <MultiAssetCharts
           navDatas={navDatas}
           lumpsumPortfolioXirrData={lumpsumPortfolioXirrData}
           sipPortfolioXirrData={sipPortfolioXirrData}

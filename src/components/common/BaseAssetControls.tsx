@@ -6,26 +6,26 @@ import { AssetTypeDropdown } from '../controls/AssetTypeDropdown';
 import { AssetDropdown } from '../controls/AssetDropdown';
 import { AssetType, Asset } from '../../types/asset';
 
-interface BaseFundControlsProps {
+interface BaseAssetControlsProps {
   selectedAssets: (Asset | null)[];
   allocations: (number | null)[];
   funds: { schemeCode: number; schemeName: string }[];
   onAssetSelect: (idx: number, asset: Asset | null) => void;
-  onAddFund: () => void;
-  onRemoveFund: (idx: number) => void;
+  onAddAsset: () => void;
+  onRemoveAsset: (idx: number) => void;
   onAllocationChange: (idx: number, value: number) => void;
   useAssets?: boolean;
   defaultSchemeCode?: number;
   children?: React.ReactNode; // For additional controls (SIP-specific)
 }
 
-export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
+export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
   selectedAssets,
   allocations,
   funds,
   onAssetSelect,
-  onAddFund,
-  onRemoveFund,
+  onAddAsset,
+  onRemoveAsset,
   onAllocationChange,
   useAssets = true,
   defaultSchemeCode,
@@ -152,7 +152,7 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
           <Button
             kind="tertiary"
             size="mini"
-            onClick={() => onRemoveFund(idx)}
+            onClick={() => onRemoveAsset(idx)}
             disabled={(selectedAssets?.length ?? 0) <= 1}
             overrides={{
               BaseButton: {
@@ -168,7 +168,7 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
                 }),
               },
             }}
-            title="Remove fund"
+            title="Remove asset"
           >
             ✕
           </Button>
@@ -178,7 +178,7 @@ export const BaseFundControls: React.FC<BaseFundControlsProps> = ({
         <Button
           kind="primary"
           size="compact"
-          onClick={onAddFund}
+          onClick={onAddAsset}
           disabled={hasInflation}
         >
           + Asset

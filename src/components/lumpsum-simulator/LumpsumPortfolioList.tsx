@@ -1,5 +1,5 @@
 import React from 'react';
-import { LumpsumFundControls } from './LumpsumFundControls';
+import { LumpsumAssetControls } from './LumpsumAssetControls';
 import { PortfolioListLayout } from '../common/PortfolioListLayout';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
@@ -10,8 +10,8 @@ interface LumpsumPortfolioListProps {
   setLumpsumPortfolios: React.Dispatch<React.SetStateAction<LumpsumPortfolio[]>>;
   funds: mfapiMutualFund[];
   onAssetSelect: (pIdx: number, idx: number, asset: Asset | null) => void;
-  onAddFund: (pIdx: number) => void;
-  onRemoveFund: (pIdx: number, idx: number) => void;
+  onAddAsset: (pIdx: number) => void;
+  onRemoveAsset: (pIdx: number, idx: number) => void;
   onAllocationChange: (pIdx: number, idx: number, value: number) => void;
   onAddPortfolio: () => void;
   COLORS: string[];
@@ -24,8 +24,8 @@ export const LumpsumPortfolioList: React.FC<LumpsumPortfolioListProps> = ({
   setLumpsumPortfolios,
   funds,
   onAssetSelect,
-  onAddFund,
-  onRemoveFund,
+  onAddAsset,
+  onRemoveAsset,
   onAllocationChange,
   onAddPortfolio,
   COLORS,
@@ -36,13 +36,13 @@ export const LumpsumPortfolioList: React.FC<LumpsumPortfolioListProps> = ({
     (portfolio.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0);
 
   const renderPortfolioControls = (portfolio: LumpsumPortfolio, pIdx: number) => (
-    <LumpsumFundControls
+    <LumpsumAssetControls
       selectedAssets={portfolio.selectedAssets || []}
       allocations={portfolio.allocations}
       funds={funds}
       onAssetSelect={(idx, asset) => onAssetSelect(pIdx, idx, asset)}
-      onAddFund={() => onAddFund(pIdx)}
-      onRemoveFund={idx => onRemoveFund(pIdx, idx)}
+      onAddAsset={() => onAddAsset(pIdx)}
+      onRemoveAsset={idx => onRemoveAsset(pIdx, idx)}
       onAllocationChange={(idx, value) => onAllocationChange(pIdx, idx, value)}
       useAssets={useAssets}
       defaultSchemeCode={defaultSchemeCode}

@@ -68,7 +68,7 @@ export function useLumpsumPortfolios(DEFAULT_SCHEME_CODE: number, lumpsumAmountS
     ]);
   };
 
-  // Handlers for fund controls per portfolio
+  // Handlers for asset controls per portfolio
   const handleAssetSelect = (portfolioIdx: number, idx: number, asset: Asset | null) => {
     setLumpsumPortfolios(prev => prev.map((p, i) => {
       if (i !== portfolioIdx) return p;

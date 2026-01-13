@@ -87,8 +87,8 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
             invalidateChart();
             handleAssetSelect(pIdx, idx, asset);
           }}
-          onAddFund={handleAddFundInvalidate}
-          onRemoveFund={handleRemoveFundInvalidate}
+          onAddAsset={handleAddFundInvalidate}
+          onRemoveAsset={handleRemoveFundInvalidate}
           onAllocationChange={handleAllocationChangeInvalidate}
           onToggleRebalancing={handleToggleRebalancingInvalidate}
           onRebalancingThresholdChange={handleRebalancingThresholdChangeInvalidate}

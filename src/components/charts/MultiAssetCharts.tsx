@@ -18,7 +18,7 @@ import { HelpButton } from '../help';
 // TYPES & INTERFACES
 // ============================================================================
 
-interface MultiFundChartsProps {
+interface MultiAssetChartsProps {
   navDatas: Record<number, any[]>;
   lumpsumPortfolioXirrData?: Record<string, any[]>;
   sipPortfolioXirrData?: Record<string, any[]>;
@@ -277,7 +277,7 @@ const getPortfolioSeries = (portfolioXirrData: Record<string, any[]>, COLORS: st
   });
 };
 
-export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
+export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
   navDatas,
   lumpsumPortfolioXirrData,
   sipPortfolioXirrData,

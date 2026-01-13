@@ -79,8 +79,8 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
             invalidateChart();
             handleAssetSelect(pIdx, idx, asset);
           }}
-          onAddFund={handleAddFundInvalidate}
-          onRemoveFund={handleRemoveFundInvalidate}
+          onAddAsset={handleAddFundInvalidate}
+          onRemoveAsset={handleRemoveFundInvalidate}
           onAllocationChange={handleAllocationChangeInvalidate}
           onAddPortfolio={handleAddPortfolioInvalidate}
           COLORS={plotState.COLORS}

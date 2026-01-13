@@ -1,44 +1,44 @@
 import React from 'react';
-import { BaseFundControls } from '../common/BaseFundControls';
+import { BaseAssetControls } from '../common/BaseAssetControls';
 import { Asset } from '../../types/asset';
 
-interface LumpsumFundControlsProps {
+interface LumpsumAssetControlsProps {
   selectedAssets: (Asset | null)[];
   allocations: (number | null)[];
   funds: { schemeCode: number; schemeName: string }[];
   onAssetSelect: (idx: number, asset: Asset | null) => void;
-  onAddFund: () => void;
-  onRemoveFund: (idx: number) => void;
+  onAddAsset: () => void;
+  onRemoveAsset: (idx: number) => void;
   onAllocationChange: (idx: number, value: number) => void;
   useAssets?: boolean;
   defaultSchemeCode?: number;
 }
 
-export const LumpsumFundControls: React.FC<LumpsumFundControlsProps> = ({
+export const LumpsumAssetControls: React.FC<LumpsumAssetControlsProps> = ({
   selectedAssets,
   allocations,
   funds,
   onAssetSelect,
-  onAddFund,
-  onRemoveFund,
+  onAddAsset,
+  onRemoveAsset,
   onAllocationChange,
   useAssets = true,
   defaultSchemeCode,
 }) => {
   return (
-    <BaseFundControls
+    <BaseAssetControls
       selectedAssets={selectedAssets}
       allocations={allocations}
       funds={funds}
       onAssetSelect={onAssetSelect}
-      onAddFund={onAddFund}
-      onRemoveFund={onRemoveFund}
+      onAddAsset={onAddAsset}
+      onRemoveAsset={onRemoveAsset}
       onAllocationChange={onAllocationChange}
       useAssets={useAssets}
       defaultSchemeCode={defaultSchemeCode}
     >
       {/* No additional controls for lumpsum */}
-    </BaseFundControls>
+    </BaseAssetControls>
   );
 };
 

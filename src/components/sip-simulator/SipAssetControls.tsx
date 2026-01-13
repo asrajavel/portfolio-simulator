@@ -2,17 +2,17 @@ import React from 'react';
 import { Block } from 'baseui/block';
 import { Checkbox } from 'baseui/checkbox';
 import { Input } from 'baseui/input';
-import { BaseFundControls } from '../common/BaseFundControls';
+import { BaseAssetControls } from '../common/BaseAssetControls';
 import { Asset } from '../../types/asset';
 import { HelpButton } from '../help';
 
-interface SipFundControlsProps {
+interface SipAssetControlsProps {
   selectedAssets: (Asset | null)[];
   allocations: (number | null)[];
   funds: { schemeCode: number; schemeName: string }[];
   onAssetSelect: (idx: number, asset: Asset | null) => void;
-  onAddFund: () => void;
-  onRemoveFund: (idx: number) => void;
+  onAddAsset: () => void;
+  onRemoveAsset: (idx: number) => void;
   onAllocationChange: (idx: number, value: number) => void;
   rebalancingEnabled: boolean;
   onToggleRebalancing: () => void;
@@ -26,13 +26,13 @@ interface SipFundControlsProps {
   defaultSchemeCode?: number;
 }
 
-export const SipFundControls: React.FC<SipFundControlsProps> = ({
+export const SipAssetControls: React.FC<SipAssetControlsProps> = ({
   selectedAssets,
   allocations,
   funds,
   onAssetSelect,
-  onAddFund,
-  onRemoveFund,
+  onAddAsset,
+  onRemoveAsset,
   onAllocationChange,
   rebalancingEnabled,
   onToggleRebalancing,
@@ -46,13 +46,13 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
   defaultSchemeCode,
 }) => {
   return (
-    <BaseFundControls
+    <BaseAssetControls
       selectedAssets={selectedAssets}
       allocations={allocations}
       funds={funds}
       onAssetSelect={onAssetSelect}
-      onAddFund={onAddFund}
-      onRemoveFund={onRemoveFund}
+      onAddAsset={onAddAsset}
+      onRemoveAsset={onRemoveAsset}
       onAllocationChange={onAllocationChange}
       useAssets={useAssets}
       defaultSchemeCode={defaultSchemeCode}
@@ -147,7 +147,7 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
           />
         </Block>
       </Block>
-    </BaseFundControls>
+    </BaseAssetControls>
   );
 };
 

@@ -86,7 +86,7 @@ export function useSipPortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
     ]);
   };
 
-  // Handlers for fund controls per portfolio
+  // Handlers for asset controls per portfolio
   const handleAssetSelect = (portfolioIdx: number, idx: number, asset: Asset | null) => {
     setSipPortfolios(prev => prev.map((p, i) => {
       if (i !== portfolioIdx) return p;
@@ -113,7 +113,7 @@ export function useSipPortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
     setSipPortfolios(prev => prev.map((p, i) => {
       if (i !== portfolioIdx) return p;
       const newAssets = p.selectedAssets.filter((_, j) => j !== idx);
-      // Rebalance allocations for remaining funds
+      // Rebalance allocations for remaining assets
       const n = newAssets.length;
       const newAlloc = n > 0 ? getDefaultAllocations(n) : [];
       return { ...p, selectedAssets: newAssets, allocations: newAlloc };
