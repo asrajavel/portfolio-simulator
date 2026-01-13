@@ -1,40 +1,40 @@
 import React from 'react';
 import { BaseFundControls } from '../common/BaseFundControls';
-import { Instrument } from '../../types/instrument';
+import { Asset } from '../../types/asset';
 
 interface LumpsumFundControlsProps {
-  selectedInstruments: (Instrument | null)[];
+  selectedAssets: (Asset | null)[];
   allocations: (number | null)[];
   funds: { schemeCode: number; schemeName: string }[];
-  onInstrumentSelect: (idx: number, instrument: Instrument | null) => void;
+  onAssetSelect: (idx: number, asset: Asset | null) => void;
   onAddFund: () => void;
   onRemoveFund: (idx: number) => void;
   onAllocationChange: (idx: number, value: number) => void;
-  useInstruments?: boolean;
+  useAssets?: boolean;
   defaultSchemeCode?: number;
 }
 
 export const LumpsumFundControls: React.FC<LumpsumFundControlsProps> = ({
-  selectedInstruments,
+  selectedAssets,
   allocations,
   funds,
-  onInstrumentSelect,
+  onAssetSelect,
   onAddFund,
   onRemoveFund,
   onAllocationChange,
-  useInstruments = true,
+  useAssets = true,
   defaultSchemeCode,
 }) => {
   return (
     <BaseFundControls
-      selectedInstruments={selectedInstruments}
+      selectedAssets={selectedAssets}
       allocations={allocations}
       funds={funds}
-      onInstrumentSelect={onInstrumentSelect}
+      onAssetSelect={onAssetSelect}
       onAddFund={onAddFund}
       onRemoveFund={onRemoveFund}
       onAllocationChange={onAllocationChange}
-      useInstruments={useInstruments}
+      useAssets={useAssets}
       defaultSchemeCode={defaultSchemeCode}
     >
       {/* No additional controls for lumpsum */}

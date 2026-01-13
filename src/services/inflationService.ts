@@ -1,4 +1,4 @@
-import { InstrumentNavData } from '../types/instrument';
+import { AssetNavData } from '../types/asset';
 
 /**
  * Service to fetch and generate NAV data based on inflation rates
@@ -61,14 +61,14 @@ export class InflationService {
   async generateInflationNavData(
     countryCode: string = 'IND',
     startYear: number = 1960
-  ): Promise<InstrumentNavData[]> {
+  ): Promise<AssetNavData[]> {
     const yearlyRates = await this.fetchInflationRates(countryCode);
     
     if (yearlyRates.size === 0) {
       throw new Error(`No inflation data available for ${countryCode}`);
     }
 
-    const navData: InstrumentNavData[] = [];
+    const navData: AssetNavData[] = [];
     const startDate = new Date(Date.UTC(startYear, 0, 1));
     const endDate = new Date();
     

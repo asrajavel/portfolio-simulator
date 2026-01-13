@@ -1,12 +1,12 @@
 import React from 'react';
 import { Block } from 'baseui/block';
 import { Select } from 'baseui/select';
-import { Instrument } from '../../types/instrument';
+import { Asset } from '../../types/asset';
 import { useIndices } from '../../hooks/useIndices';
 
 interface IndexSelectorProps {
-  onSelect: (instrument: Instrument) => void;
-  value?: Instrument;
+  onSelect: (asset: Asset) => void;
+  value?: Asset;
 }
 
 export const IndexSelector: React.FC<IndexSelectorProps> = ({ 
@@ -19,7 +19,7 @@ export const IndexSelector: React.FC<IndexSelectorProps> = ({
     if (!params.value || params.value.length === 0) return;
     
     const selectedIndex = params.value[0];
-    const instrument: Instrument = {
+    const asset: Asset = {
       type: 'index_fund',
       id: selectedIndex.indexName,
       name: selectedIndex.displayName,
@@ -27,7 +27,7 @@ export const IndexSelector: React.FC<IndexSelectorProps> = ({
       displayName: selectedIndex.displayName
     };
     
-    onSelect(instrument);
+    onSelect(asset);
   };
 
   const indexOptions = indices.map(index => ({

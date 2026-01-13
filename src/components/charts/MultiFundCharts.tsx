@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
-import { SipStrategy } from '../../types/sipStrategy';
-import { LumpsumStrategy } from '../../types/lumpsumStrategy';
+import { SipPortfolio } from '../../types/sipPortfolio';
+import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
 import { Block } from 'baseui/block';
 import { TransactionModal } from '../modals/TransactionModal';
 import { CHART_STYLES } from '../../constants';
@@ -20,12 +20,12 @@ import { HelpButton } from '../help';
 
 interface MultiFundChartsProps {
   navDatas: Record<number, any[]>;
-  lumpsumStrategyXirrData?: Record<string, any[]>;
-  sipStrategyXirrData?: Record<string, any[]>;
+  lumpsumPortfolioXirrData?: Record<string, any[]>;
+  sipPortfolioXirrData?: Record<string, any[]>;
   funds: mfapiMutualFund[];
   COLORS: string[];
-  sipStrategies?: SipStrategy[];
-  lumpsumStrategies?: LumpsumStrategy[];
+  sipPortfolios?: SipPortfolio[];
+  lumpsumPortfolios?: LumpsumPortfolio[];
   years: number;
   amount: number; // Can be sipAmount or lumpsumAmount
   chartView: 'xirr' | 'corpus';
@@ -37,8 +37,8 @@ interface ModalState {
   transactions: { fundIdx: number; nav: number; when: Date; units: number; amount: number; type: 'buy' | 'sell' | 'rebalance' | 'nil'; cumulativeUnits: number; currentValue: number; allocationPercentage?: number }[];
   date: string;
   xirr: number;
-  strategyName: string;
-  strategyInstruments: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
+  portfolioName: string;
+  portfolioAssets: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
 }
 
 // ============================================================================
@@ -50,8 +50,8 @@ const initialModalState: ModalState = {
   transactions: [],
   date: '',
   xirr: 0,
-  strategyName: '',
-  strategyInstruments: []
+  portfolioName: '',
+  portfolioAssets: []
 };
 
 // ============================================================================
@@ -63,16 +63,16 @@ const getFundName = (schemeCode: number, funds: mfapiMutualFund[]): string => {
   return fund ? fund.schemeName : String(schemeCode);
 };
 
-const getStrategyInstruments = (
-  strategyName: string, 
-  strategies: (SipStrategy | LumpsumStrategy)[], 
+const getPortfolioAssets = (
+  portfolioName: string, 
+  portfolios: (SipPortfolio | LumpsumPortfolio)[], 
   funds: mfapiMutualFund[]
 ): Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }> => {
-  const idx = parseInt(strategyName.replace('Strategy ', '')) - 1;
-  const strategy = strategies[idx];
-  if (!strategy || !strategy.selectedInstruments) return [];
+  const idx = parseInt(portfolioName.replace('Portfolio ', '')) - 1;
+  const portfolio = portfolios[idx];
+  if (!portfolio || !portfolio.selectedAssets) return [];
   
-  return strategy.selectedInstruments
+  return portfolio.selectedAssets
     .filter(inst => inst)
     .map(inst => {
       if (inst!.type === 'mutual_fund') {
@@ -98,7 +98,7 @@ const getStrategyInstruments = (
         };
       }
       return {
-        schemeName: `Unknown Instrument`,
+        schemeName: `Unknown Asset`,
         type: 'mutual_fund' as const
       };
     });
@@ -134,7 +134,7 @@ const getBaseChartOptions = (title: string) => ({
   }
 });
 
-const getStockChartOptions = (title: string, strategyXirrData: Record<string, any[]>, amount: number, chartView: 'xirr' | 'corpus', isLumpsum: boolean = false) => ({
+const getStockChartOptions = (title: string, portfolioXirrData: Record<string, any[]>, amount: number, chartView: 'xirr' | 'corpus', isLumpsum: boolean = false) => ({
   ...getBaseChartOptions(title),
   xAxis: {
     type: 'datetime',
@@ -185,10 +185,10 @@ const getStockChartOptions = (title: string, strategyXirrData: Record<string, an
         [...this.points].sort((a: any, b: any) => (b.y as number) - (a.y as number)) : [];
       
       sortedPoints.forEach((point: any) => {
-        // Get the strategy data
-        const strategyName = point.series.name;
+        // Get the portfolio data
+        const portfolioName = point.series.name;
         const pointDate = Highcharts.dateFormat('%Y-%m-%d', this.x);
-        const xirrEntry = strategyXirrData[strategyName]?.find((row: any) => formatDate(row.date) === pointDate);
+        const xirrEntry = portfolioXirrData[portfolioName]?.find((row: any) => formatDate(row.date) === pointDate);
         
         // Get actual XIRR value from the entry (not from point.y which could be corpus)
         const xirrPercent = xirrEntry ? (xirrEntry.xirr * 100).toFixed(2) : '0.00';
@@ -242,9 +242,9 @@ const getStockChartOptions = (title: string, strategyXirrData: Record<string, an
   }
 });
 
-const getStrategySeries = (strategyXirrData: Record<string, any[]>, COLORS: string[], chartView: 'xirr' | 'corpus', isLumpsum: boolean = false) => {
-  const allDates = getAllDates(strategyXirrData);
-  return Object.entries(strategyXirrData).map(([strategyName, data], idx) => {
+const getPortfolioSeries = (portfolioXirrData: Record<string, any[]>, COLORS: string[], chartView: 'xirr' | 'corpus', isLumpsum: boolean = false) => {
+  const allDates = getAllDates(portfolioXirrData);
+  return Object.entries(portfolioXirrData).map(([portfolioName, data], idx) => {
     const dateToValue: Record<string, number> = {};
     (data || []).forEach((row: any) => {
       if (chartView === 'xirr') {
@@ -267,7 +267,7 @@ const getStrategySeries = (strategyXirrData: Record<string, any[]>, COLORS: stri
     }).filter(point => point !== null);
     
     return {
-      name: strategyName,
+      name: portfolioName,
       data: seriesData,
       type: 'line',
       color: COLORS[idx % COLORS.length],
@@ -279,12 +279,12 @@ const getStrategySeries = (strategyXirrData: Record<string, any[]>, COLORS: stri
 
 export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
   navDatas,
-  lumpsumStrategyXirrData,
-  sipStrategyXirrData,
+  lumpsumPortfolioXirrData,
+  sipPortfolioXirrData,
   funds,
   COLORS,
-  sipStrategies,
-  lumpsumStrategies,
+  sipPortfolios,
+  lumpsumPortfolios,
   years,
   amount,
   chartView,
@@ -293,42 +293,42 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
   const [modal, setModal] = useState<ModalState>(initialModalState);
 
   // Use the appropriate data source based on mode
-  const strategyXirrData = isLumpsum ? lumpsumStrategyXirrData : sipStrategyXirrData;
-  const strategies = isLumpsum ? lumpsumStrategies : sipStrategies;
+  const portfolioXirrData = isLumpsum ? lumpsumPortfolioXirrData : sipPortfolioXirrData;
+  const portfolios = isLumpsum ? lumpsumPortfolios : sipPortfolios;
 
-  const handlePointClick = (strategyName: string, pointDate: string) => {
-    const xirrEntry = (strategyXirrData?.[strategyName] || []).find((row: any) => formatDate(row.date) === pointDate);
+  const handlePointClick = (portfolioName: string, pointDate: string) => {
+    const xirrEntry = (portfolioXirrData?.[portfolioName] || []).find((row: any) => formatDate(row.date) === pointDate);
     if (xirrEntry) {
-      const strategyInstruments = getStrategyInstruments(strategyName, strategies || [], funds);
-      const strategyIdx = parseInt(strategyName.replace('Strategy ', '')) - 1;
+      const portfolioAssets = getPortfolioAssets(portfolioName, portfolios || [], funds);
+      const portfolioIdx = parseInt(portfolioName.replace('Portfolio ', '')) - 1;
       
       let transactionsWithNil = xirrEntry.transactions || [];
       
-      if (strategies && strategies[strategyIdx]) {
-        // Extract NAV data list for this strategy from navDatas
+      if (portfolios && portfolios[portfolioIdx]) {
+        // Extract NAV data list for this portfolio from navDatas
         const navDataList: any[][] = [];
-        const strategy = strategies[strategyIdx];
+        const portfolio = portfolios[portfolioIdx];
         
-        if (strategy.selectedInstruments) {
-          for (const inst of strategy.selectedInstruments) {
+        if (portfolio.selectedAssets) {
+          for (const inst of portfolio.selectedAssets) {
             if (!inst) continue;
             
             let identifier: string = '';
             switch (inst.type) {
               case 'mutual_fund':
-                identifier = `${strategyIdx}_${inst.schemeCode}`;
+                identifier = `${portfolioIdx}_${inst.schemeCode}`;
                 break;
               case 'index_fund':
-                identifier = `${strategyIdx}_${inst.indexName}`;
+                identifier = `${portfolioIdx}_${inst.indexName}`;
                 break;
               case 'yahoo_finance':
-                identifier = `${strategyIdx}_${inst.symbol}`;
+                identifier = `${portfolioIdx}_${inst.symbol}`;
                 break;
               case 'fixed_return':
-                identifier = `${strategyIdx}_fixed_${inst.annualReturnPercentage}`;
+                identifier = `${portfolioIdx}_fixed_${inst.annualReturnPercentage}`;
                 break;
               case 'inflation':
-                identifier = `${strategyIdx}_inflation_${inst.countryCode}`;
+                identifier = `${portfolioIdx}_inflation_${inst.countryCode}`;
                 break;
             }
             
@@ -345,13 +345,13 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
           
           if (isLumpsum) {
             // Lumpsum recalculation
-            const lumpsumStrategy = strategy as LumpsumStrategy;
+            const lumpsumPortfolio = portfolio as LumpsumPortfolio;
             const baseAmount = chartView === 'corpus' ? amount : 100;
             const recalculated = recalculateLumpsumTransactionsForDate(
               navDataList,
               targetDate,
               years,
-              lumpsumStrategy.allocations,
+              lumpsumPortfolio.allocations,
               baseAmount
             );
             
@@ -360,17 +360,17 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
             }
           } else {
             // SIP recalculation
-            const sipStrategy = strategy as SipStrategy;
+            const sipPortfolio = portfolio as SipPortfolio;
             const baseSipAmount = chartView === 'corpus' ? amount : 100;
             const recalculated = recalculateTransactionsForDate(
               navDataList,
               targetDate,
               years,
-              sipStrategy.allocations,
-              sipStrategy.rebalancingEnabled,
-              sipStrategy.rebalancingThreshold,
-              sipStrategy.stepUpEnabled,
-              sipStrategy.stepUpPercentage,
+              sipPortfolio.allocations,
+              sipPortfolio.rebalancingEnabled,
+              sipPortfolio.rebalancingThreshold,
+              sipPortfolio.stepUpEnabled,
+              sipPortfolio.stepUpPercentage,
               baseSipAmount
             );
             
@@ -386,8 +386,8 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
         transactions: transactionsWithNil,
         date: pointDate,
         xirr: xirrEntry.xirr,
-        strategyName,
-        strategyInstruments,
+        portfolioName,
+        portfolioAssets,
       });
     }
   };
@@ -399,24 +399,24 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
     : `${isLumpsum ? 'Lumpsum' : 'SIP'} Corpus Value - Rolling ${years}Y`;
   
   const chartOptions = {
-    ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView, isLumpsum),
-    series: getStrategySeries(strategyXirrData || {}, COLORS, chartView, isLumpsum),
+    ...getStockChartOptions(chartTitle, portfolioXirrData || {}, amount, chartView, isLumpsum),
+    series: getPortfolioSeries(portfolioXirrData || {}, COLORS, chartView, isLumpsum),
     chart: {
-      ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView, isLumpsum).chart,
+      ...getStockChartOptions(chartTitle, portfolioXirrData || {}, amount, chartView, isLumpsum).chart,
       height: 500,
       zooming: { mouseWheel: false },
       events: { click: closeModal }
     },
     plotOptions: {
       series: {
-        ...getStockChartOptions(chartTitle, strategyXirrData || {}, amount, chartView, isLumpsum).plotOptions.series,
+        ...getStockChartOptions(chartTitle, portfolioXirrData || {}, amount, chartView, isLumpsum).plotOptions.series,
         point: {
           events: {
             click: function (this: Highcharts.Point) {
               const series = this.series;
-              const strategyName = series.name;
+              const portfolioName = series.name;
               const pointDate = Highcharts.dateFormat('%Y-%m-%d', this.x as number);
-              handlePointClick(strategyName, pointDate);
+              handlePointClick(portfolioName, pointDate);
             }
           }
         }
@@ -426,7 +426,7 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
 
   return (
     <Block marginTop="2rem">
-      <TransactionModal {...modal} onClose={closeModal} funds={modal.strategyInstruments} />
+      <TransactionModal {...modal} onClose={closeModal} funds={modal.portfolioAssets} />
       <Block marginTop="1.5rem" position="relative">
         <Block position="absolute" top="8px" right="8px" $style={{ zIndex: 10 }}>
           <HelpButton topic="rolling-xirr" />
@@ -439,9 +439,9 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
       </Block>
       
       {/* Return Distribution Histogram */}
-      {strategyXirrData && (
+      {portfolioXirrData && (
         <ReturnDistributionChart 
-          strategyXirrData={strategyXirrData} 
+          portfolioXirrData={portfolioXirrData} 
           COLORS={COLORS} 
           years={years}
           chartView={chartView}
@@ -449,8 +449,8 @@ export const MultiFundCharts: React.FC<MultiFundChartsProps> = ({
       )}
       
       {/* Volatility Chart */}
-      {strategyXirrData && (
-        <VolatilityChart sipStrategyXirrData={strategyXirrData} COLORS={COLORS} years={years} />
+      {portfolioXirrData && (
+        <VolatilityChart sipPortfolioXirrData={portfolioXirrData} COLORS={COLORS} years={years} />
       )}
     </Block>
   );

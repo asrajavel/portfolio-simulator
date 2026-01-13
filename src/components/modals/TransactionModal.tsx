@@ -23,7 +23,7 @@ interface TransactionModalProps {
   transactions: Transaction[];
   date: string;
   xirr: number;
-  strategyName: string;
+  portfolioName: string;
   funds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
 }
 
@@ -35,14 +35,14 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   transactions, 
   date, 
   xirr, 
-  strategyName, 
+  portfolioName, 
   funds 
 }) => {
   const [excludeNilTransactions, setExcludeNilTransactions] = useState(true);
 
-  // Extract strategy color
-  const strategyIdx = parseInt(strategyName.replace('Strategy ', '')) - 1;
-  const strategyColor = COLORS[strategyIdx % COLORS.length];
+  // Extract portfolio color
+  const portfolioIdx = parseInt(portfolioName.replace('Portfolio ', '')) - 1;
+  const portfolioColor = COLORS[portfolioIdx % COLORS.length];
 
   // Both SIP and Lumpsum now return the same transaction format
   const isDetailedTransaction = (tx: any): tx is Transaction => {
@@ -186,12 +186,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
             $style={{
               width: '4px',
               height: '24px',
-              backgroundColor: strategyColor,
+              backgroundColor: portfolioColor,
               borderRadius: '2px',
             }}
           />
           <HeadingSmall margin={0}>
-            {strategyName} - {date}
+            {portfolioName} - {date}
           </HeadingSmall>
         </Block>
       </ModalHeader>
@@ -233,7 +233,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
           {hasDetailedTransactions && (
             <TransactionChart 
               transactions={transactions as Transaction[]} 
-              strategyName={strategyName}
+              portfolioName={portfolioName}
               funds={funds}
             />
           )}

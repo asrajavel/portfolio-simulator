@@ -2,12 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Input } from 'baseui/input';
 import { StatefulMenu } from 'baseui/menu';
 import { Block } from 'baseui/block';
-import { Instrument } from '../../types/instrument';
+import { Asset } from '../../types/asset';
 
 interface MutualFundSelectorProps {
   funds: { schemeCode: number; schemeName: string }[];
-  onSelect: (instrument: Instrument) => void;
-  value?: Instrument;
+  onSelect: (asset: Asset) => void;
+  value?: Asset;
   defaultSchemeCode?: number;
 }
 
@@ -29,15 +29,15 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
       if (value.schemeName.startsWith('Scheme ')) {
         const actualFund = funds.find(f => f.schemeCode === value.schemeCode);
         if (actualFund) {
-          // Update the instrument with the correct name
-          const correctedInstrument: Instrument = {
+          // Update the asset with the correct name
+          const correctedAsset: Asset = {
             ...value,
             name: actualFund.schemeName,
             schemeName: actualFund.schemeName
           };
           setSelectedName(actualFund.schemeName);
           setQuery(actualFund.schemeName);
-          onSelect(correctedInstrument); // Update the parent with correct details
+          onSelect(correctedAsset); // Update the parent with correct details
           return;
         }
       }
@@ -49,7 +49,7 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
                           funds.find(f => f.schemeName.toLowerCase().includes('uti nifty 50')) ||
                           funds[0];
       if (defaultFund) {
-        const defaultInstrument: Instrument = {
+        const defaultAsset: Asset = {
           type: 'mutual_fund',
           id: defaultFund.schemeCode,
           name: defaultFund.schemeName,
@@ -58,7 +58,7 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
         };
         setSelectedName(defaultFund.schemeName);
         setQuery(defaultFund.schemeName);
-        onSelect(defaultInstrument);
+        onSelect(defaultAsset);
       }
     } else if (!value) {
       setSelectedName('');
@@ -90,7 +90,7 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
     setSelectedName(selectedSchemeName);
     setIsOpen(false);
     
-    const instrument: Instrument = {
+    const asset: Asset = {
       type: 'mutual_fund',
       id: selectedSchemeCode,
       name: selectedSchemeName,
@@ -98,7 +98,7 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
       schemeName: selectedSchemeName
     };
     
-    onSelect(instrument);
+    onSelect(asset);
   };
 
   const handleClickOutside = (event: MouseEvent) => {

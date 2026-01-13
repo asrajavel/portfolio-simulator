@@ -1,7 +1,7 @@
 # Allocation Transition (Glide Path) Feature - Requirements
 
 ## Feature Overview
-Allow SIP strategies to gradually transition from starting allocations to target end allocations over a specified period, using annual adjustments on anniversary dates.
+Allow SIP portfolios to gradually transition from starting allocations to target end allocations over a specified period, using annual adjustments on anniversary dates.
 
 ---
 
@@ -57,7 +57,7 @@ Allow SIP strategies to gradually transition from starting allocations to target
 
 ### Controls
 - Checkbox: "Allocation Transition (Glide Path)"
-- Disabled when ≤1 instrument selected
+- Disabled when ≤1 asset selected
 - Text: "Transition in last [N] years (annual adjustments)"
 
 ### Transition Years Dropdown
@@ -80,7 +80,7 @@ Allow SIP strategies to gradually transition from starting allocations to target
 
 ## Data Model
 
-### SipStrategy Type
+### SipPortfolio Type
 ```typescript
 {
   // ... existing fields ...
@@ -171,7 +171,7 @@ portfolios=mf:120716:50,mf:120197:50|1|5|0|5|1|75,25|2
 
 1. **End Allocations:**
    - Must sum to exactly 100%
-   - Must have same length as instruments array
+   - Must have same length as assets array
    - Each value: 0 ≤ value ≤ 100
 
 2. **Transition Years:**
@@ -180,12 +180,12 @@ portfolios=mf:120716:50,mf:120197:50|1|5|0|5|1|75,25|2
    - Must be positive integer
 
 3. **Enable Conditions:**
-   - Requires ≥ 2 instruments
-   - Cannot enable if only inflation instrument exists
+   - Requires ≥ 2 assets
+   - Cannot enable if only inflation asset exists
 
-4. **Add/Remove Instruments:**
-   - When adding instrument: add corresponding endAllocation (split evenly)
-   - When removing instrument: remove corresponding endAllocation
+4. **Add/Remove Assets:**
+   - When adding asset: add corresponding endAllocation (split evenly)
+   - When removing asset: remove corresponding endAllocation
 
 ---
 

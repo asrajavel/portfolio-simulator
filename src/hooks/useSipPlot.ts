@@ -7,15 +7,15 @@ import { inflationService } from '../services/inflationService';
 import { trackSimulation } from '../utils/analytics';
 
 export function useSipPlot({
-  sipStrategies,
+  sipPortfolios,
   years,
   loadNavData,
   plotState,
   sipAmount,
   chartView,
 }) {
-  // Handler for plotting all strategies
-  const handlePlotAllStrategies = useCallback(async () => {
+  // Handler for plotting all portfolios
+  const handlePlotAllPortfolios = useCallback(async () => {
     trackSimulation('SIP', 'Plot');
     plotState.setLoadingNav(true);
     plotState.setLoadingXirr(false);
@@ -25,24 +25,24 @@ export function useSipPlot({
     plotState.setSipXirrDatas({});
     plotState.setXirrError(null);
     try {
-      const allNavDatas: Record<string, any[][]> = {}; // key: strategy index, value: array of nav arrays
+      const allNavDatas: Record<string, any[][]> = {}; // key: portfolio index, value: array of nav arrays
       const allNavsFlat: Record<string, any[]> = {}; // for navDatas prop
-      for (let pIdx = 0; pIdx < sipStrategies.length; ++pIdx) {
+      for (let pIdx = 0; pIdx < sipPortfolios.length; ++pIdx) {
         const navs: any[][] = [];
         
-        // Process instruments
-        if (sipStrategies[pIdx].selectedInstruments && sipStrategies[pIdx].selectedInstruments.length > 0) {
-          for (const instrument of sipStrategies[pIdx].selectedInstruments.filter(Boolean)) {
+        // Process assets
+        if (sipPortfolios[pIdx].selectedAssets && sipPortfolios[pIdx].selectedAssets.length > 0) {
+          for (const asset of sipPortfolios[pIdx].selectedAssets.filter(Boolean)) {
             try {
               let nav: any[] = [];
               let identifier: string = '';
               
-              if (instrument.type === 'mutual_fund') {
-                nav = await loadNavData(instrument.schemeCode);
-                identifier = `${pIdx}_${instrument.schemeCode}`;
-              } else if (instrument.type === 'index_fund') {
+              if (asset.type === 'mutual_fund') {
+                nav = await loadNavData(asset.schemeCode);
+                identifier = `${pIdx}_${asset.schemeCode}`;
+              } else if (asset.type === 'index_fund') {
                 try {
-                  const indexData = await indexService.fetchIndexData(instrument.indexName);
+                  const indexData = await indexService.fetchIndexData(asset.indexName);
                   
                   if (!indexData || indexData.length === 0) {
                     continue;
@@ -53,13 +53,13 @@ export function useSipPlot({
                     date: item.date, // Keep as Date object
                     nav: item.nav
                   }));
-                  identifier = `${pIdx}_${instrument.indexName}`;
+                  identifier = `${pIdx}_${asset.indexName}`;
                 } catch (indexError) {
-                  console.error(`Failed to fetch index data for ${instrument.indexName}:`, indexError);
+                  console.error(`Failed to fetch index data for ${asset.indexName}:`, indexError);
                   continue;
                 }
-              } else if (instrument.type === 'yahoo_finance') {
-                const stockData = await yahooFinanceService.fetchStockData(instrument.symbol);
+              } else if (asset.type === 'yahoo_finance') {
+                const stockData = await yahooFinanceService.fetchStockData(asset.symbol);
                 
                 if (!stockData || stockData.length === 0) {
                   continue;
@@ -70,11 +70,11 @@ export function useSipPlot({
                   date: item.date, // Keep as Date object
                   nav: item.nav
                 }));
-                identifier = `${pIdx}_${instrument.symbol}`;
-              } else if (instrument.type === 'fixed_return') {
+                identifier = `${pIdx}_${asset.symbol}`;
+              } else if (asset.type === 'fixed_return') {
                 try {
                   const fixedReturnData = fixedReturnService.generateFixedReturnData(
-                    instrument.annualReturnPercentage,
+                    asset.annualReturnPercentage,
                     1990
                   );
                   
@@ -84,15 +84,15 @@ export function useSipPlot({
                   
                   // Data is already in the correct format
                   nav = fixedReturnData;
-                  identifier = `${pIdx}_fixed_${instrument.annualReturnPercentage}`;
+                  identifier = `${pIdx}_fixed_${asset.annualReturnPercentage}`;
                 } catch (fixedReturnError) {
-                  console.error(`Failed to generate fixed return data for ${instrument.annualReturnPercentage}%:`, fixedReturnError);
+                  console.error(`Failed to generate fixed return data for ${asset.annualReturnPercentage}%:`, fixedReturnError);
                   continue;
                 }
-              } else if (instrument.type === 'inflation') {
+              } else if (asset.type === 'inflation') {
                 try {
                   const inflationData = await inflationService.generateInflationNavData(
-                    instrument.countryCode,
+                    asset.countryCode,
                     1960
                   );
                   
@@ -102,9 +102,9 @@ export function useSipPlot({
                   
                   // Data is already in the correct format
                   nav = inflationData;
-                  identifier = `${pIdx}_inflation_${instrument.countryCode}`;
+                  identifier = `${pIdx}_inflation_${asset.countryCode}`;
                 } catch (inflationError) {
-                  console.error(`Failed to generate inflation data for ${instrument.countryCode}:`, inflationError);
+                  console.error(`Failed to generate inflation data for ${asset.countryCode}:`, inflationError);
                   continue;
                 }
               }
@@ -117,7 +117,7 @@ export function useSipPlot({
               navs.push(filled);
               allNavsFlat[identifier] = filled;
             } catch (error) {
-              console.error(`Error fetching data for instrument ${instrument.name}:`, error);
+              console.error(`Error fetching data for asset ${asset.name}:`, error);
               throw error;
             }
           }
@@ -125,31 +125,31 @@ export function useSipPlot({
         allNavDatas[pIdx] = navs;
       }
       plotState.setNavDatas(allNavsFlat);
-      // Now calculate XIRR for each strategy using the worker
+      // Now calculate XIRR for each portfolio using the worker
       plotState.setLoadingXirr(true);
       const allSipXirrDatas: Record<string, any[]> = {};
       let completed = 0;
       
-      for (let pIdx = 0; pIdx < sipStrategies.length; ++pIdx) {
+      for (let pIdx = 0; pIdx < sipPortfolios.length; ++pIdx) {
         const navDataList = allNavDatas[pIdx];
-        const allocations = sipStrategies[pIdx].allocations;
-        const rebalancingEnabled = sipStrategies[pIdx].rebalancingEnabled;
-        const rebalancingThreshold = sipStrategies[pIdx].rebalancingThreshold;
-        const stepUpEnabled = sipStrategies[pIdx].stepUpEnabled;
-        const stepUpPercentage = sipStrategies[pIdx].stepUpPercentage;
+        const allocations = sipPortfolios[pIdx].allocations;
+        const rebalancingEnabled = sipPortfolios[pIdx].rebalancingEnabled;
+        const rebalancingThreshold = sipPortfolios[pIdx].rebalancingThreshold;
+        const stepUpEnabled = sipPortfolios[pIdx].stepUpEnabled;
+        const stepUpPercentage = sipPortfolios[pIdx].stepUpPercentage;
         
         if (!navDataList || navDataList.length === 0) {
-          allSipXirrDatas[`Strategy ${pIdx + 1}`] = [];
+          allSipXirrDatas[`Portfolio ${pIdx + 1}`] = [];
           completed++;
           continue;
         }
         
-        // Check if this strategy contains inflation instrument
-        const hasInflation = sipStrategies[pIdx].selectedInstruments.some(
+        // Check if this portfolio contains inflation asset
+        const hasInflation = sipPortfolios[pIdx].selectedAssets.some(
           inst => inst?.type === 'inflation'
         );
         
-        const strategyStartTime = performance.now();
+        const portfolioStartTime = performance.now();
         
         await new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url));
@@ -157,10 +157,10 @@ export function useSipPlot({
           const baseSipAmount = chartView === 'corpus' ? sipAmount : 100;
           worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount: baseSipAmount });
           worker.onmessage = (event: MessageEvent) => {
-            const strategyEndTime = performance.now();
+            const portfolioEndTime = performance.now();
             let resultData = event.data;
             
-            // Strip volatility for inflation instruments (not meaningful for smooth daily compounding)
+            // Strip volatility for inflation assets (not meaningful for smooth daily compounding)
             if (hasInflation && Array.isArray(resultData)) {
               resultData = resultData.map((entry: any) => {
                 const { volatility, ...rest } = entry;
@@ -168,15 +168,15 @@ export function useSipPlot({
               });
             }
             
-            console.log(`[SIP] Strategy ${pIdx + 1} total: ${((strategyEndTime - strategyStartTime) / 1000).toFixed(2)}s (${resultData.length} data points)`);
+            console.log(`[SIP] Portfolio ${pIdx + 1} total: ${((portfolioEndTime - portfolioStartTime) / 1000).toFixed(2)}s (${resultData.length} data points)`);
             
-            allSipXirrDatas[`Strategy ${pIdx + 1}`] = resultData;
+            allSipXirrDatas[`Portfolio ${pIdx + 1}`] = resultData;
             worker.terminate();
             completed++;
             resolve();
           };
           worker.onerror = (err: ErrorEvent) => {
-            allSipXirrDatas[`Strategy ${pIdx + 1}`] = [];
+            allSipXirrDatas[`Portfolio ${pIdx + 1}`] = [];
             worker.terminate();
             completed++;
             resolve();
@@ -196,8 +196,8 @@ export function useSipPlot({
       plotState.setLoadingNav(false);
       plotState.setLoadingXirr(false);
     }
-  }, [sipStrategies, years, loadNavData, plotState, sipAmount, chartView]);
+  }, [sipPortfolios, years, loadNavData, plotState, sipAmount, chartView]);
 
-  return { handlePlotAllStrategies };
+  return { handlePlotAllPortfolios };
 }
 

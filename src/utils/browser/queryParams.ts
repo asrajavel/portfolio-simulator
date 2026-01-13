@@ -1,6 +1,6 @@
-import { SipStrategy } from '../../types/sipStrategy';
-import { LumpsumStrategy } from '../../types/lumpsumStrategy';
-import { Instrument } from '../../types/instrument';
+import { SipPortfolio } from '../../types/sipPortfolio';
+import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
+import { Asset } from '../../types/asset';
 
 // Utility functions for reading and writing portfolios and years to the query string
 export function getQueryParams() {
@@ -8,75 +8,75 @@ export function getQueryParams() {
   const portfoliosParam = params.get('portfolios');
   const years = params.get('years');
   const sipAmount = params.get('sipAmount');
-  const lumpsumStrategiesParam = params.get('lumpsumStrategies');
+  const lumpsumPortfoliosParam = params.get('lumpsumPortfolios');
   const lumpsumAmount = params.get('lumpsumAmount');
-  const instrumentsParam = params.get('instruments');
+  const assetsParam = params.get('assets');
   const logScale = params.get('logScale');
   const defaultThreshold = 5; // Default threshold if not in query params
 
   return {
-    lumpsumStrategies: lumpsumStrategiesParam
-      ? lumpsumStrategiesParam.split(';').map(strategyStr => {
-          // Format: instrument1:alloc1,instrument2:alloc2,...
-          // instrument format: type:id:allocation (e.g., mf:120716:50 or idx:NIFTY50:50 or fixed:8:50)
-          const selectedInstruments: (any | null)[] = [];
+    lumpsumPortfolios: lumpsumPortfoliosParam
+      ? lumpsumPortfoliosParam.split(';').map(portfolioStr => {
+          // Format: asset1:alloc1,asset2:alloc2,...
+          // asset format: type:id:allocation (e.g., mf:120716:50 or idx:NIFTY50:50 or fixed:8:50)
+          const selectedAssets: (any | null)[] = [];
           const allocations: number[] = [];
 
-          if (strategyStr) {
-            strategyStr.split(',').forEach(instrumentData => {
-              const instrumentParts = instrumentData.split(':');
+          if (portfolioStr) {
+            portfolioStr.split(',').forEach(assetData => {
+              const assetParts = assetData.split(':');
               
-              if (instrumentParts.length >= 2) {
-                const type = instrumentParts[0];
-                const alloc = Number(instrumentParts[instrumentParts.length - 1]);
+              if (assetParts.length >= 2) {
+                const type = assetParts[0];
+                const alloc = Number(assetParts[assetParts.length - 1]);
                 allocations.push(isNaN(alloc) ? 0 : alloc);
                 
                 if (type === 'null') {
-                  selectedInstruments.push(null);
-                } else if (type === 'mf' && instrumentParts.length >= 3) {
-                  const schemeCode = Number(instrumentParts[1]);
-                  selectedInstruments.push({
+                  selectedAssets.push(null);
+                } else if (type === 'mf' && assetParts.length >= 3) {
+                  const schemeCode = Number(assetParts[1]);
+                  selectedAssets.push({
                     type: 'mutual_fund',
                     id: schemeCode,
                     name: `Scheme ${schemeCode}`,
                     schemeCode: schemeCode,
                     schemeName: `Scheme ${schemeCode}`
                   });
-                } else if (type === 'idx' && instrumentParts.length >= 3) {
-                  const indexName = instrumentParts[1].replace(/_/g, ' ');
-                  selectedInstruments.push({
+                } else if (type === 'idx' && assetParts.length >= 3) {
+                  const indexName = assetParts[1].replace(/_/g, ' ');
+                  selectedAssets.push({
                     type: 'index_fund',
                     id: indexName,
                     name: indexName,
                     indexName: indexName,
                     displayName: indexName
                   });
-                } else if (type === 'yahoo' && instrumentParts.length >= 3) {
-                  const symbol = instrumentParts[1];
-                  selectedInstruments.push({
+                } else if (type === 'yahoo' && assetParts.length >= 3) {
+                  const symbol = assetParts[1];
+                  selectedAssets.push({
                     type: 'yahoo_finance',
                     id: symbol,
                     name: symbol,
                     symbol: symbol,
                     displayName: symbol
                   });
-                } else if (type === 'fixed' && instrumentParts.length >= 3) {
-                  const returnPercentage = parseFloat(instrumentParts[1]);
-                  selectedInstruments.push({
+                } else if (type === 'fixed' && assetParts.length >= 3) {
+                  const returnPercentage = parseFloat(assetParts[1]);
+                  selectedAssets.push({
                     type: 'fixed_return',
                     id: `fixed_${returnPercentage}`,
                     name: `Fixed ${returnPercentage}% Return`,
                     annualReturnPercentage: returnPercentage,
                     displayName: `Fixed ${returnPercentage}% Return`
                   });
-                } else if (type === 'inflation' && instrumentParts.length >= 3) {
-                  const countryCode = instrumentParts[1];
+                } else if (type === 'inflation' && assetParts.length >= 3) {
+                  const countryCode = assetParts[1];
                   const countryNames: Record<string, string> = {
                     'IND': 'India - Consumer Price Index',
                     'USA': 'USA - Consumer Price Index'
                   };
                   const displayName = countryNames[countryCode] || `${countryCode} - Consumer Price Index`;
-                  selectedInstruments.push({
+                  selectedAssets.push({
                     type: 'inflation',
                     id: `inflation_${countryCode}`,
                     name: displayName,
@@ -84,21 +84,21 @@ export function getQueryParams() {
                     displayName: displayName
                   });
                 } else {
-                  selectedInstruments.push(null);
+                  selectedAssets.push(null);
                 }
               }
             });
           }
           
           return {
-            selectedInstruments,
+            selectedAssets,
             allocations
           };
         }).filter(s => s.allocations.length > 0)
       : [],
     lumpsumAmount: lumpsumAmount ? Number(lumpsumAmount) : 100000,
-    instruments: instrumentsParam
-      ? instrumentsParam.split(';').map(instrStr => {
+    assets: assetsParam
+      ? assetsParam.split(';').map(instrStr => {
           const parts = instrStr.split(':');
           if (parts.length < 2) return null;
           
@@ -156,80 +156,80 @@ export function getQueryParams() {
             };
           }
           return null;
-        }).filter((inst): inst is Instrument => inst !== null)
+        }).filter((inst): inst is Asset => inst !== null)
       : [],
     // Default to logarithmic scale when not specified
     logScale: logScale ? logScale === '1' : true,
     portfolios: portfoliosParam
       ? portfoliosParam.split(';').map(p_str => {
-          // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
-          // instrument format: type:id:allocation (e.g., mf:120716:50 or idx:NIFTY50:50 or fixed:8:50)
+          // Format: asset1:alloc1,asset2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
+          // asset format: type:id:allocation (e.g., mf:120716:50 or idx:NIFTY50:50 or fixed:8:50)
           const parts = p_str.split('|');
-          const instrumentsStr = parts[0];
+          const assetsStr = parts[0];
           const rebalFlagStr = parts[1]; 
           const rebalThresholdStr = parts[2];
           const stepUpFlagStr = parts[3];
           const stepUpPercentageStr = parts[4];
 
-          const selectedInstruments: (any | null)[] = [];
+          const selectedAssets: (any | null)[] = [];
           const allocations: number[] = [];
 
-          if (instrumentsStr) {
-            instrumentsStr.split(',').forEach(instrumentData => {
-              const instrumentParts = instrumentData.split(':');
+          if (assetsStr) {
+            assetsStr.split(',').forEach(assetData => {
+              const assetParts = assetData.split(':');
               
-              if (instrumentParts.length >= 2) {
-                const type = instrumentParts[0];
-                const alloc = Number(instrumentParts[instrumentParts.length - 1]);
+              if (assetParts.length >= 2) {
+                const type = assetParts[0];
+                const alloc = Number(assetParts[assetParts.length - 1]);
                 allocations.push(isNaN(alloc) ? 0 : alloc);
                 
                 if (type === 'null') {
-                  selectedInstruments.push(null);
-                } else if (type === 'mf' && instrumentParts.length >= 3) {
-                  const schemeCode = Number(instrumentParts[1]);
-                  selectedInstruments.push({
+                  selectedAssets.push(null);
+                } else if (type === 'mf' && assetParts.length >= 3) {
+                  const schemeCode = Number(assetParts[1]);
+                  selectedAssets.push({
                     type: 'mutual_fund',
                     id: schemeCode,
                     name: `Scheme ${schemeCode}`, // Will be updated by component
                     schemeCode: schemeCode,
                     schemeName: `Scheme ${schemeCode}` // Will be updated by component
                   });
-                } else if (type === 'idx' && instrumentParts.length >= 3) {
+                } else if (type === 'idx' && assetParts.length >= 3) {
                   // Convert underscores back to spaces
-                  const indexName = instrumentParts[1].replace(/_/g, ' ');
-                  selectedInstruments.push({
+                  const indexName = assetParts[1].replace(/_/g, ' ');
+                  selectedAssets.push({
                     type: 'index_fund',
                     id: indexName,
                     name: indexName,
                     indexName: indexName,
                     displayName: indexName
                   });
-                } else if (type === 'yahoo' && instrumentParts.length >= 3) {
-                  const symbol = instrumentParts[1];
-                  selectedInstruments.push({
+                } else if (type === 'yahoo' && assetParts.length >= 3) {
+                  const symbol = assetParts[1];
+                  selectedAssets.push({
                     type: 'yahoo_finance',
                     id: symbol,
                     name: symbol,
                     symbol: symbol,
                     displayName: symbol
                   });
-                } else if (type === 'fixed' && instrumentParts.length >= 3) {
-                  const returnPercentage = parseFloat(instrumentParts[1]);
-                  selectedInstruments.push({
+                } else if (type === 'fixed' && assetParts.length >= 3) {
+                  const returnPercentage = parseFloat(assetParts[1]);
+                  selectedAssets.push({
                     type: 'fixed_return',
                     id: `fixed_${returnPercentage}`,
                     name: `Fixed ${returnPercentage}% Return`,
                     annualReturnPercentage: returnPercentage,
                     displayName: `Fixed ${returnPercentage}% Return`
                   });
-                } else if (type === 'inflation' && instrumentParts.length >= 3) {
-                  const countryCode = instrumentParts[1];
+                } else if (type === 'inflation' && assetParts.length >= 3) {
+                  const countryCode = assetParts[1];
                   const countryNames: Record<string, string> = {
                     'IND': 'India - Consumer Price Index',
                     'USA': 'USA - Consumer Price Index'
                   };
                   const displayName = countryNames[countryCode] || `${countryCode} - Consumer Price Index`;
-                  selectedInstruments.push({
+                  selectedAssets.push({
                     type: 'inflation',
                     id: `inflation_${countryCode}`,
                     name: displayName,
@@ -237,7 +237,7 @@ export function getQueryParams() {
                     displayName: displayName
                   });
                 } else {
-                  selectedInstruments.push(null);
+                  selectedAssets.push(null);
                 }
               }
             });
@@ -252,7 +252,7 @@ export function getQueryParams() {
           const stepUpPercentage = stepUpPercentageStr ? parseInt(stepUpPercentageStr, 10) : 5;
           
           return {
-            selectedInstruments,
+            selectedAssets,
             allocations,
             rebalancingEnabled,
             rebalancingThreshold: isNaN(rebalancingThreshold) ? defaultThreshold : rebalancingThreshold,
@@ -266,12 +266,12 @@ export function getQueryParams() {
   };
 }
 
-export function setQueryParams(sipStrategies: SipStrategy[], years: number, sipAmount: number = 10000) {
-  // Format: instrument1:alloc1,instrument2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
-  // instrument format: type:id (e.g., mf:120716 or idx:NIFTY50 or fixed:8)
-  const portfoliosStr = sipStrategies
+export function setQueryParams(sipPortfolios: SipPortfolio[], years: number, sipAmount: number = 10000) {
+  // Format: asset1:alloc1,asset2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
+  // asset format: type:id (e.g., mf:120716 or idx:NIFTY50 or fixed:8)
+  const portfoliosStr = sipPortfolios
     .map(p => {
-      const instrumentsStr = p.selectedInstruments
+      const assetsStr = p.selectedAssets
         .map((inst: any, idx: number) => {
           const allocation = p.allocations[idx] || 0;
           if (!inst) {
@@ -294,7 +294,7 @@ export function setQueryParams(sipStrategies: SipStrategy[], years: number, sipA
         })
         .join(',');
       
-      return `${instrumentsStr}|${p.rebalancingEnabled ? '1' : '0'}|${p.rebalancingThreshold}|${p.stepUpEnabled ? '1' : '0'}|${p.stepUpPercentage}`;
+      return `${assetsStr}|${p.rebalancingEnabled ? '1' : '0'}|${p.rebalancingThreshold}|${p.stepUpEnabled ? '1' : '0'}|${p.stepUpPercentage}`;
     })
     .join(';');
   
@@ -304,9 +304,9 @@ export function setQueryParams(sipStrategies: SipStrategy[], years: number, sipA
   window.history.replaceState({}, '', `?${urlParams}`);
 }
 
-export function setHistoricalValuesParams(instruments: Instrument[], logScale: boolean) {
+export function setHistoricalValuesParams(assets: Asset[], logScale: boolean) {
   // Format: type:id;type:id;...
-  const instrumentsStr = instruments
+  const assetsStr = assets
     .map(inst => {
       if (inst.type === 'mutual_fund') {
         return `mf:${inst.schemeCode}`;
@@ -325,6 +325,6 @@ export function setHistoricalValuesParams(instruments: Instrument[], logScale: b
     .filter(s => s !== null)
     .join(';');
   
-  const urlParams = `instruments=${instrumentsStr}&logScale=${logScale ? '1' : '0'}`;
+  const urlParams = `assets=${assetsStr}&logScale=${logScale ? '1' : '0'}`;
   window.history.replaceState({}, '', `?${urlParams}`);
 }

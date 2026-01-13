@@ -3,9 +3,9 @@ import { Block } from 'baseui/block';
 import { Button } from 'baseui/button';
 import { Checkbox } from 'baseui/checkbox';
 import { LabelLarge } from 'baseui/typography';
-import { InstrumentTypeDropdown } from '../controls/InstrumentTypeDropdown';
-import { InstrumentDropdown } from '../controls/InstrumentDropdown';
-import { InstrumentType, Instrument } from '../../types/instrument';
+import { AssetTypeDropdown } from '../controls/AssetTypeDropdown';
+import { AssetDropdown } from '../controls/AssetDropdown';
+import { AssetType, Asset } from '../../types/asset';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { LoadingOverlay } from '../common/LoadingOverlay';
 import { HistoricalValuesChart } from './HistoricalValuesChart';
@@ -13,14 +13,14 @@ import { fillMissingNavDates } from '../../utils/data/fillMissingNavDates';
 import { COLORS } from '../../constants';
 import { getQueryParams, setHistoricalValuesParams } from '../../utils/browser/queryParams';
 
-interface InstrumentEntry {
-  instrumentType: InstrumentType;
-  instrument: Instrument | null;
+interface AssetEntry {
+  assetType: AssetType;
+  asset: Asset | null;
 }
 
 interface HistoricalValuesPanelProps {
   funds: mfapiMutualFund[];
-  loadNavData: (instrument: Instrument) => Promise<any[]>;
+  loadNavData: (asset: Asset) => Promise<any[]>;
   isActive?: boolean;
 }
 
@@ -31,15 +31,15 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
 }) => {
   const queryParams = getQueryParams();
   
-  const [instruments, setInstruments] = useState<InstrumentEntry[]>(() => {
-    if (queryParams.instruments.length > 0) {
-      return queryParams.instruments.map(inst => ({
-        instrumentType: inst.type,
-        instrument: inst
+  const [assets, setAssets] = useState<AssetEntry[]>(() => {
+    if (queryParams.assets.length > 0) {
+      return queryParams.assets.map(inst => ({
+        assetType: inst.type,
+        asset: inst
       }));
     }
 
-    const defaultIndexInstrument: Instrument = {
+    const defaultIndexAsset: Asset = {
       type: 'index_fund',
       id: 'NIFTY 50',
       name: 'NIFTY 50',
@@ -47,7 +47,7 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
       displayName: 'NIFTY 50'
     };
 
-    const defaultYahooInstrument: Instrument = {
+    const defaultYahooAsset: Asset = {
       type: 'yahoo_finance',
       id: 'GOOG',
       name: 'GOOG',
@@ -56,67 +56,67 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
     };
 
     return [
-      { instrumentType: 'index_fund', instrument: defaultIndexInstrument },
-      { instrumentType: 'yahoo_finance', instrument: defaultYahooInstrument }
+      { assetType: 'index_fund', asset: defaultIndexAsset },
+      { assetType: 'yahoo_finance', asset: defaultYahooAsset }
     ];
   });
   
   const [navDatas, setNavDatas] = useState<Record<string, any[]>>({});
-  const [plottedInstruments, setPlottedInstruments] = useState<Instrument[]>([]);
+  const [plottedAssets, setPlottedAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(false);
   const [useLogScale, setUseLogScale] = useState(queryParams.logScale);
 
-  const handleAddInstrument = () => {
-    setInstruments([...instruments, { instrumentType: 'mutual_fund', instrument: null }]);
+  const handleAddAsset = () => {
+    setAssets([...assets, { assetType: 'mutual_fund', asset: null }]);
   };
 
-  const handleRemoveInstrument = (idx: number) => {
-    setInstruments(instruments.filter((_, i) => i !== idx));
+  const handleRemoveAsset = (idx: number) => {
+    setAssets(assets.filter((_, i) => i !== idx));
   };
 
-  const handleInstrumentTypeChange = (idx: number, type: InstrumentType) => {
-    const newInstruments = [...instruments];
+  const handleAssetTypeChange = (idx: number, type: AssetType) => {
+    const newAssets = [...assets];
     
-    // Create default instrument for fixed_return type
+    // Create default asset for fixed_return type
     if (type === 'fixed_return') {
-      const defaultFixedReturn: Instrument = {
+      const defaultFixedReturn: Asset = {
         type: 'fixed_return',
         id: 'fixed_8',
         name: 'Fixed 8% Return',
         annualReturnPercentage: 8,
         displayName: 'Fixed 8% Return'
       };
-      newInstruments[idx] = { instrumentType: type, instrument: defaultFixedReturn };
+      newAssets[idx] = { assetType: type, asset: defaultFixedReturn };
     } else {
-      newInstruments[idx] = { instrumentType: type, instrument: null };
+      newAssets[idx] = { assetType: type, asset: null };
     }
     
-    setInstruments(newInstruments);
+    setAssets(newAssets);
   };
 
-  const handleInstrumentSelect = (idx: number, instrument: Instrument | null) => {
-    const newInstruments = [...instruments];
-    newInstruments[idx] = { ...newInstruments[idx], instrument };
-    setInstruments(newInstruments);
+  const handleAssetSelect = (idx: number, asset: Asset | null) => {
+    const newAssets = [...assets];
+    newAssets[idx] = { ...newAssets[idx], asset };
+    setAssets(newAssets);
   };
 
   const handlePlot = async () => {
-    const validInstruments = instruments.filter(entry => entry.instrument !== null);
-    if (validInstruments.length === 0) return;
+    const validAssets = assets.filter(entry => entry.asset !== null);
+    if (validAssets.length === 0) return;
     
     setLoading(true);
     try {
       const newNavDatas: Record<string, any[]> = {};
-      const instrumentsToPlot = validInstruments.map(e => e.instrument!);
+      const assetsToPlot = validAssets.map(e => e.asset!);
       
-      for (const entry of validInstruments) {
-        const data = await loadNavData(entry.instrument!);
+      for (const entry of validAssets) {
+        const data = await loadNavData(entry.asset!);
         const filledData = fillMissingNavDates(data);
-        newNavDatas[entry.instrument!.id.toString()] = filledData;
+        newNavDatas[entry.asset!.id.toString()] = filledData;
       }
       
       setNavDatas(newNavDatas);
-      setPlottedInstruments(instrumentsToPlot);
+      setPlottedAssets(assetsToPlot);
     } catch (error) {
       console.error('Error plotting historical values:', error);
     } finally {
@@ -124,20 +124,20 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
     }
   };
 
-  // Update URL params when instruments (current selection) or log scale changes
+  // Update URL params when assets (current selection) or log scale changes
   useEffect(() => {
     if (isActive) {
-      const validInstruments = instruments
-        .filter(entry => entry.instrument !== null)
-        .map(entry => entry.instrument!);
+      const validAssets = assets
+        .filter(entry => entry.asset !== null)
+        .map(entry => entry.asset!);
       
-      if (validInstruments.length > 0) {
-        setHistoricalValuesParams(validInstruments, useLogScale);
+      if (validAssets.length > 0) {
+        setHistoricalValuesParams(validAssets, useLogScale);
       }
     }
-  }, [instruments, useLogScale, isActive]);
+  }, [assets, useLogScale, isActive]);
 
-  const anyInvalidSelection = instruments.some(entry => entry.instrument === null);
+  const anyInvalidSelection = assets.some(entry => entry.asset === null);
 
   return (
     <Block position="relative">
@@ -145,8 +145,8 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
       
       <Block maxWidth="900px" margin="0 auto">
         <Block marginBottom="scale800">
-          {/* Individual Instrument Panels */}
-          {instruments.map((entry, idx) => (
+          {/* Individual Asset Panels */}
+          {assets.map((entry, idx) => (
             <Block
               key={idx}
               position="relative"
@@ -164,21 +164,21 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
               }}
             >
               <Block display="flex" alignItems="center" gridGap="scale300">
-                <InstrumentTypeDropdown
-                  value={entry.instrumentType}
-                  onChange={(type) => handleInstrumentTypeChange(idx, type)}
+                <AssetTypeDropdown
+                  value={entry.assetType}
+                  onChange={(type) => handleAssetTypeChange(idx, type)}
                 />
-                <InstrumentDropdown
-                  instrumentType={entry.instrumentType}
+                <AssetDropdown
+                  assetType={entry.assetType}
                   funds={funds}
-                  onSelect={(instrument) => handleInstrumentSelect(idx, instrument)}
-                  value={entry.instrument ?? undefined}
+                  onSelect={(asset) => handleAssetSelect(idx, asset)}
+                  value={entry.asset ?? undefined}
                 />
                 <Button
                   kind="tertiary"
                   size="mini"
-                  onClick={() => handleRemoveInstrument(idx)}
-                  disabled={instruments.length <= 1}
+                  onClick={() => handleRemoveAsset(idx)}
+                  disabled={assets.length <= 1}
                   overrides={{
                     BaseButton: {
                       style: ({ $theme }) => ({
@@ -193,7 +193,7 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
                       }),
                     },
                   }}
-                  title="Remove instrument"
+                  title="Remove asset"
                 >
                   ✕
                 </Button>
@@ -201,14 +201,14 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
             </Block>
           ))}
 
-          {/* Add Instrument Button - outside panels */}
+          {/* Add Asset Button - outside panels */}
           <Block display="flex" justifyContent="center" marginBottom="scale600">
             <Button
               kind="secondary"
-              onClick={handleAddInstrument}
+              onClick={handleAddAsset}
               startEnhancer={() => <span style={{ fontSize: '16px', marginRight: '4px' }}>+</span>}
             >
-              Add Instrument
+              Add Asset
             </Button>
           </Block>
         </Block>
@@ -270,11 +270,11 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
       </Block>
 
       {/* Chart Display - 90% width, centered */}
-      {plottedInstruments.length > 0 && (
+      {plottedAssets.length > 0 && (
         <Block maxWidth="90%" margin="0 auto">
           <HistoricalValuesChart 
             navDatas={navDatas}
-            instruments={plottedInstruments}
+            assets={plottedAssets}
             useLogScale={useLogScale}
             colors={COLORS}
           />

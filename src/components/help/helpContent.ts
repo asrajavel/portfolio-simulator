@@ -7,7 +7,7 @@ export const helpContent: Record<string, HelpTopic> = {
   // Getting Started
   'getting-started': {
     title: 'Getting Started',
-    content: `An investment analysis tool for Indian markets that lets you simulate and compare investment strategies using historical data.
+    content: `An investment analysis tool for Indian markets that lets you simulate and compare investment portfolios using historical data.
 
 **Features:**
 - Lumpsum investment simulation
@@ -15,32 +15,32 @@ export const helpContent: Record<string, HelpTopic> = {
 - Historical NAV comparison
 
 **Use it to:**
-- Backtest investment strategies
-- Compare instruments (mutual funds, indices, etc.)
+- Backtest investment portfolios
+- Compare assets (mutual funds, indices, etc.)
 - Understand rolling returns and volatility`,
   },
 
-  'strategies-instruments': {
-    title: 'Strategies & Instruments',
-    content: `**Instrument:**
+  'portfolios-assets': {
+    title: 'Portfolios & Assets',
+    content: `**Asset:**
 A single investable asset — a mutual fund, an index, a stock, etc.
 
-**Strategy:**
-A combination of one or more instruments with allocation percentages.
+**Portfolio:**
+A combination of one or more assets with allocation percentages.
 
 **Examples:**
-- Single-instrument strategy: 100% NIFTY 50
-- Multi-instrument strategy: 70% Equity Fund + 30% Debt Fund
+- Single-asset portfolio: 100% NIFTY 50
+- Multi-asset portfolio: 70% Equity Fund + 30% Debt Fund
 
-**Why strategies?**
+**Why portfolios?**
 You can compare different approaches side by side:
-- Strategy 1: Pure equity (100% NIFTY 50)
-- Strategy 2: Balanced (70% equity + 30% debt)
-- Strategy 3: Diversified (60% equity + 30% debt + 10% gold)
+- Portfolio 1: Pure equity (100% NIFTY 50)
+- Portfolio 2: Balanced (70% equity + 30% debt)
+- Portfolio 3: Diversified (60% equity + 30% debt + 10% gold)
 
-Each strategy appears as a separate line on the chart.
+Each portfolio appears as a separate line on the chart.
 
-**Important:** Allocations within a strategy must add up to exactly 100%. The app shows a warning if they don't.`,
+**Important:** Allocations within a portfolio must add up to exactly 100%. The app shows a warning if they don't.`,
   },
 
   'xirr-explained': {
@@ -60,18 +60,18 @@ If you invested ₹10,000/month for 5 years and your corpus is ₹8,50,000, XIRR
     content: `Most websites show only a few return values: 1Y, 3Y, 5Y returns from today.
 
 **The problem:**
-These are just single data points. An instrument showing 15% 5Y return today might have shown 8% last year and 22% the year before. You're seeing a snapshot, not the full picture.
+These are just single data points. An asset showing 15% 5Y return today might have shown 8% last year and 22% the year before. You're seeing a snapshot, not the full picture.
 
 **Rolling returns show everything:**
-Instead of one 5-year return, you see ALL possible 5-year returns the instrument has generated. Every point on the chart is a return for a different start date.
+Instead of one 5-year return, you see ALL possible 5-year returns the asset has generated. Every point on the chart is a return for a different start date.
 
 **What you can learn:**
-- **Consistency:** Is the instrument reliably good, or just lucky timing?
+- **Consistency:** Is the asset reliably good, or just lucky timing?
 - **Range:** What's the best and worst case?
-- **Probability:** How often did the instrument beat X%?
+- **Probability:** How often did the asset beat X%?
 
 **Example:**
-An instrument's 5Y return today is 12%. But rolling returns show it ranged from 6% to 18% over the last decade. Now you know what to realistically expect.`,
+An asset's 5Y return today is 12%. But rolling returns show it ranged from 6% to 18% over the last decade. Now you know what to realistically expect.`,
   },
 
   'url-sharing': {
@@ -79,7 +79,7 @@ An instrument's 5Y return today is 12%. But rolling returns show it ranged from 
     content: `Your entire setup is automatically saved to the URL.
 
 **What's saved:**
-- All strategies and their instruments
+- All portfolios and their assets
 - Allocation percentages
 - Investment amount and duration
 - Settings like step-up, rebalancing, log scale
@@ -98,20 +98,20 @@ No login or account needed. The URL is your saved state.`,
     content: `Simulates a one-time investment over historical periods.
 
 **How to use:**
-1. Add strategies (each can have multiple instruments with allocations)
-2. Select instruments (mutual funds, indices, etc.)
+1. Add portfolios (each can have multiple assets with allocations)
+2. Select assets (mutual funds, indices, etc.)
 3. Set investment amount and period (years)
 4. Click "Plot" to see results
 
 **Reading the chart (example: 3-year, point on 10-Jan-2023):**
 You invested ₹x once on 10-Jan-2020.
 - **XIRR View:** Point = annualized return (CAGR) for this period
-- **Corpus View:** Point = final strategy value in ₹
+- **Corpus View:** Point = final portfolio value in ₹
 
-Shows all possible returns/values for any 3-year lumpsum in this strategy.
+Shows all possible returns/values for any 3-year lumpsum in this portfolio.
 
-**Multi-instrument strategies:**
-Allocate across multiple instruments (e.g., 70% equity, 30% debt) to see combined performance.
+**Multi-asset portfolios:**
+Allocate across multiple assets (e.g., 70% equity, 30% debt) to see combined performance.
 
 **Transaction Details:**
 Click any point on the chart to see the complete transaction history — every buy with date, NAV, units, and amount.`,
@@ -123,19 +123,19 @@ Click any point on the chart to see the complete transaction history — every b
     content: `Simulates monthly SIP investments over historical periods.
 
 **How to use:**
-1. Add strategies with instrument allocations
+1. Add portfolios with asset allocations
 2. Enable step-up or rebalancing if needed
 3. Select period and click "Plot"
 
 **Reading the chart (example: 3-year, point on 10-Jan-2023):**
 You invested ₹x monthly from 10-Jan-2020 to 10-Dec-2022 (36 investments).
 - **XIRR View:** Point = XIRR return of this SIP
-- **Corpus View:** Point = final strategy value in ₹
+- **Corpus View:** Point = final portfolio value in ₹
 
-Shows all possible returns/values for any 3-year SIP in this strategy.
+Shows all possible returns/values for any 3-year SIP in this portfolio.
 
-**Multi-instrument SIP:**
-Your monthly amount is split across instruments based on allocation percentages.
+**Multi-asset SIP:**
+Your monthly amount is split across assets based on allocation percentages.
 
 **Transaction Details:**
 Click any point on the chart to see complete transaction history — all monthly investments, rebalances (if enabled), with dates, NAV, units, and amounts.`,
@@ -160,15 +160,15 @@ Step-up kicks in on each year anniversary of your SIP start date.
 
   'sip-rebalancing': {
     title: 'Rebalancing',
-    content: `Rebalancing restores your strategy to target allocations when they drift beyond a threshold.
+    content: `Rebalancing restores your portfolio to target allocations when they drift beyond a threshold.
 
 **When does it happen?**
 Checked on each SIP date (monthly), after your regular SIP investment is made.
 
 **Order of operations on each SIP date:**
 1. Regular SIP buy happens first (split by allocation %)
-2. Strategy is checked for drift
-3. If any instrument drifts beyond threshold → rebalance triggers
+2. Portfolio is checked for drift
+3. If any asset drifts beyond threshold → rebalance triggers
 
 **Example (70:30 target, 5% threshold):**
 - After SIP, equity is at 76%, debt at 24%
@@ -176,30 +176,30 @@ Checked on each SIP date (monthly), after your regular SIP investment is made.
 - System sells equity, buys debt to restore 70:30
 
 **Note:**
-Only relevant for multi-instrument strategies. Disabled for single-instrument strategies.`,
+Only relevant for multi-asset portfolios. Disabled for single-asset portfolios.`,
   },
 
   // Historical Values
   'historical-values': {
     title: 'Historical Values',
-    content: `View and compare historical NAV of instruments on a single chart.
+    content: `View and compare historical NAV of assets on a single chart.
 
 **Use it to:**
-- Check raw NAV values of any instrument
-- Find when an instrument started (first available date)
-- Compare growth of multiple instruments over time
+- Check raw NAV values of any asset
+- Find when an asset started (first available date)
+- Compare growth of multiple assets over time
 
 **How to use:**
-1. Add instruments you want to view/compare
-2. Select instrument type and specific instrument
+1. Add assets you want to view/compare
+2. Select asset type and specific asset
 3. Click "Plot Historical Values"
 
 **Logarithmic Scale:**
-Enable log scale when comparing instruments with different absolute values.
+Enable log scale when comparing assets with different absolute values.
 
 Example:
-- Instrument A: ₹10 → ₹100 (10x growth, 900% return)
-- Instrument B: ₹1000 → ₹2000 (2x growth, 100% return)
+- Asset A: ₹10 → ₹100 (10x growth, 900% return)
+- Asset B: ₹1000 → ₹2000 (2x growth, 100% return)
 
 On a linear chart, B looks like it grew more (₹1000 increase vs ₹90).
 On a log chart, A correctly appears as the bigger winner.
@@ -207,9 +207,9 @@ On a log chart, A correctly appears as the bigger winner.
 Use log scale to compare actual performance, not just absolute values.`,
   },
 
-  // Supported Instruments
+  // Supported Assets
   'data-sources': {
-    title: 'Supported Instruments',
+    title: 'Supported Assets',
     content: `**Mutual Funds:**
 All AMFI-registered Indian mutual funds.
 Source: [MFAPI](https://mfapi.in), updated daily.
@@ -223,7 +223,7 @@ Any ticker available on Yahoo Finance — stocks, global indices, ETFs.
 
 **Fixed Return:**
 Synthetic benchmark showing a fixed annual return (e.g., 8% p.a.).
-Useful for comparing against guaranteed return instruments.
+Useful for comparing against guaranteed return assets.
 
 **Inflation:**
 CPI-based data showing how money loses value over time.
@@ -271,7 +271,7 @@ Google "[stock/index name] yahoo finance" and use the symbol shown in the page.
 
 ---
 
-**Note on currency:** This tool does not perform currency conversion. Each ticker is displayed in its native currency (e.g., AAPL in USD, TCS.NS in INR). Please verify the currency on the Yahoo Finance page before comparing instruments across different currencies.`,
+**Note on currency:** This tool does not perform currency conversion. Each ticker is displayed in its native currency (e.g., AAPL in USD, TCS.NS in INR). Please verify the currency on the Yahoo Finance page before comparing assets across different currencies.`,
   },
 
   // Understanding Charts section
@@ -283,7 +283,7 @@ Google "[stock/index name] yahoo finance" and use the symbol shown in the page.
 Shows returns for every possible investment window. Each point = return if you ended on that date.
 
 **Distribution Histogram:**
-Groups rolling returns into 20 buckets. Shows what % of returns fell in each range (per strategy).
+Groups rolling returns into 20 buckets. Shows what % of returns fell in each range (per portfolio).
 
 **Volatility Chart:**
 Shows annualized volatility (%) for each rolling period — how risky the investment was.`,
@@ -311,8 +311,8 @@ Helps answer: "What's the probability of achieving X% returns?"`,
 **How to read it:**
 - X-axis: Return ranges (buckets are auto-calculated based on min/max)
 - Y-axis: Percentage of returns in that range
-- For each strategy, its bars add up to 100%
-- Taller bar = more common outcome for that strategy
+- For each portfolio, its bars add up to 100%
+- Taller bar = more common outcome for that portfolio
 
 **What to look for:**
 - **Peak location:** Where most returns cluster (expected outcome)
@@ -320,7 +320,7 @@ Helps answer: "What's the probability of achieving X% returns?"`,
 - **Left tail:** What % of returns were negative/low
 
 **Example:**
-If Strategy A's 10-12% bar shows 25%, it means 25% of all historical returns for Strategy A fell in 10-12%.
+If Portfolio A's 10-12% bar shows 25%, it means 25% of all historical returns for Portfolio A fell in 10-12%.
 
 **Note:** The distribution is only meaningful if you have enough data points. If the date range is short, you'll have fewer rolling periods, making the distribution less reliable. For example, a 5-year rolling analysis on 6 years of data gives very few data points.`,
   },
@@ -342,11 +342,11 @@ If Strategy A's 10-12% bar shows 25%, it means 25% of all historical returns for
 **Reading the chart:**
 - Higher % = more volatile = riskier
 - Lower % = steadier = less risky
-- Compare strategies to see which had a smoother ride
+- Compare portfolios to see which had a smoother ride
 
 **Use it to:**
 - Understand the risk you'd have experienced
-- Compare risk profiles of different strategies
+- Compare risk profiles of different portfolios
 - See if volatility changed over market cycles`,
   },
 };
@@ -355,9 +355,9 @@ If Strategy A's 10-12% bar shows 25%, it means 25% of all historical returns for
 export const getTopicsByCategory = () => ({
   'Getting Started': {
     topicId: 'getting-started',
-    subTopics: ['strategies-instruments', 'xirr-explained', 'why-rolling', 'url-sharing'],
+    subTopics: ['portfolios-assets', 'xirr-explained', 'why-rolling', 'url-sharing'],
   },
-  'Supported Instruments': {
+  'Supported Assets': {
     topicId: 'data-sources',
     subTopics: ['yahoo-tickers'],
   },

@@ -4,10 +4,10 @@ import { Block } from 'baseui/block';
 import { LoadingOverlay } from '../components/common/LoadingOverlay';
 import { ChartArea } from '../components/layout/ChartArea';
 import { usePlotState } from '../hooks/usePlotState';
-import { useSipStrategies } from '../hooks/useSipStrategies';
+import { useSipPortfolios } from '../hooks/useSipPortfolios';
 import { useSipPlot } from '../hooks/useSipPlot';
 import { useChartInvalidation } from '../hooks/useChartInvalidation';
-import { SipStrategyList } from '../components/sip-simulator/SipStrategyList';
+import { SipPortfolioList } from '../components/sip-simulator/SipPortfolioList';
 import { ControlsPanel } from '../components/controls/ControlsPanel';
 import { mfapiMutualFund } from '../types/mfapiMutualFund';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from '../constants';
@@ -25,12 +25,12 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
   const [chartView, setChartView] = useState<'xirr' | 'corpus'>('xirr');
   
   const {
-    sipStrategies,
-    setSipStrategies,
+    sipPortfolios,
+    setSipPortfolios,
     years,
     setYears,
-    handleAddStrategy,
-    handleInstrumentSelect,
+    handleAddPortfolio,
+    handleAssetSelect,
     handleAddFund,
     handleRemoveFund,
     handleAllocationChange,
@@ -38,10 +38,10 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
     handleRebalancingThresholdChange,
     handleToggleStepUp,
     handleStepUpPercentageChange,
-  } = useSipStrategies(DEFAULT_SCHEME_CODE, [sipAmount, setSipAmount], isActive);
+  } = useSipPortfolios(DEFAULT_SCHEME_CODE, [sipAmount, setSipAmount], isActive);
 
-  const { handlePlotAllStrategies } = useSipPlot({
-    sipStrategies,
+  const { handlePlotAllPortfolios } = useSipPlot({
+    sipPortfolios,
     years,
     loadNavData,
     plotState,
@@ -49,7 +49,7 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
     chartView,
   });
 
-  const anyInvalidAlloc = sipStrategies.some(
+  const anyInvalidAlloc = sipPortfolios.some(
     p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
   );
 
@@ -57,11 +57,11 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
   const { invalidateChart, withInvalidation } = useChartInvalidation(plotState);
 
   // Wrap handlers with automatic chart invalidation
-  const handleAddStrategyInvalidate = withInvalidation(handleAddStrategy);
+  const handleAddPortfolioInvalidate = withInvalidation(handleAddPortfolio);
   const handleAddFundInvalidate = withInvalidation(handleAddFund);
   const handleRemoveFundInvalidate = withInvalidation(handleRemoveFund);
   const handleAllocationChangeInvalidate = withInvalidation(handleAllocationChange);
-  const handleInstrumentSelectInvalidate = withInvalidation(handleInstrumentSelect);
+  const handleAssetSelectInvalidate = withInvalidation(handleAssetSelect);
   const handleToggleRebalancingInvalidate = withInvalidation(handleToggleRebalancing);
   const handleRebalancingThresholdChangeInvalidate = withInvalidation(handleRebalancingThresholdChange);
   const handleToggleStepUpInvalidate = withInvalidation(handleToggleStepUp);
@@ -79,13 +79,13 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
       <LoadingOverlay active={plotState.loadingNav || plotState.loadingXirr} />
       
       <Block maxWidth="900px" margin="0 auto">
-        <SipStrategyList
-          sipStrategies={sipStrategies}
-          setSipStrategies={setSipStrategies}
+        <SipPortfolioList
+          sipPortfolios={sipPortfolios}
+          setSipPortfolios={setSipPortfolios}
           funds={funds}
-          onInstrumentSelect={(pIdx: number, idx: number, instrument) => {
+          onAssetSelect={(pIdx: number, idx: number, asset) => {
             invalidateChart();
-            handleInstrumentSelect(pIdx, idx, instrument);
+            handleAssetSelect(pIdx, idx, asset);
           }}
           onAddFund={handleAddFundInvalidate}
           onRemoveFund={handleRemoveFundInvalidate}
@@ -94,16 +94,16 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
           onRebalancingThresholdChange={handleRebalancingThresholdChangeInvalidate}
           onToggleStepUp={handleToggleStepUpInvalidate}
           onStepUpPercentageChange={handleStepUpPercentageChangeInvalidate}
-          onAddStrategy={handleAddStrategyInvalidate}
+          onAddPortfolio={handleAddPortfolioInvalidate}
           COLORS={plotState.COLORS}
-          useInstruments={true}
+          useAssets={true}
           defaultSchemeCode={DEFAULT_SCHEME_CODE}
         />
 
         <ControlsPanel
           years={years}
           setYears={setYears}
-          onPlot={handlePlotAllStrategies}
+          onPlot={handlePlotAllPortfolios}
           anyInvalidAlloc={anyInvalidAlloc}
           onYearsChange={handleYearsChange}
           sipAmount={sipAmount}
@@ -117,12 +117,12 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
         xirrError={plotState.xirrError}
         hasPlotted={plotState.hasPlotted}
         navDatas={plotState.navDatas}
-        sipStrategyXirrData={plotState.sipXirrDatas}
+        sipPortfolioXirrData={plotState.sipXirrDatas}
         funds={funds}
         COLORS={plotState.COLORS}
         loadingNav={plotState.loadingNav}
         loadingXirr={plotState.loadingXirr}
-        sipStrategies={sipStrategies}
+        sipPortfolios={sipPortfolios}
         years={years}
         amount={sipAmount}
         chartView={chartView}

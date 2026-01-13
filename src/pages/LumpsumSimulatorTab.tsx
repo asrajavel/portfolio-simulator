@@ -4,10 +4,10 @@ import { Block } from 'baseui/block';
 import { LoadingOverlay } from '../components/common/LoadingOverlay';
 import { ChartArea } from '../components/layout/ChartArea';
 import { usePlotState } from '../hooks/usePlotState';
-import { useLumpsumStrategies } from '../hooks/useLumpsumStrategies';
+import { useLumpsumPortfolios } from '../hooks/useLumpsumPortfolios';
 import { useLumpsumPlot } from '../hooks/useLumpsumPlot';
 import { useChartInvalidation } from '../hooks/useChartInvalidation';
-import { LumpsumStrategyList } from '../components/lumpsum-simulator/LumpsumStrategyList';
+import { LumpsumPortfolioList } from '../components/lumpsum-simulator/LumpsumPortfolioList';
 import { LumpsumControlsPanel } from '../components/controls/LumpsumControlsPanel';
 import { mfapiMutualFund } from '../types/mfapiMutualFund';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from '../constants';
@@ -25,19 +25,19 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
   const [chartView, setChartView] = useState<'xirr' | 'corpus'>('xirr');
   
   const {
-    lumpsumStrategies,
-    setLumpsumStrategies,
+    lumpsumPortfolios,
+    setLumpsumPortfolios,
     years,
     setYears,
-    handleAddStrategy,
-    handleInstrumentSelect,
+    handleAddPortfolio,
+    handleAssetSelect,
     handleAddFund,
     handleRemoveFund,
     handleAllocationChange,
-  } = useLumpsumStrategies(DEFAULT_SCHEME_CODE, [lumpsumAmount, setLumpsumAmount], isActive);
+  } = useLumpsumPortfolios(DEFAULT_SCHEME_CODE, [lumpsumAmount, setLumpsumAmount], isActive);
 
-  const { handlePlotAllStrategies } = useLumpsumPlot({
-    lumpsumStrategies,
+  const { handlePlotAllPortfolios } = useLumpsumPlot({
+    lumpsumPortfolios,
     years,
     loadNavData,
     plotState,
@@ -45,7 +45,7 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
     chartView,
   });
 
-  const anyInvalidAlloc = lumpsumStrategies.some(
+  const anyInvalidAlloc = lumpsumPortfolios.some(
     p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
   );
 
@@ -53,11 +53,11 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
   const { invalidateChart, withInvalidation } = useChartInvalidation(plotState);
 
   // Wrap handlers with automatic chart invalidation
-  const handleAddStrategyInvalidate = withInvalidation(handleAddStrategy);
+  const handleAddPortfolioInvalidate = withInvalidation(handleAddPortfolio);
   const handleAddFundInvalidate = withInvalidation(handleAddFund);
   const handleRemoveFundInvalidate = withInvalidation(handleRemoveFund);
   const handleAllocationChangeInvalidate = withInvalidation(handleAllocationChange);
-  const handleInstrumentSelectInvalidate = withInvalidation(handleInstrumentSelect);
+  const handleAssetSelectInvalidate = withInvalidation(handleAssetSelect);
   const handleYearsChange = invalidateChart;
   
   // Handle chart view change - invalidate charts when switching between XIRR and Corpus
@@ -71,27 +71,27 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
       <LoadingOverlay active={plotState.loadingNav || plotState.loadingXirr} />
       
       <Block maxWidth="900px" margin="0 auto">
-        <LumpsumStrategyList
-          lumpsumStrategies={lumpsumStrategies}
-          setLumpsumStrategies={setLumpsumStrategies}
+        <LumpsumPortfolioList
+          lumpsumPortfolios={lumpsumPortfolios}
+          setLumpsumPortfolios={setLumpsumPortfolios}
           funds={funds}
-          onInstrumentSelect={(pIdx: number, idx: number, instrument) => {
+          onAssetSelect={(pIdx: number, idx: number, asset) => {
             invalidateChart();
-            handleInstrumentSelect(pIdx, idx, instrument);
+            handleAssetSelect(pIdx, idx, asset);
           }}
           onAddFund={handleAddFundInvalidate}
           onRemoveFund={handleRemoveFundInvalidate}
           onAllocationChange={handleAllocationChangeInvalidate}
-          onAddStrategy={handleAddStrategyInvalidate}
+          onAddPortfolio={handleAddPortfolioInvalidate}
           COLORS={plotState.COLORS}
-          useInstruments={true}
+          useAssets={true}
           defaultSchemeCode={DEFAULT_SCHEME_CODE}
         />
 
         <LumpsumControlsPanel
           years={years}
           setYears={setYears}
-          onPlot={handlePlotAllStrategies}
+          onPlot={handlePlotAllPortfolios}
           anyInvalidAlloc={anyInvalidAlloc}
           onYearsChange={handleYearsChange}
           lumpsumAmount={lumpsumAmount}
@@ -105,13 +105,13 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
         xirrError={plotState.xirrError}
         hasPlotted={plotState.hasPlotted}
         navDatas={plotState.navDatas}
-        lumpsumStrategyXirrData={plotState.lumpSumXirrDatas}
-        sipStrategyXirrData={plotState.sipXirrDatas}
+        lumpsumPortfolioXirrData={plotState.lumpSumXirrDatas}
+        sipPortfolioXirrData={plotState.sipXirrDatas}
         funds={funds}
         COLORS={plotState.COLORS}
         loadingNav={plotState.loadingNav}
         loadingXirr={plotState.loadingXirr}
-        lumpsumStrategies={lumpsumStrategies}
+        lumpsumPortfolios={lumpsumPortfolios}
         years={years}
         amount={lumpsumAmount}
         chartView={chartView}

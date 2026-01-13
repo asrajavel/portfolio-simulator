@@ -3,31 +3,31 @@ import { Block } from 'baseui/block';
 import { Button } from 'baseui/button';
 import { LabelLarge, LabelSmall } from 'baseui/typography';
 
-interface StrategyListLayoutProps<T> {
-  strategies: T[];
-  setStrategies: React.Dispatch<React.SetStateAction<T[]>>;
+interface PortfolioListLayoutProps<T> {
+  portfolios: T[];
+  setPortfolios: React.Dispatch<React.SetStateAction<T[]>>;
   COLORS: string[];
-  onAddStrategy: () => void;
-  getAllocationSum: (strategy: T) => number;
-  renderStrategyControls: (strategy: T, strategyIdx: number) => ReactNode;
+  onAddPortfolio: () => void;
+  getAllocationSum: (portfolio: T) => number;
+  renderPortfolioControls: (portfolio: T, portfolioIdx: number) => ReactNode;
 }
 
 /**
- * Shared layout component for displaying strategy lists (SIP or Lumpsum).
- * Handles the common UI structure while delegating strategy-specific controls to a render prop.
+ * Shared layout component for displaying portfolio lists (SIP or Lumpsum).
+ * Handles the common UI structure while delegating portfolio-specific controls to a render prop.
  */
-export function StrategyListLayout<T>({
-  strategies,
-  setStrategies,
+export function PortfolioListLayout<T>({
+  portfolios,
+  setPortfolios,
   COLORS,
-  onAddStrategy,
+  onAddPortfolio,
   getAllocationSum,
-  renderStrategyControls,
-}: StrategyListLayoutProps<T>) {
+  renderPortfolioControls,
+}: PortfolioListLayoutProps<T>) {
   return (
     <Block marginBottom="scale800">
-      {strategies.map((strategy, pIdx) => {
-        const allocationSum = getAllocationSum(strategy);
+      {portfolios.map((portfolio, pIdx) => {
+        const allocationSum = getAllocationSum(portfolio);
         
         return (
           <Block
@@ -46,9 +46,9 @@ export function StrategyListLayout<T>({
               }
             }}
           >
-            {strategies.length > 1 && (
+            {portfolios.length > 1 && (
               <Button
-                onClick={() => setStrategies(prev => prev.filter((_, i) => i !== pIdx))}
+                onClick={() => setPortfolios(prev => prev.filter((_, i) => i !== pIdx))}
                 kind="tertiary"
                 size="mini"
                 overrides={{
@@ -64,7 +64,7 @@ export function StrategyListLayout<T>({
                     }),
                   },
                 }}
-                title={`Remove Strategy ${pIdx + 1}`}
+                title={`Remove Portfolio ${pIdx + 1}`}
               >
                 ✕
               </Button>
@@ -85,12 +85,12 @@ export function StrategyListLayout<T>({
                   }
                 }}
               >
-                Strategy {pIdx + 1}
+                Portfolio {pIdx + 1}
               </LabelLarge>
             </Block>
             
-            {/* Delegate strategy-specific controls to the render prop */}
-            {renderStrategyControls(strategy, pIdx)}
+            {/* Delegate portfolio-specific controls to the render prop */}
+            {renderPortfolioControls(portfolio, pIdx)}
             
             {allocationSum !== 100 && (
               <Block 
@@ -120,14 +120,14 @@ export function StrategyListLayout<T>({
         );
       })}
       
-      {/* Add Strategy Button */}
+      {/* Add Portfolio Button */}
       <Block display="flex" justifyContent="center" marginTop="scale600">
         <Button
           kind="secondary"
-          onClick={onAddStrategy}
+          onClick={onAddPortfolio}
           startEnhancer={() => <span style={{ fontSize: '16px', marginRight: '4px' }}>+</span>}
         >
-          Add Strategy
+          Add Portfolio
         </Button>
       </Block>
     </Block>

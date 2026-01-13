@@ -3,14 +3,14 @@ import { Block } from 'baseui/block';
 import { Checkbox } from 'baseui/checkbox';
 import { Input } from 'baseui/input';
 import { BaseFundControls } from '../common/BaseFundControls';
-import { Instrument } from '../../types/instrument';
+import { Asset } from '../../types/asset';
 import { HelpButton } from '../help';
 
 interface SipFundControlsProps {
-  selectedInstruments: (Instrument | null)[];
+  selectedAssets: (Asset | null)[];
   allocations: (number | null)[];
   funds: { schemeCode: number; schemeName: string }[];
-  onInstrumentSelect: (idx: number, instrument: Instrument | null) => void;
+  onAssetSelect: (idx: number, asset: Asset | null) => void;
   onAddFund: () => void;
   onRemoveFund: (idx: number) => void;
   onAllocationChange: (idx: number, value: number) => void;
@@ -22,15 +22,15 @@ interface SipFundControlsProps {
   onToggleStepUp: () => void;
   stepUpPercentage: number;
   onStepUpPercentageChange: (value: number) => void;
-  useInstruments?: boolean;
+  useAssets?: boolean;
   defaultSchemeCode?: number;
 }
 
 export const SipFundControls: React.FC<SipFundControlsProps> = ({
-  selectedInstruments,
+  selectedAssets,
   allocations,
   funds,
-  onInstrumentSelect,
+  onAssetSelect,
   onAddFund,
   onRemoveFund,
   onAllocationChange,
@@ -42,19 +42,19 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
   onToggleStepUp,
   stepUpPercentage,
   onStepUpPercentageChange,
-  useInstruments = true,
+  useAssets = true,
   defaultSchemeCode,
 }) => {
   return (
     <BaseFundControls
-      selectedInstruments={selectedInstruments}
+      selectedAssets={selectedAssets}
       allocations={allocations}
       funds={funds}
-      onInstrumentSelect={onInstrumentSelect}
+      onAssetSelect={onAssetSelect}
       onAddFund={onAddFund}
       onRemoveFund={onRemoveFund}
       onAllocationChange={onAllocationChange}
-      useInstruments={useInstruments}
+      useAssets={useAssets}
       defaultSchemeCode={defaultSchemeCode}
     >
       {/* SIP-specific controls */}
@@ -63,7 +63,7 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
           <Checkbox
             checked={rebalancingEnabled}
             onChange={onToggleRebalancing}
-            disabled={(selectedInstruments?.length ?? 0) <= 1}
+            disabled={(selectedAssets?.length ?? 0) <= 1}
           >
             Enable Rebalancing
           </Checkbox>
@@ -76,7 +76,7 @@ export const SipFundControls: React.FC<SipFundControlsProps> = ({
             max={100}
             value={rebalancingThreshold}
             onChange={e => onRebalancingThresholdChange(Number((e.target as HTMLInputElement).value))}
-            disabled={!rebalancingEnabled || (selectedInstruments?.length ?? 0) <= 1}
+            disabled={!rebalancingEnabled || (selectedAssets?.length ?? 0) <= 1}
             placeholder="Threshold"
             size="compact"
             overrides={{

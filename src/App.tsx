@@ -6,7 +6,7 @@ import { useNavData } from './hooks/useNavData';
 import { Block } from 'baseui/block';
 import { LoadingErrorStates } from './components/common/LoadingErrorStates';
 import { AppNavBar } from 'baseui/app-nav-bar';
-import { useInstrumentNavData } from './hooks/useInstrumentNavData';
+import { useAssetNavData } from './hooks/useAssetNavData';
 import { LumpsumSimulatorTab } from './pages/LumpsumSimulatorTab';
 import { SipSimulatorTab } from './pages/SipSimulatorTab';
 import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
@@ -19,7 +19,7 @@ import { setGlobalOpenHelp } from './services/yahooFinanceService';
 const AppContent: React.FC = () => {
   const { funds, loading, error } = useMutualFunds();
   const { loadNavData } = useNavData();
-  const { loadNavData: loadInstrumentNavData } = useInstrumentNavData();
+  const { loadNavData: loadAssetNavData } = useAssetNavData();
   const navigate = useNavigate();
   const location = useLocation();
   const { openHelp } = useHelp();
@@ -102,7 +102,7 @@ const AppContent: React.FC = () => {
             </Block>
             
             <Block display={isHistoricalTab ? 'block' : 'none'} flex="1">
-              <HistoricalValuesTab funds={funds} loadNavData={loadInstrumentNavData} />
+              <HistoricalValuesTab funds={funds} loadNavData={loadAssetNavData} />
             </Block>
           </>
         )}

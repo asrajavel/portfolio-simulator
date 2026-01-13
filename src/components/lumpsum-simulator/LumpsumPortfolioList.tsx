@@ -1,0 +1,62 @@
+import React from 'react';
+import { LumpsumFundControls } from './LumpsumFundControls';
+import { PortfolioListLayout } from '../common/PortfolioListLayout';
+import { mfapiMutualFund } from '../../types/mfapiMutualFund';
+import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
+import { Asset } from '../../types/asset';
+
+interface LumpsumPortfolioListProps {
+  lumpsumPortfolios: LumpsumPortfolio[];
+  setLumpsumPortfolios: React.Dispatch<React.SetStateAction<LumpsumPortfolio[]>>;
+  funds: mfapiMutualFund[];
+  onAssetSelect: (pIdx: number, idx: number, asset: Asset | null) => void;
+  onAddFund: (pIdx: number) => void;
+  onRemoveFund: (pIdx: number, idx: number) => void;
+  onAllocationChange: (pIdx: number, idx: number, value: number) => void;
+  onAddPortfolio: () => void;
+  COLORS: string[];
+  useAssets?: boolean;
+  defaultSchemeCode?: number;
+}
+
+export const LumpsumPortfolioList: React.FC<LumpsumPortfolioListProps> = ({
+  lumpsumPortfolios,
+  setLumpsumPortfolios,
+  funds,
+  onAssetSelect,
+  onAddFund,
+  onRemoveFund,
+  onAllocationChange,
+  onAddPortfolio,
+  COLORS,
+  useAssets = false,
+  defaultSchemeCode
+}) => {
+  const getAllocationSum = (portfolio: LumpsumPortfolio) => 
+    (portfolio.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0);
+
+  const renderPortfolioControls = (portfolio: LumpsumPortfolio, pIdx: number) => (
+    <LumpsumFundControls
+      selectedAssets={portfolio.selectedAssets || []}
+      allocations={portfolio.allocations}
+      funds={funds}
+      onAssetSelect={(idx, asset) => onAssetSelect(pIdx, idx, asset)}
+      onAddFund={() => onAddFund(pIdx)}
+      onRemoveFund={idx => onRemoveFund(pIdx, idx)}
+      onAllocationChange={(idx, value) => onAllocationChange(pIdx, idx, value)}
+      useAssets={useAssets}
+      defaultSchemeCode={defaultSchemeCode}
+    />
+  );
+
+  return (
+    <PortfolioListLayout
+      portfolios={lumpsumPortfolios}
+      setPortfolios={setLumpsumPortfolios}
+      COLORS={COLORS}
+      onAddPortfolio={onAddPortfolio}
+      getAllocationSum={getAllocationSum}
+      renderPortfolioControls={renderPortfolioControls}
+    />
+  );
+};

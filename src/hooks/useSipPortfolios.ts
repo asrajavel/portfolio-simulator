@@ -1,12 +1,12 @@
 import React from 'react';
 import { getQueryParams, setQueryParams } from '../utils/browser/queryParams';
 import { getDefaultAllocations } from '../utils/data/getDefaultAllocations';
-import { SipStrategy } from '../types/sipStrategy';
-import { Instrument } from '../types/instrument';
+import { SipPortfolio } from '../types/sipPortfolio';
+import { Asset } from '../types/asset';
 import { DEFAULT_REBALANCING_THRESHOLD, ALLOCATION_TOTAL } from '../constants';
 
-export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [number, (v: number) => void], isActive: boolean = true) {
-  // Initialize strategies and years from query params
+export function useSipPortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [number, (v: number) => void], isActive: boolean = true) {
+  // Initialize portfolios and years from query params
   const initialParams = React.useMemo(() => getQueryParams(), []);
   const [sipAmount, setSipAmount] = sipAmountState;
   
@@ -17,10 +17,10 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
     }
   }, []); // Only run once on mount
   
-  const [sipStrategies, setSipStrategies] = React.useState<SipStrategy[]>(
+  const [sipPortfolios, setSipPortfolios] = React.useState<SipPortfolio[]>(
     initialParams.portfolios && initialParams.portfolios.length > 0
       ? initialParams.portfolios.map((p: any) => ({
-          selectedInstruments: p.selectedInstruments || [null],
+          selectedAssets: p.selectedAssets || [null],
           allocations: p.allocations && p.allocations.length > 0 ? p.allocations : [ALLOCATION_TOTAL],
           rebalancingEnabled: typeof p.rebalancingEnabled === 'boolean' ? p.rebalancingEnabled : false,
           rebalancingThreshold: typeof p.rebalancingThreshold === 'number' ? p.rebalancingThreshold : DEFAULT_REBALANCING_THRESHOLD,
@@ -28,9 +28,9 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
           stepUpPercentage: typeof p.stepUpPercentage === 'number' ? p.stepUpPercentage : 5,
         }))
       : [
-          // Default Strategy 1: NIFTY 50 Index (100%)
+          // Default Portfolio 1: NIFTY 50 Index (100%)
           { 
-            selectedInstruments: [{
+            selectedAssets: [{
               type: 'index_fund',
               id: 'NIFTY 50',
               name: 'NIFTY 50',
@@ -43,9 +43,9 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
             stepUpEnabled: false,
             stepUpPercentage: 5
           },
-          // Default Strategy 2: Mixed (70% scheme 122639, 30% scheme 120197, rebalancing enabled)
+          // Default Portfolio 2: Mixed (70% scheme 122639, 30% scheme 120197, rebalancing enabled)
           { 
-            selectedInstruments: [
+            selectedAssets: [
               {
                 type: 'mutual_fund',
                 id: 122639,
@@ -71,12 +71,12 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
   );
   const [years, setYears] = React.useState<number>(initialParams.years || 5);
 
-  // Handler to add a new strategy
-  const handleAddStrategy = () => {
-    setSipStrategies(prev => [
+  // Handler to add a new portfolio
+  const handleAddPortfolio = () => {
+    setSipPortfolios(prev => [
       ...prev,
       { 
-        selectedInstruments: [null], 
+        selectedAssets: [null], 
         allocations: [ALLOCATION_TOTAL], 
         rebalancingEnabled: false, 
         rebalancingThreshold: DEFAULT_REBALANCING_THRESHOLD,
@@ -86,93 +86,93 @@ export function useSipStrategies(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
     ]);
   };
 
-  // Handlers for fund controls per strategy
-  const handleInstrumentSelect = (strategyIdx: number, idx: number, instrument: Instrument | null) => {
-    setSipStrategies(prev => prev.map((p, i) => {
-      if (i !== strategyIdx) return p;
+  // Handlers for fund controls per portfolio
+  const handleAssetSelect = (portfolioIdx: number, idx: number, asset: Asset | null) => {
+    setSipPortfolios(prev => prev.map((p, i) => {
+      if (i !== portfolioIdx) return p;
       
-      const newInstruments = p.selectedInstruments.map((inst, j) => j === idx ? instrument : inst);
+      const newAssets = p.selectedAssets.map((inst, j) => j === idx ? asset : inst);
 
       return { 
         ...p, 
-        selectedInstruments: newInstruments
+        selectedAssets: newAssets
       };
     }));
   };
-  const handleAddFund = (strategyIdx: number) => {
-    setSipStrategies(prev => prev.map((p, i) => {
-      if (i !== strategyIdx) return p;
-      const newInstruments = [...p.selectedInstruments, null];
+  const handleAddFund = (portfolioIdx: number) => {
+    setSipPortfolios(prev => prev.map((p, i) => {
+      if (i !== portfolioIdx) return p;
+      const newAssets = [...p.selectedAssets, null];
       // Default: split using getDefaultAllocations
-      const n = newInstruments.length;
+      const n = newAssets.length;
       const newAlloc = getDefaultAllocations(n);
-      return { ...p, selectedInstruments: newInstruments, allocations: newAlloc };
+      return { ...p, selectedAssets: newAssets, allocations: newAlloc };
     }));
   };
-  const handleRemoveFund = (strategyIdx: number, idx: number) => {
-    setSipStrategies(prev => prev.map((p, i) => {
-      if (i !== strategyIdx) return p;
-      const newInstruments = p.selectedInstruments.filter((_, j) => j !== idx);
+  const handleRemoveFund = (portfolioIdx: number, idx: number) => {
+    setSipPortfolios(prev => prev.map((p, i) => {
+      if (i !== portfolioIdx) return p;
+      const newAssets = p.selectedAssets.filter((_, j) => j !== idx);
       // Rebalance allocations for remaining funds
-      const n = newInstruments.length;
+      const n = newAssets.length;
       const newAlloc = n > 0 ? getDefaultAllocations(n) : [];
-      return { ...p, selectedInstruments: newInstruments, allocations: newAlloc };
+      return { ...p, selectedAssets: newAssets, allocations: newAlloc };
     }));
   };
-  const handleAllocationChange = (strategyIdx: number, fundIdx: number, value: number) => {
-    setSipStrategies(prev => prev.map((p, i) => {
-      if (i !== strategyIdx) return p;
+  const handleAllocationChange = (portfolioIdx: number, fundIdx: number, value: number) => {
+    setSipPortfolios(prev => prev.map((p, i) => {
+      if (i !== portfolioIdx) return p;
       const newAlloc = p.allocations.map((a, j) => j === fundIdx ? value : a);
       return { ...p, allocations: newAlloc };
     }));
   };
 
-  const handleToggleRebalancing = (strategyIdx: number) => {
-    setSipStrategies(prev => prev.map((p, i) =>
-      i === strategyIdx
+  const handleToggleRebalancing = (portfolioIdx: number) => {
+    setSipPortfolios(prev => prev.map((p, i) =>
+      i === portfolioIdx
         ? { ...p, rebalancingEnabled: !p.rebalancingEnabled }
         : p
     ));
   };
 
-  const handleRebalancingThresholdChange = (strategyIdx: number, value: number) => {
-    setSipStrategies(prev => prev.map((p, i) =>
-      i === strategyIdx
+  const handleRebalancingThresholdChange = (portfolioIdx: number, value: number) => {
+    setSipPortfolios(prev => prev.map((p, i) =>
+      i === portfolioIdx
         ? { ...p, rebalancingThreshold: Math.max(0, value) } // Ensure threshold is not negative
         : p
     ));
   };
 
-  const handleToggleStepUp = (strategyIdx: number) => {
-    setSipStrategies(prev => prev.map((p, i) =>
-      i === strategyIdx
+  const handleToggleStepUp = (portfolioIdx: number) => {
+    setSipPortfolios(prev => prev.map((p, i) =>
+      i === portfolioIdx
         ? { ...p, stepUpEnabled: !p.stepUpEnabled }
         : p
     ));
   };
 
-  const handleStepUpPercentageChange = (strategyIdx: number, value: number) => {
-    setSipStrategies(prev => prev.map((p, i) =>
-      i === strategyIdx
+  const handleStepUpPercentageChange = (portfolioIdx: number, value: number) => {
+    setSipPortfolios(prev => prev.map((p, i) =>
+      i === portfolioIdx
         ? { ...p, stepUpPercentage: Math.max(0, value) } // Ensure percentage is not negative
         : p
     ));
   };
 
-  // Sync strategies, years, and sipAmount to query params (only when tab is active)
+  // Sync portfolios, years, and sipAmount to query params (only when tab is active)
   React.useEffect(() => {
     if (isActive) {
-      setQueryParams(sipStrategies, years, sipAmount);
+      setQueryParams(sipPortfolios, years, sipAmount);
     }
-  }, [sipStrategies, years, sipAmount, isActive]);
+  }, [sipPortfolios, years, sipAmount, isActive]);
 
   return {
-    sipStrategies,
-    setSipStrategies,
+    sipPortfolios,
+    setSipPortfolios,
     years,
     setYears,
-    handleAddStrategy,
-    handleInstrumentSelect,
+    handleAddPortfolio,
+    handleAssetSelect,
     handleAddFund,
     handleRemoveFund,
     handleAllocationChange,

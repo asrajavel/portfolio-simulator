@@ -2,27 +2,27 @@ import React from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
-import { Instrument } from '../../types/instrument';
+import { Asset } from '../../types/asset';
 import { CHART_STYLES } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 
 interface HistoricalValuesChartProps {
   navDatas: Record<string, Array<{ date: Date; nav: number }>>;
-  instruments: Instrument[];
+  assets: Asset[];
   useLogScale?: boolean;
   colors: string[];
 }
 
 export const HistoricalValuesChart: React.FC<HistoricalValuesChartProps> = ({
   navDatas,
-  instruments,
+  assets,
   useLogScale = false,
   colors
 }) => {
-  const series = instruments.map((instrument, idx) => {
-    const navData = navDatas[instrument.id.toString()];
+  const series = assets.map((asset, idx) => {
+    const navData = navDatas[asset.id.toString()];
     return {
-      name: instrument.name,
+      name: asset.name,
       data: navData.map(item => [item.date.getTime(), item.nav]),
       type: 'line',
       color: colors[idx % colors.length],
@@ -101,7 +101,7 @@ export const HistoricalValuesChart: React.FC<HistoricalValuesChartProps> = ({
     },
     series: series,
     legend: { 
-      enabled: instruments.length > 1,
+      enabled: assets.length > 1,
       itemStyle: CHART_STYLES.legend,
       itemHoverStyle: { color: '#1f2937' }
     }

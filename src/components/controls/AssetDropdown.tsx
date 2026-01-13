@@ -1,27 +1,27 @@
 import React from 'react';
-import { InstrumentType, Instrument } from '../../types/instrument';
+import { AssetType, Asset } from '../../types/asset';
 import { MutualFundSelector } from './MutualFundSelector';
 import { IndexSelector } from './IndexSelector';
 import { YahooFinanceSelector } from './YahooFinanceSelector';
 import { FixedReturnSelector } from './FixedReturnSelector';
 import { InflationSelector } from './InflationSelector';
 
-interface InstrumentDropdownProps {
-  instrumentType: InstrumentType;
+interface AssetDropdownProps {
+  assetType: AssetType;
   funds: { schemeCode: number; schemeName: string }[];
-  onSelect: (instrument: Instrument | null) => void;
-  value?: Instrument;
+  onSelect: (asset: Asset | null) => void;
+  value?: Asset;
   defaultSchemeCode?: number;
 }
 
-export const InstrumentDropdown: React.FC<InstrumentDropdownProps> = ({ 
-  instrumentType, 
+export const AssetDropdown: React.FC<AssetDropdownProps> = ({ 
+  assetType, 
   funds, 
   onSelect, 
   value,
   defaultSchemeCode
 }) => {
-  if (instrumentType === 'mutual_fund') {
+  if (assetType === 'mutual_fund') {
     return (
       <MutualFundSelector
         funds={funds}
@@ -32,7 +32,7 @@ export const InstrumentDropdown: React.FC<InstrumentDropdownProps> = ({
     );
   }
 
-  if (instrumentType === 'index_fund') {
+  if (assetType === 'index_fund') {
     return (
       <IndexSelector
         onSelect={onSelect}
@@ -41,7 +41,7 @@ export const InstrumentDropdown: React.FC<InstrumentDropdownProps> = ({
     );
   }
 
-  if (instrumentType === 'yahoo_finance') {
+  if (assetType === 'yahoo_finance') {
     return (
       <YahooFinanceSelector
         onSelect={onSelect}
@@ -50,7 +50,7 @@ export const InstrumentDropdown: React.FC<InstrumentDropdownProps> = ({
     );
   }
 
-  if (instrumentType === 'fixed_return') {
+  if (assetType === 'fixed_return') {
     return (
       <FixedReturnSelector
         onSelect={onSelect}
@@ -59,7 +59,7 @@ export const InstrumentDropdown: React.FC<InstrumentDropdownProps> = ({
     );
   }
 
-  if (instrumentType === 'inflation') {
+  if (assetType === 'inflation') {
     return (
       <InflationSelector
         onSelect={onSelect}

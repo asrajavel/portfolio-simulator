@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { Block } from 'baseui/block';
 import { Select } from 'baseui/select';
-import { Instrument, InflationInstrument } from '../../types/instrument';
+import { Asset, InflationAsset } from '../../types/asset';
 
 interface InflationSelectorProps {
-  onSelect: (instrument: Instrument | null) => void;
-  value?: Instrument;
+  onSelect: (asset: Asset | null) => void;
+  value?: Asset;
 }
 
 const countryOptions = [
@@ -21,7 +21,7 @@ export const InflationSelector: React.FC<InflationSelectorProps> = ({ onSelect, 
   // Auto-select India on mount if no value
   useEffect(() => {
     if (!value) {
-      const defaultInflation: InflationInstrument = {
+      const defaultInflation: InflationAsset = {
         type: 'inflation',
         id: 'inflation_IND',
         name: 'India - Consumer Price Index',
@@ -37,14 +37,14 @@ export const InflationSelector: React.FC<InflationSelectorProps> = ({ onSelect, 
       const countryCode = params.value[0].id;
       const countryName = params.value[0].label;
       
-      const inflationInstrument: InflationInstrument = {
+      const inflationAsset: InflationAsset = {
         type: 'inflation',
         id: `inflation_${countryCode}`,
         name: countryName,
         countryCode: countryCode,
         displayName: countryName
       };
-      onSelect(inflationInstrument);
+      onSelect(inflationAsset);
     } else {
       onSelect(null);
     }

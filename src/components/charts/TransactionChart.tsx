@@ -20,18 +20,18 @@ const BASEWEB_SERIES_COLORS = [
 
 interface TransactionChartProps {
   transactions: Transaction[];
-  strategyName?: string;
+  portfolioName?: string;
   funds?: Array<{ schemeName: string }>;
 }
 
 export const TransactionChart: React.FC<TransactionChartProps> = ({ 
   transactions,
-  strategyName,
+  portfolioName,
   funds
 }) => {
-  // Extract strategy index and get its color
-  const strategyIdx = strategyName ? parseInt(strategyName.replace('Strategy ', '')) - 1 : 0;
-  const strategyColor = COLORS[strategyIdx % COLORS.length];
+  // Extract portfolio index and get its color
+  const portfolioIdx = portfolioName ? parseInt(portfolioName.replace('Portfolio ', '')) - 1 : 0;
+  const portfolioColor = COLORS[portfolioIdx % COLORS.length];
 
   // Process transactions for the chart
   const { totals, perFund, rebalancePlotLines } = useMemo(
@@ -94,10 +94,10 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
       name: 'Total (Value)',
       type: 'line',
       data: totals.map(d => [d.date.getTime(), d.currentValue]),
-      color: strategyColor  // Use strategy's color
+      color: portfolioColor  // Use portfolio's color
     },
     ...fundSeries
-  ]), [totals, fundSeries, strategyColor]);
+  ]), [totals, fundSeries, portfolioColor]);
 
   // Create chart options
   const chartOptions = useMemo(() => ({

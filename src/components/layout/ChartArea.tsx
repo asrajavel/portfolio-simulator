@@ -1,8 +1,8 @@
 import React from 'react';
 import { MultiFundCharts } from '../charts/MultiFundCharts';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
-import { SipStrategy } from '../../types/sipStrategy';
-import { LumpsumStrategy } from '../../types/lumpsumStrategy';
+import { SipPortfolio } from '../../types/sipPortfolio';
+import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
 import { Block } from 'baseui/block';
 import { LabelMedium } from 'baseui/typography';
 
@@ -10,14 +10,14 @@ interface ChartAreaProps {
   xirrError: string | null;
   hasPlotted: boolean;
   navDatas: Record<number, any[]>;
-  lumpsumStrategyXirrData?: Record<string, any[]>;
-  sipStrategyXirrData?: Record<string, any[]>;
+  lumpsumPortfolioXirrData?: Record<string, any[]>;
+  sipPortfolioXirrData?: Record<string, any[]>;
   funds: mfapiMutualFund[];
   COLORS: string[];
   loadingNav?: boolean;
   loadingXirr?: boolean;
-  sipStrategies?: SipStrategy[];
-  lumpsumStrategies?: LumpsumStrategy[];
+  sipPortfolios?: SipPortfolio[];
+  lumpsumPortfolios?: LumpsumPortfolio[];
   years: number;
   amount: number; // Can be sipAmount or lumpsumAmount
   chartView: 'xirr' | 'corpus';
@@ -28,14 +28,14 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
   xirrError,
   hasPlotted,
   navDatas,
-  lumpsumStrategyXirrData,
-  sipStrategyXirrData,
+  lumpsumPortfolioXirrData,
+  sipPortfolioXirrData,
   funds,
   COLORS,
   loadingNav = false,
   loadingXirr = false,
-  sipStrategies,
-  lumpsumStrategies,
+  sipPortfolios,
+  lumpsumPortfolios,
   years,
   amount,
   chartView,
@@ -69,12 +69,12 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
       {hasPlotted && Object.keys(navDatas).length > 0 && (
         <MultiFundCharts
           navDatas={navDatas}
-          lumpsumStrategyXirrData={lumpsumStrategyXirrData}
-          sipStrategyXirrData={sipStrategyXirrData}
+          lumpsumPortfolioXirrData={lumpsumPortfolioXirrData}
+          sipPortfolioXirrData={sipPortfolioXirrData}
           funds={funds}
           COLORS={COLORS}
-          sipStrategies={sipStrategies}
-          lumpsumStrategies={lumpsumStrategies}
+          sipPortfolios={sipPortfolios}
+          lumpsumPortfolios={lumpsumPortfolios}
           years={years}
           amount={amount}
           chartView={chartView}

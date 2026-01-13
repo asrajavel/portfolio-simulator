@@ -1,11 +1,11 @@
-import { LumpsumStrategy } from '../../types/lumpsumStrategy';
+import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
 
 // Simple version for lumpsum (no rebalancing, no step-up)
-export function setLumpsumQueryParams(lumpsumStrategies: LumpsumStrategy[], years: number, lumpsumAmount: number = 100000) {
+export function setLumpsumQueryParams(lumpsumPortfolios: LumpsumPortfolio[], years: number, lumpsumAmount: number = 100000) {
   // For now, use same format as SIP but without rebalancing/stepup params
-  const strategiesStr = lumpsumStrategies
+  const portfoliosStr = lumpsumPortfolios
     .map(p => {
-      const instrumentsStr = p.selectedInstruments
+      const assetsStr = p.selectedAssets
         .map((inst: any, idx: number) => {
           const allocation = p.allocations[idx] || 0;
           if (!inst) {
@@ -27,11 +27,11 @@ export function setLumpsumQueryParams(lumpsumStrategies: LumpsumStrategy[], year
         })
         .join(',');
       
-      return instrumentsStr;
+      return assetsStr;
     })
     .join(';');
   
-  const urlParams = `lumpsumStrategies=${strategiesStr}&years=${years}&lumpsumAmount=${lumpsumAmount}`;
+  const urlParams = `lumpsumPortfolios=${portfoliosStr}&years=${years}&lumpsumAmount=${lumpsumAmount}`;
   window.history.replaceState({}, '', `?${urlParams}`);
 }
 

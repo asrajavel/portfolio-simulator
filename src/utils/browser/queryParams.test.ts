@@ -1,6 +1,6 @@
 import { getQueryParams } from './queryParams';
 import { setLumpsumQueryParams } from './queryParams-lumpsum';
-import { LumpsumStrategy } from '../../types/lumpsumStrategy';
+import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
 
 // Mock window.location
 const mockLocation = (search: string) => {
@@ -18,15 +18,15 @@ const mockHistory = () => {
   };
 };
 
-describe('Query Params - Lumpsum Strategies', () => {
+describe('Query Params - Lumpsum Portfolios', () => {
   beforeEach(() => {
     mockHistory();
   });
 
-  test('should write and read lumpsum strategies (round-trip)', () => {
-    const strategies: LumpsumStrategy[] = [
+  test('should write and read lumpsum portfolios (round-trip)', () => {
+    const portfolios: LumpsumPortfolio[] = [
       {
-        selectedInstruments: [{
+        selectedAssets: [{
           type: 'index_fund',
           id: 'NIFTY 50',
           name: 'NIFTY 50',
@@ -36,7 +36,7 @@ describe('Query Params - Lumpsum Strategies', () => {
         allocations: [100]
       },
       {
-        selectedInstruments: [
+        selectedAssets: [
           {
             type: 'mutual_fund',
             id: 122639,
@@ -56,25 +56,25 @@ describe('Query Params - Lumpsum Strategies', () => {
       }
     ];
     
-    setLumpsumQueryParams(strategies, 7, 250000);
+    setLumpsumQueryParams(portfolios, 7, 250000);
     const params = getQueryParams();
     
-    expect(params.lumpsumStrategies).toHaveLength(2);
+    expect(params.lumpsumPortfolios).toHaveLength(2);
     expect(params.years).toBe(7);
     expect(params.lumpsumAmount).toBe(250000);
-    expect(params.lumpsumStrategies[0].allocations).toEqual([100]);
-    expect(params.lumpsumStrategies[1].allocations).toEqual([70, 30]);
+    expect(params.lumpsumPortfolios[0].allocations).toEqual([100]);
+    expect(params.lumpsumPortfolios[1].allocations).toEqual([70, 30]);
   });
 
-  test('should handle all instrument types', () => {
-    mockLocation('lumpsumStrategies=idx:NIFTY_50:100;fixed:8:50,inflation:IND:50');
+  test('should handle all asset types', () => {
+    mockLocation('lumpsumPortfolios=idx:NIFTY_50:100;fixed:8:50,inflation:IND:50');
     
     const params = getQueryParams();
     
-    expect(params.lumpsumStrategies).toHaveLength(2);
-    expect(params.lumpsumStrategies[0].selectedInstruments[0].type).toBe('index_fund');
-    expect(params.lumpsumStrategies[1].selectedInstruments[0].type).toBe('fixed_return');
-    expect(params.lumpsumStrategies[1].selectedInstruments[1].type).toBe('inflation');
+    expect(params.lumpsumPortfolios).toHaveLength(2);
+    expect(params.lumpsumPortfolios[0].selectedAssets[0].type).toBe('index_fund');
+    expect(params.lumpsumPortfolios[1].selectedAssets[0].type).toBe('fixed_return');
+    expect(params.lumpsumPortfolios[1].selectedAssets[1].type).toBe('inflation');
   });
 
   test('should return defaults when no params exist', () => {
@@ -82,7 +82,7 @@ describe('Query Params - Lumpsum Strategies', () => {
     
     const params = getQueryParams();
     
-    expect(params.lumpsumStrategies).toEqual([]);
+    expect(params.lumpsumPortfolios).toEqual([]);
     expect(params.lumpsumAmount).toBe(100000);
   });
 });

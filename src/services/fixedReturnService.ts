@@ -1,14 +1,14 @@
-import { InstrumentNavData } from '../types/instrument';
+import { AssetNavData } from '../types/asset';
 
 /**
- * Generate synthetic NAV data for fixed return instruments
+ * Generate synthetic NAV data for fixed return assets
  */
 export class FixedReturnService {
   static generateFixedReturnData(
     annualReturnPercentage: number,
     startYear: number = 1990
-  ): InstrumentNavData[] {
-    const navData: InstrumentNavData[] = [];
+  ): AssetNavData[] {
+    const navData: AssetNavData[] = [];
     const startDate = new Date(Date.UTC(startYear, 0, 1));
     const endDate = new Date();
     

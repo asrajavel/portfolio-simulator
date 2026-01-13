@@ -2,11 +2,11 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { HistoricalValuesPanel } from '../components/historical-values/HistoricalValuesPanel';
 import { mfapiMutualFund } from '../types/mfapiMutualFund';
-import { Instrument } from '../types/instrument';
+import { Asset } from '../types/asset';
 
 interface HistoricalValuesTabProps {
   funds: mfapiMutualFund[];
-  loadNavData: (instrument: Instrument) => Promise<any[]>;
+  loadNavData: (asset: Asset) => Promise<any[]>;
 }
 
 export const HistoricalValuesTab: React.FC<HistoricalValuesTabProps> = ({ funds, loadNavData }) => {

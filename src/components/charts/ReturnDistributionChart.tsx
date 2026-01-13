@@ -7,14 +7,14 @@ import { formatCurrency } from '../../utils/numberFormat';
 import { HelpButton } from '../help';
 
 interface ReturnDistributionChartProps {
-  strategyXirrData: Record<string, any[]>;
+  portfolioXirrData: Record<string, any[]>;
   COLORS: string[];
   years: number;
   chartView: 'xirr' | 'corpus';
 }
 
 export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = ({
-  strategyXirrData,
+  portfolioXirrData,
   COLORS,
   years,
   chartView
@@ -35,15 +35,15 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
 
   const series = useMemo(() => {
     const BINS = 20;
-    const entries = Object.entries(strategyXirrData || {});
+    const entries = Object.entries(portfolioXirrData || {});
 
-    const preparedValues = entries.map(([strategyName, data], idx) => {
+    const preparedValues = entries.map(([portfolioName, data], idx) => {
       const values = (data || [])
         .map((row: any) => computeValue(row))
         .filter((val: number | null): val is number => val !== null);
 
       return {
-        strategyName,
+        portfolioName,
         color: COLORS[idx % COLORS.length],
         values
       };
@@ -89,7 +89,7 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
       if (!item.values.length) return [];
       return [
         {
-          name: `${item.strategyName}`,
+          name: `${item.portfolioName}`,
           type: 'column' as const,
           data: buildBins(item.values),
           color: item.color,
@@ -116,7 +116,7 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
         }
       ];
     });
-  }, [strategyXirrData, COLORS, chartView]);
+  }, [portfolioXirrData, COLORS, chartView]);
 
   if (!series.length) return null;
 

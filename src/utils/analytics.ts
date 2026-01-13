@@ -17,7 +17,7 @@ export const trackPageView = (page: string) => {
 };
 
 // Simulation events
-export const trackSimulation = (type: 'SIP' | 'Lumpsum', action: 'Plot' | 'AddStrategy' | 'RemoveStrategy') => {
+export const trackSimulation = (type: 'SIP' | 'Lumpsum', action: 'Plot' | 'AddPortfolio' | 'RemovePortfolio') => {
   if (MEASUREMENT_ID) {
     ReactGA.event({
       category: 'Simulation',

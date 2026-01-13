@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Block } from 'baseui/block';
 import { Input } from 'baseui/input';
-import { Instrument, FixedReturnInstrument } from '../../types/instrument';
+import { Asset, FixedReturnAsset } from '../../types/asset';
 
 interface FixedReturnSelectorProps {
-  onSelect: (instrument: Instrument | null) => void;
-  value?: Instrument;
+  onSelect: (asset: Asset | null) => void;
+  value?: Asset;
 }
 
 export const FixedReturnSelector: React.FC<FixedReturnSelectorProps> = ({ onSelect, value }) => {
@@ -22,14 +22,14 @@ export const FixedReturnSelector: React.FC<FixedReturnSelectorProps> = ({ onSele
     
     const numValue = parseFloat(newPercentage);
     if (!isNaN(numValue) && numValue >= 0 && numValue <= 50) {
-      const fixedReturnInstrument: FixedReturnInstrument = {
+      const fixedReturnAsset: FixedReturnAsset = {
         type: 'fixed_return',
         id: `fixed_${numValue}`,
         name: `Fixed ${numValue}% Return`,
         annualReturnPercentage: numValue,
         displayName: `Fixed ${numValue}% Return`
       };
-      onSelect(fixedReturnInstrument);
+      onSelect(fixedReturnAsset);
     } else if (newPercentage === '') {
       onSelect(null);
     }

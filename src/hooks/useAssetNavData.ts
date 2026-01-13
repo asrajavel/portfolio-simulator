@@ -1,28 +1,28 @@
 import { useCallback } from 'react';
-import { Instrument } from '../types/instrument';
+import { Asset } from '../types/asset';
 import { fetchNavData } from '../services/mfapiNavService';
 import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { fixedReturnService } from '../services/fixedReturnService';
 import { inflationService } from '../services/inflationService';
 
-export const useInstrumentNavData = () => {
-  const loadNavData = useCallback(async (instrument: Instrument) => {
-    switch (instrument.type) {
+export const useAssetNavData = () => {
+  const loadNavData = useCallback(async (asset: Asset) => {
+    switch (asset.type) {
       case 'mutual_fund':
-        return fetchNavData(instrument.schemeCode);
+        return fetchNavData(asset.schemeCode);
       case 'index_fund':
-        return indexService.fetchIndexData(instrument.indexName);
+        return indexService.fetchIndexData(asset.indexName);
       case 'yahoo_finance':
-        return yahooFinanceService.fetchStockData(instrument.symbol);
+        return yahooFinanceService.fetchStockData(asset.symbol);
       case 'fixed_return':
         return fixedReturnService.generateFixedReturnData(
-          instrument.annualReturnPercentage,
+          asset.annualReturnPercentage,
           1990
         );
       case 'inflation':
         return inflationService.generateInflationNavData(
-          instrument.countryCode,
+          asset.countryCode,
           1960 // World Bank data starts from 1960
         );
     }

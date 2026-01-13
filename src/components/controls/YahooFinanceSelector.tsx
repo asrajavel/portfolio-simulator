@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from 'baseui/input';
 import { Block } from 'baseui/block';
-import { Instrument } from '../../types/instrument';
+import { Asset } from '../../types/asset';
 import { HelpButton } from '../help';
 
 interface YahooFinanceSelectorProps {
-  onSelect: (instrument: Instrument | null) => void;
-  value?: Instrument;
+  onSelect: (asset: Asset | null) => void;
+  value?: Asset;
 }
 
 export const YahooFinanceSelector: React.FC<YahooFinanceSelectorProps> = ({
@@ -29,14 +29,14 @@ export const YahooFinanceSelector: React.FC<YahooFinanceSelectorProps> = ({
     setSymbol(newSymbol);
 
     if (newSymbol.trim()) {
-      const instrument: Instrument = {
+      const asset: Asset = {
         type: 'yahoo_finance',
         id: newSymbol.trim(),
         name: newSymbol.trim(),
         symbol: newSymbol.trim(),
         displayName: newSymbol.trim()
       };
-      onSelect(instrument);
+      onSelect(asset);
     } else {
       onSelect(null);
     }

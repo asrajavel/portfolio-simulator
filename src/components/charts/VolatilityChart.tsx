@@ -7,14 +7,14 @@ import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates }
 import { HelpButton } from '../help';
 
 interface VolatilityChartProps {
-  sipStrategyXirrData: Record<string, any[]>;
+  sipPortfolioXirrData: Record<string, any[]>;
   COLORS: string[];
   years: number;
 }
 
-  const getVolatilitySeries = (sipStrategyXirrData: Record<string, any[]>, COLORS: string[]) => {
-    const allDates = getAllDates(sipStrategyXirrData);
-    return Object.entries(sipStrategyXirrData).map(([strategyName, data], idx) => {
+  const getVolatilitySeries = (sipPortfolioXirrData: Record<string, any[]>, COLORS: string[]) => {
+    const allDates = getAllDates(sipPortfolioXirrData);
+    return Object.entries(sipPortfolioXirrData).map(([portfolioName, data], idx) => {
       const dateToVolatility: Record<string, number> = {};
       (data || []).forEach((row: any) => {
         if (row.volatility !== undefined) {
@@ -31,7 +31,7 @@ interface VolatilityChartProps {
       }).filter(point => point !== null);
     
     return {
-      name: strategyName,
+      name: portfolioName,
       data: seriesData,
       type: 'line',
       color: COLORS[idx % COLORS.length],
@@ -41,7 +41,7 @@ interface VolatilityChartProps {
   });
 };
 
-const getChartOptions = (years: number, sipStrategyXirrData: Record<string, any[]>, COLORS: string[]) => ({
+const getChartOptions = (years: number, sipPortfolioXirrData: Record<string, any[]>, COLORS: string[]) => ({
   title: { text: `Volatility (Annualized) - Rolling ${years}Y`, style: CHART_STYLES.title },
   credits: { enabled: false },
   chart: {
@@ -116,18 +116,18 @@ const getChartOptions = (years: number, sipStrategyXirrData: Record<string, any[
       states: { hover: { lineWidthPlus: 1 } }
     }
   },
-  series: getVolatilitySeries(sipStrategyXirrData, COLORS)
+  series: getVolatilitySeries(sipPortfolioXirrData, COLORS)
 });
 
-export const VolatilityChart: React.FC<VolatilityChartProps> = ({ sipStrategyXirrData, COLORS, years }) => {
-  // Check if any strategy has volatility data
-  const hasVolatilityData = Object.values(sipStrategyXirrData).some(data => 
+export const VolatilityChart: React.FC<VolatilityChartProps> = ({ sipPortfolioXirrData, COLORS, years }) => {
+  // Check if any portfolio has volatility data
+  const hasVolatilityData = Object.values(sipPortfolioXirrData).some(data => 
     Array.isArray(data) && data.some(row => row.volatility !== undefined)
   );
 
   if (!hasVolatilityData) return null;
 
-  const chartOptions = getChartOptions(years, sipStrategyXirrData, COLORS);
+  const chartOptions = getChartOptions(years, sipPortfolioXirrData, COLORS);
 
   return (
     <Block marginTop="2rem" position="relative">

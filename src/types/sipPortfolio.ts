@@ -1,7 +1,7 @@
-import { Instrument } from './instrument';
+import { Asset } from './asset';
 
-export interface SipStrategy {
-  selectedInstruments: (Instrument | null)[];
+export interface SipPortfolio {
+  selectedAssets: (Asset | null)[];
   allocations: number[];
   rebalancingEnabled: boolean;
   rebalancingThreshold: number;

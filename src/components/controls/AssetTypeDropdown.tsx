@@ -1,11 +1,11 @@
 import React from 'react';
 import { Block } from 'baseui/block';
 import { Select } from 'baseui/select';
-import { InstrumentType } from '../../types/instrument';
+import { AssetType } from '../../types/asset';
 
-interface InstrumentTypeDropdownProps {
-  value: InstrumentType;
-  onChange: (type: InstrumentType) => void;
+interface AssetTypeDropdownProps {
+  value: AssetType;
+  onChange: (type: AssetType) => void;
   disableInflation?: boolean;
 }
 
@@ -17,7 +17,7 @@ const baseOptions = [
   { label: 'Inflation Rate', id: 'inflation' }
 ];
 
-export const InstrumentTypeDropdown: React.FC<InstrumentTypeDropdownProps> = ({ value, onChange, disableInflation = false }) => {
+export const AssetTypeDropdown: React.FC<AssetTypeDropdownProps> = ({ value, onChange, disableInflation = false }) => {
   // Add disabled property to inflation option when needed
   const options = baseOptions.map(option => ({
     ...option,
@@ -28,7 +28,7 @@ export const InstrumentTypeDropdown: React.FC<InstrumentTypeDropdownProps> = ({ 
 
   const handleChange = (params: any) => {
     if (params.value && params.value.length > 0) {
-      onChange(params.value[0].id as InstrumentType);
+      onChange(params.value[0].id as AssetType);
     }
   };
 
