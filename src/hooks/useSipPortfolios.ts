@@ -91,7 +91,7 @@ export function useSipPortfolios(DEFAULT_SCHEME_CODE: number, sipAmountState: [n
     setSipPortfolios(prev => prev.map((p, i) => {
       if (i !== portfolioIdx) return p;
       
-      const newAssets = p.selectedAssets.map((inst, j) => j === idx ? asset : inst);
+      const newAssets = p.selectedAssets.map((existing, j) => j === idx ? asset : existing);
 
       return { 
         ...p, 

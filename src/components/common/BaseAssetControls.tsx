@@ -32,25 +32,25 @@ export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
   children,
 }) => {
   const [assetTypes, setAssetTypes] = useState<AssetType[]>(() => {
-    return selectedAssets.map(inst => inst?.type || 'mutual_fund' as AssetType);
+    return selectedAssets.map(asset => asset?.type || 'mutual_fund' as AssetType);
   });
 
   // Update assetTypes when selectedAssets changes
   useEffect(() => {
     setAssetTypes(prev => {
-      const newTypes = selectedAssets.map((inst, idx) => {
-        return inst?.type || prev[idx] || 'mutual_fund' as AssetType;
+      const newTypes = selectedAssets.map((asset, idx) => {
+        return asset?.type || prev[idx] || 'mutual_fund' as AssetType;
       });
       return newTypes;
     });
   }, [selectedAssets]);
 
   // Check if inflation exists in any asset
-  const hasInflation = selectedAssets.some(inst => inst?.type === 'inflation');
+  const hasInflation = selectedAssets.some(asset => asset?.type === 'inflation');
 
   // Check if there are other assets besides the current index
   const hasOtherAssets = (idx: number) => {
-    return selectedAssets.some((inst, i) => i !== idx && inst !== null);
+    return selectedAssets.some((asset, i) => i !== idx && asset !== null);
   };
 
   const handleAssetTypeChange = (idx: number, type: AssetType) => {
@@ -108,8 +108,8 @@ export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
           <AssetDropdown
             assetType={assetTypes[idx] || 'mutual_fund'}
             funds={funds.filter(f => 
-              selectedAssets.every((inst, i) => 
-                i === idx || !inst || inst.type !== 'mutual_fund' || inst.id !== f.schemeCode
+              selectedAssets.every((asset, i) => 
+                i === idx || !asset || asset.type !== 'mutual_fund' || asset.id !== f.schemeCode
               )
             )}
             onSelect={(asset) => onAssetSelect(idx, asset)}

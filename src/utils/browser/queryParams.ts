@@ -156,7 +156,7 @@ export function getQueryParams() {
             };
           }
           return null;
-        }).filter((inst): inst is Asset => inst !== null)
+        }).filter((asset): asset is Asset => asset !== null)
       : [],
     // Default to logarithmic scale when not specified
     logScale: logScale ? logScale === '1' : true,
@@ -272,23 +272,23 @@ export function setQueryParams(sipPortfolios: SipPortfolio[], years: number, sip
   const portfoliosStr = sipPortfolios
     .map(p => {
       const assetsStr = p.selectedAssets
-        .map((inst: any, idx: number) => {
+        .map((asset: any, idx: number) => {
           const allocation = p.allocations[idx] || 0;
-          if (!inst) {
+          if (!asset) {
             return `null:${allocation}`;
           }
-          if (inst.type === 'mutual_fund') {
-            return `mf:${inst.schemeCode}:${allocation}`;
-          } else if (inst.type === 'index_fund') {
+          if (asset.type === 'mutual_fund') {
+            return `mf:${asset.schemeCode}:${allocation}`;
+          } else if (asset.type === 'index_fund') {
             // Replace spaces with underscores for cleaner URLs
-            const cleanIndexName = inst.indexName.replace(/\s+/g, '_');
+            const cleanIndexName = asset.indexName.replace(/\s+/g, '_');
             return `idx:${cleanIndexName}:${allocation}`;
-          } else if (inst.type === 'yahoo_finance') {
-            return `yahoo:${inst.symbol}:${allocation}`;
-          } else if (inst.type === 'fixed_return') {
-            return `fixed:${inst.annualReturnPercentage}:${allocation}`;
-          } else if (inst.type === 'inflation') {
-            return `inflation:${inst.countryCode}:${allocation}`;
+          } else if (asset.type === 'yahoo_finance') {
+            return `yahoo:${asset.symbol}:${allocation}`;
+          } else if (asset.type === 'fixed_return') {
+            return `fixed:${asset.annualReturnPercentage}:${allocation}`;
+          } else if (asset.type === 'inflation') {
+            return `inflation:${asset.countryCode}:${allocation}`;
           }
           return `null:${allocation}`;
         })
@@ -307,18 +307,18 @@ export function setQueryParams(sipPortfolios: SipPortfolio[], years: number, sip
 export function setHistoricalValuesParams(assets: Asset[], logScale: boolean) {
   // Format: type:id;type:id;...
   const assetsStr = assets
-    .map(inst => {
-      if (inst.type === 'mutual_fund') {
-        return `mf:${inst.schemeCode}`;
-      } else if (inst.type === 'index_fund') {
-        const cleanIndexName = inst.indexName.replace(/\s+/g, '_');
+    .map(asset => {
+      if (asset.type === 'mutual_fund') {
+        return `mf:${asset.schemeCode}`;
+      } else if (asset.type === 'index_fund') {
+        const cleanIndexName = asset.indexName.replace(/\s+/g, '_');
         return `idx:${cleanIndexName}`;
-      } else if (inst.type === 'yahoo_finance') {
-        return `yahoo:${inst.symbol}`;
-      } else if (inst.type === 'fixed_return') {
-        return `fixed:${inst.annualReturnPercentage}`;
-      } else if (inst.type === 'inflation') {
-        return `inflation:${inst.countryCode}`;
+      } else if (asset.type === 'yahoo_finance') {
+        return `yahoo:${asset.symbol}`;
+      } else if (asset.type === 'fixed_return') {
+        return `fixed:${asset.annualReturnPercentage}`;
+      } else if (asset.type === 'inflation') {
+        return `inflation:${asset.countryCode}`;
       }
       return null;
     })

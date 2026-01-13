@@ -73,27 +73,27 @@ const getPortfolioAssets = (
   if (!portfolio || !portfolio.selectedAssets) return [];
   
   return portfolio.selectedAssets
-    .filter(inst => inst)
-    .map(inst => {
-      if (inst!.type === 'mutual_fund') {
-        const fund = funds.find(f => f.schemeCode === inst!.schemeCode);
+    .filter(asset => asset)
+    .map(asset => {
+      if (asset!.type === 'mutual_fund') {
+        const fund = funds.find(f => f.schemeCode === asset!.schemeCode);
         return {
-          schemeName: fund ? fund.schemeName : `Fund ${inst!.schemeCode}`,
+          schemeName: fund ? fund.schemeName : `Fund ${asset!.schemeCode}`,
           type: 'mutual_fund' as const
         };
-      } else if (inst!.type === 'index_fund') {
+      } else if (asset!.type === 'index_fund') {
         return {
-          schemeName: inst!.displayName || inst!.name,
+          schemeName: asset!.displayName || asset!.name,
           type: 'index_fund' as const
         };
-      } else if (inst!.type === 'yahoo_finance') {
+      } else if (asset!.type === 'yahoo_finance') {
         return {
-          schemeName: inst!.displayName || inst!.symbol,
+          schemeName: asset!.displayName || asset!.symbol,
           type: 'yahoo_finance' as const
         };
-      } else if (inst!.type === 'fixed_return') {
+      } else if (asset!.type === 'fixed_return') {
         return {
-          schemeName: inst!.displayName || inst!.name,
+          schemeName: asset!.displayName || asset!.name,
           type: 'fixed_return' as const
         };
       }
@@ -310,25 +310,25 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
         const portfolio = portfolios[portfolioIdx];
         
         if (portfolio.selectedAssets) {
-          for (const inst of portfolio.selectedAssets) {
-            if (!inst) continue;
+          for (const asset of portfolio.selectedAssets) {
+            if (!asset) continue;
             
             let identifier: string = '';
-            switch (inst.type) {
+            switch (asset.type) {
               case 'mutual_fund':
-                identifier = `${portfolioIdx}_${inst.schemeCode}`;
+                identifier = `${portfolioIdx}_${asset.schemeCode}`;
                 break;
               case 'index_fund':
-                identifier = `${portfolioIdx}_${inst.indexName}`;
+                identifier = `${portfolioIdx}_${asset.indexName}`;
                 break;
               case 'yahoo_finance':
-                identifier = `${portfolioIdx}_${inst.symbol}`;
+                identifier = `${portfolioIdx}_${asset.symbol}`;
                 break;
               case 'fixed_return':
-                identifier = `${portfolioIdx}_fixed_${inst.annualReturnPercentage}`;
+                identifier = `${portfolioIdx}_fixed_${asset.annualReturnPercentage}`;
                 break;
               case 'inflation':
-                identifier = `${portfolioIdx}_inflation_${inst.countryCode}`;
+                identifier = `${portfolioIdx}_inflation_${asset.countryCode}`;
                 break;
             }
             

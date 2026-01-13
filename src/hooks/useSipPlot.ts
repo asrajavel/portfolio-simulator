@@ -146,7 +146,7 @@ export function useSipPlot({
         
         // Check if this portfolio contains inflation asset
         const hasInflation = sipPortfolios[pIdx].selectedAssets.some(
-          inst => inst?.type === 'inflation'
+          asset => asset?.type === 'inflation'
         );
         
         const portfolioStartTime = performance.now();

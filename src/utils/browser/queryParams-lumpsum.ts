@@ -6,22 +6,22 @@ export function setLumpsumQueryParams(lumpsumPortfolios: LumpsumPortfolio[], yea
   const portfoliosStr = lumpsumPortfolios
     .map(p => {
       const assetsStr = p.selectedAssets
-        .map((inst: any, idx: number) => {
+        .map((asset: any, idx: number) => {
           const allocation = p.allocations[idx] || 0;
-          if (!inst) {
+          if (!asset) {
             return `null:${allocation}`;
           }
-          if (inst.type === 'mutual_fund') {
-            return `mf:${inst.schemeCode}:${allocation}`;
-          } else if (inst.type === 'index_fund') {
-            const cleanIndexName = inst.indexName.replace(/\s+/g, '_');
+          if (asset.type === 'mutual_fund') {
+            return `mf:${asset.schemeCode}:${allocation}`;
+          } else if (asset.type === 'index_fund') {
+            const cleanIndexName = asset.indexName.replace(/\s+/g, '_');
             return `idx:${cleanIndexName}:${allocation}`;
-          } else if (inst.type === 'yahoo_finance') {
-            return `yahoo:${inst.symbol}:${allocation}`;
-          } else if (inst.type === 'fixed_return') {
-            return `fixed:${inst.annualReturnPercentage}:${allocation}`;
-          } else if (inst.type === 'inflation') {
-            return `inflation:${inst.countryCode}:${allocation}`;
+          } else if (asset.type === 'yahoo_finance') {
+            return `yahoo:${asset.symbol}:${allocation}`;
+          } else if (asset.type === 'fixed_return') {
+            return `fixed:${asset.annualReturnPercentage}:${allocation}`;
+          } else if (asset.type === 'inflation') {
+            return `inflation:${asset.countryCode}:${allocation}`;
           }
           return `null:${allocation}`;
         })

@@ -73,7 +73,7 @@ export function useLumpsumPortfolios(DEFAULT_SCHEME_CODE: number, lumpsumAmountS
     setLumpsumPortfolios(prev => prev.map((p, i) => {
       if (i !== portfolioIdx) return p;
       
-      const newAssets = p.selectedAssets.map((inst, j) => j === idx ? asset : inst);
+      const newAssets = p.selectedAssets.map((existing, j) => j === idx ? asset : existing);
 
       return { 
         ...p, 

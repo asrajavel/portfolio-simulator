@@ -33,9 +33,9 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
   
   const [assets, setAssets] = useState<AssetEntry[]>(() => {
     if (queryParams.assets.length > 0) {
-      return queryParams.assets.map(inst => ({
-        assetType: inst.type,
-        asset: inst
+      return queryParams.assets.map(asset => ({
+        assetType: asset.type,
+        asset: asset
       }));
     }
 
