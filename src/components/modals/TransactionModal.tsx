@@ -25,6 +25,7 @@ interface TransactionModalProps {
   xirr: number;
   portfolioName: string;
   funds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
+  chartView: 'xirr' | 'corpus';
 }
 
 type TransactionRowDataT = [string, string, string, number, number, number, number, number, string];
@@ -36,7 +37,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   date, 
   xirr, 
   portfolioName, 
-  funds 
+  funds,
+  chartView,
 }) => {
   const [excludeNilTransactions, setExcludeNilTransactions] = useState(true);
 
@@ -214,6 +216,29 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               >
                 Exclude Non-Transaction Days
               </Checkbox>
+            </Block>
+          )}
+
+          {/* XIRR mode note */}
+          {chartView === 'xirr' && (
+            <Block marginBottom="scale400">
+              <LabelMedium
+                overrides={{
+                  Block: {
+                    style: ({ $theme }) => ({
+                      color: $theme.colors.contentTertiary,
+                      fontStyle: 'italic',
+                      fontSize: '12px',
+                      marginTop: 0,
+                      marginRight: 0,
+                      marginBottom: 0,
+                      marginLeft: 0,
+                    })
+                  }
+                }}
+              >
+                Note: For XIRR calculation, ₹100 is used for simulation purposes.
+              </LabelMedium>
             </Block>
           )}
 

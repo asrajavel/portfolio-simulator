@@ -39,6 +39,7 @@ interface ModalState {
   xirr: number;
   portfolioName: string;
   portfolioAssets: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
+  chartView: 'xirr' | 'corpus';
 }
 
 // ============================================================================
@@ -51,7 +52,8 @@ const initialModalState: ModalState = {
   date: '',
   xirr: 0,
   portfolioName: '',
-  portfolioAssets: []
+  portfolioAssets: [],
+  chartView: 'xirr'
 };
 
 // ============================================================================
@@ -388,6 +390,7 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
         xirr: xirrEntry.xirr,
         portfolioName,
         portfolioAssets,
+        chartView,
       });
     }
   };
