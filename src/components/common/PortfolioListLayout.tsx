@@ -127,7 +127,7 @@ export function PortfolioListLayout<T>({
           onClick={onAddPortfolio}
           startEnhancer={() => <span style={{ fontSize: '16px', marginRight: '4px' }}>+</span>}
         >
-          Add Portfolio
+          Portfolio
         </Button>
       </Block>
     </Block>
