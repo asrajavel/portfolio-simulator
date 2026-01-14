@@ -43,7 +43,7 @@ const AppContent: React.FC = () => {
     <Container>
       <ToasterContainer autoHideDuration={5000} />
       <AppNavBar
-        title="Indian Investment Analysis"
+        title="Portfolio Simulator"
         mainItems={[
           { 
             label: 'Lumpsum Simulator',
