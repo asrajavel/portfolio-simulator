@@ -125,7 +125,7 @@ describe('calculateLumpSumRollingXirr', () => {
     const r2024 = result.find(r => r.date.getTime() === new Date('2024-01-01').getTime());
     
     expect(r2024).toBeDefined();
-    expect(r2024!.volatility).toBe(8.8906);
+    expect(r2024!.volatility).toBe(9.7161);
   });
 
   it('calculates correct volatility for multi-fund portfolios', () => {
@@ -155,5 +155,25 @@ describe('calculateLumpSumRollingXirr', () => {
     // Volatility should be calculated from these multi-fund portfolio values
     expect(r2024!.volatility).toBeGreaterThan(0);
     expect(r2024!.volatility).toBeLessThan(20); // Reasonable range for volatility
+  });
+
+  it('skips forward-filled weekends in volatility calculation', () => {
+    // 5 trading days with changes, rest are forward-filled (same value)
+    const navData: NavEntry[] = [
+      { date: new Date('2023-01-01'), nav: 100 },
+      { date: new Date('2023-01-02'), nav: 102 }, // +2%
+      { date: new Date('2023-01-03'), nav: 102 }, // 0% (forward-filled, should skip)
+      { date: new Date('2023-01-04'), nav: 102 }, // 0% (forward-filled, should skip)
+      { date: new Date('2023-01-05'), nav: 104 }, // +1.96%
+      { date: new Date('2024-01-01'), nav: 110 },
+    ];
+    const filled = fillMissingNavDates(navData);
+    
+    const result = calculateLumpSumRollingXirr([filled], 1, [100], 100);
+    const r2024 = result.find(r => r.date.getTime() === new Date('2024-01-01').getTime());
+    
+    expect(r2024).toBeDefined();
+    // Volatility calculated only from non-zero return days (weekends skipped)
+    expect(r2024!.volatility).toBe(3.0937);
   });
 }); 

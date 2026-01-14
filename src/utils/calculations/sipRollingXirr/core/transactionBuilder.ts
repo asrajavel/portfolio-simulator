@@ -147,9 +147,10 @@ function buildDailyTransactions(
   const loopDate = new Date(startDate);
   const firstSipDate = new Date(startDate);
 
-  while (loopDate < endDate) {
+  while (loopDate <= endDate) {
     const dateKey = toDateKey(loopDate);
-    const isSipDate = sipDates.has(dateKey);
+    // Don't process SIP on the final day (it's the sell date, not a buy date)
+    const isSipDate = loopDate < endDate && sipDates.has(dateKey);
 
     let cashFlowForDay = 0;
     if (isSipDate) {

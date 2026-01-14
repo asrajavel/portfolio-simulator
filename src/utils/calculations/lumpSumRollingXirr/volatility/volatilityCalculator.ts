@@ -40,8 +40,16 @@ export function calculateVolatility(
   // Calculate standard deviation (daily volatility)
   const dailyVolatility = Math.sqrt(variance);
 
-  // Annualize volatility using standard 252 trading days
-  const annualizedVolatility = dailyVolatility * Math.sqrt(TRADING_DAYS_PER_YEAR);
+  // Calculate trading days per year based on actual data
+  // If we have 365 days but only 252 returns (after skipping weekends), annualize accordingly
+  const totalDays = dailyValues.length - 1; // Total day-pairs
+  const tradingDays = dailyReturns.length;   // Actual trading days (non-zero returns)
+  const tradingDaysPerYear = totalDays > 0 
+    ? Math.round((tradingDays / totalDays) * 365)
+    : TRADING_DAYS_PER_YEAR; // Default to 252 if calculation fails
+
+  // Annualize volatility using calculated trading days
+  const annualizedVolatility = dailyVolatility * Math.sqrt(tradingDaysPerYear);
 
   const volatilityPercent = (annualizedVolatility * 100) || 0;
 
@@ -54,6 +62,9 @@ export function calculateVolatility(
  * 
  * Simpler than SIP since lumpsum has no intermediate cash flows
  * Just pure market returns on the invested capital
+ * 
+ * Skips forward-filled days (weekends/holidays) where value didn't change
+ * This prevents artificially low volatility from zero returns on non-trading days
  */
 function calculateDailyReturns(dailyValues: DailyPortfolioValue[]): number[] {
   const returns: number[] = [];
@@ -63,6 +74,12 @@ function calculateDailyReturns(dailyValues: DailyPortfolioValue[]): number[] {
     const currentValue = dailyValues[i].totalValue;
 
     if (previousValue > 0) {
+      // Skip forward-filled days (weekends/holidays) where value didn't change
+      // This prevents artificially low volatility from zero returns on non-trading days
+      if (currentValue === previousValue) {
+        continue;
+      }
+      
       const dailyReturn = (currentValue / previousValue) - 1;
       returns.push(dailyReturn);
     }
