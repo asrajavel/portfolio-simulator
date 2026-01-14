@@ -4,7 +4,6 @@ import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { CHART_STYLES } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
-import { HelpButton } from '../help';
 
 interface VolatilityChartProps {
   sipPortfolioXirrData: Record<string, any[]>;
@@ -130,10 +129,7 @@ export const VolatilityChart: React.FC<VolatilityChartProps> = ({ sipPortfolioXi
   const chartOptions = getChartOptions(years, sipPortfolioXirrData, COLORS);
 
   return (
-    <Block marginTop="2rem" position="relative">
-      <Block position="absolute" top="8px" right="8px" $style={{ zIndex: 10 }}>
-        <HelpButton topic="volatility" />
-      </Block>
+    <Block marginTop="2rem">
       <HighchartsReact
         highcharts={Highcharts}
         constructorType={'stockChart'}
