@@ -215,7 +215,7 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
               onClick={handleAddAsset}
               startEnhancer={() => <span style={{ fontSize: '16px', marginRight: '4px' }}>+</span>}
             >
-              Add Asset
+              Asset
             </Button>
           </Block>
         </Block>
@@ -271,7 +271,7 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
             onClick={handlePlot}
             disabled={anyInvalidSelection}
           >
-            Plot Historical Values
+            Plot
           </Button>
         </Block>
       </Block>

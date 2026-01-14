@@ -192,7 +192,7 @@ Only relevant for multi-asset portfolios. Disabled for single-asset portfolios.`
 **How to use:**
 1. Add assets you want to view/compare
 2. Select asset type and specific asset
-3. Click "Plot Historical Values"
+3. Click "Plot"
 
 **Logarithmic Scale:**
 Enable log scale when comparing assets with different absolute values.
