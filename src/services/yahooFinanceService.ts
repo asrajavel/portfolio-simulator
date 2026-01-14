@@ -120,8 +120,17 @@ class YahooFinanceService {
           return null; // Skip null values
         }
         
+        // Normalize to midnight UTC to match other data sources (indices, mutual funds)
+        // Yahoo returns market close time (14:30 UTC for US markets), but we need midnight
+        const rawDate = new Date(timestamp * 1000);
+        const normalizedDate = new Date(Date.UTC(
+          rawDate.getUTCFullYear(),
+          rawDate.getUTCMonth(),
+          rawDate.getUTCDate()
+        ));
+        
         return {
-          date: new Date(timestamp * 1000), // Convert Unix timestamp to Date
+          date: normalizedDate,
           nav: adjClose
         };
       }).filter(item => item !== null) as ProcessedIndexData[];
