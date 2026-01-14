@@ -4,6 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { SipPortfolio } from '../../types/sipPortfolio';
 import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
+import { AssetType } from '../../types/asset';
 import { Block } from 'baseui/block';
 import { TransactionModal } from '../modals/TransactionModal';
 import { CHART_STYLES } from '../../constants';
@@ -38,7 +39,7 @@ interface ModalState {
   date: string;
   xirr: number;
   portfolioName: string;
-  portfolioAssets: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
+  portfolioAssets: Array<{ schemeName: string; type: AssetType }>;
   chartView: 'xirr' | 'corpus';
 }
 
@@ -69,7 +70,7 @@ const getPortfolioAssets = (
   portfolioName: string, 
   portfolios: (SipPortfolio | LumpsumPortfolio)[], 
   funds: mfapiMutualFund[]
-): Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }> => {
+): Array<{ schemeName: string; type: AssetType }> => {
   const idx = parseInt(portfolioName.replace('Portfolio ', '')) - 1;
   const portfolio = portfolios[idx];
   if (!portfolio || !portfolio.selectedAssets) return [];
@@ -97,6 +98,11 @@ const getPortfolioAssets = (
         return {
           schemeName: asset!.displayName || asset!.name,
           type: 'fixed_return' as const
+        };
+      } else if (asset!.type === 'inflation') {
+        return {
+          schemeName: asset!.displayName || asset!.name,
+          type: 'inflation' as const
         };
       }
       return {

@@ -11,6 +11,7 @@ import { Block } from 'baseui/block';
 import { Checkbox } from 'baseui/checkbox';
 import { TransactionChart } from '../charts/TransactionChart';
 import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
+import { AssetType } from '../../types/asset';
 import { COLORS } from '../../constants';
 
 function formatDate(date: Date): string {
@@ -24,7 +25,7 @@ interface TransactionModalProps {
   date: string;
   xirr: number;
   portfolioName: string;
-  funds: Array<{ schemeName: string; type: 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' }>;
+  funds: Array<{ schemeName: string; type: AssetType }>;
   chartView: 'xirr' | 'corpus';
 }
 
