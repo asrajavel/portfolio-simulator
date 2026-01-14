@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
+import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
+import { useHelp } from '../help';
 import { CHART_STYLES } from '../../constants';
 import { formatCurrency } from '../../utils/numberFormat';
 
@@ -18,6 +20,8 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
   years,
   chartView
 }) => {
+  const { openHelp } = useHelp();
+  
   const computeValue = (row: any): number | null => {
     if (chartView === 'xirr') {
       return typeof row.xirr === 'number' ? row.xirr * 100 : null;
@@ -126,10 +130,7 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
       spacing: [20, 20, 20, 20],
       height: 450
     },
-    title: {
-      text: `${chartView === 'xirr' ? 'Return' : 'Corpus'} Distribution - Rolling ${years}Y`,
-      style: CHART_STYLES.title
-    },
+    title: { text: undefined },
     credits: { enabled: false },
     xAxis: {
       title: { text: chartView === 'xirr' ? 'XIRR (%)' : 'Corpus Value (₹)', style: CHART_STYLES.axisTitle },
@@ -171,12 +172,34 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
     series
   };
 
+  const chartTitle = `${chartView === 'xirr' ? 'Return' : 'Corpus'} Distribution - Rolling ${years}Y`;
+
   return (
     <Block marginTop="2rem">
-      <HighchartsReact
-        highcharts={Highcharts}
-        options={chartOptions}
-      />
+      {/* Chart Title and Subtitle */}
+      <Block marginBottom="scale400" $style={{ textAlign: 'center' }}>
+        <HeadingSmall marginTop="0" marginBottom="scale200">{chartTitle}</HeadingSmall>
+        <ParagraphSmall color="contentTertiary" marginTop="0" marginBottom="0">
+          Shows what percentage of returns fell in each range — per portfolio, all bars add up to 100%.
+        </ParagraphSmall>
+        <ParagraphSmall color="contentTertiary" marginTop="0" marginBottom="0">
+          Read{' '}
+          <span 
+            onClick={() => openHelp('histogram')} 
+            style={{ color: '#276EF1', cursor: 'pointer' }}
+          >
+            help
+          </span>{' '}
+          to know more.
+        </ParagraphSmall>
+      </Block>
+
+      <Block>
+        <HighchartsReact
+          highcharts={Highcharts}
+          options={chartOptions}
+        />
+      </Block>
     </Block>
   );
 };

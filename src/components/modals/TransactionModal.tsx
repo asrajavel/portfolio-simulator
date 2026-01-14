@@ -100,11 +100,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   // Columns for all detailed transactions (both SIP and Lumpsum)
   const columns = [
     StringColumn({
-      title: "Fund",
+      title: "Asset",
       mapDataToValue: (data: TransactionRowDataT) => data[0],
     }),
     CategoricalColumn({
-      title: "Type",
+      title: "Action",
       mapDataToValue: (data: TransactionRowDataT) => data[1],
     }),
     StringColumn({
@@ -112,27 +112,27 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       mapDataToValue: (data: TransactionRowDataT) => data[2],
     }),
     NumericalColumn({
-      title: "NAV",
+      title: "NAV / Price",
       format: formatNumber,
       mapDataToValue: (data: TransactionRowDataT) => data[3],
     }),
     NumericalColumn({
-      title: "Units",
+      title: "Units / Qty",
       format: formatUnits,
       mapDataToValue: (data: TransactionRowDataT) => data[4],
     }),
     NumericalColumn({
-      title: "Amount",
+      title: "Cash Flow",
       format: formatNumber,
       mapDataToValue: (data: TransactionRowDataT) => data[5],
     }),
     NumericalColumn({
-      title: "Cumulative Units",
+      title: "Total Units / Qty",
       format: formatUnits,
       mapDataToValue: (data: TransactionRowDataT) => data[6],
     }),
     NumericalColumn({
-      title: "Current Value",
+      title: "Value",
       format: formatNumber,
       mapDataToValue: (data: TransactionRowDataT) => data[7],
     }),
@@ -184,64 +184,46 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
       }}
     >
       <ModalHeader>
-        <Block display="flex" alignItems="center" gridGap="scale400">
+        <Block display="flex" alignItems="stretch" gridGap="scale400">
           <Block
             $style={{
               width: '4px',
-              height: '24px',
               backgroundColor: portfolioColor,
               borderRadius: '2px',
             }}
           />
-          <HeadingSmall margin={0}>
-            {portfolioName} - {date}
-          </HeadingSmall>
+          <Block>
+            <HeadingSmall margin={0}>
+              {portfolioName} - Simulation ending on: {date}
+            </HeadingSmall>
+            <LabelMedium $style={{ color: '#6b7280', marginTop: '4px' }}>
+              XIRR: {(xirr * 100).toFixed(2)}%
+            </LabelMedium>
+          </Block>
         </Block>
       </ModalHeader>
       
       <ModalBody>
-        <Block $style={{ overflowY: 'auto', maxHeight: 'calc(90vh - 100px)' }}>
-          {/* XIRR Info */}
-          <Block marginBottom="scale800">
-            <LabelMedium>
-              XIRR: <LabelLarge as="span" $style={{ fontWeight: 600 }}>{(xirr * 100).toFixed(2)}%</LabelLarge>
-            </LabelMedium>
-          </Block>
-          
-          {/* Checkbox to exclude nil transactions */}
-          {hasDetailedTransactions && (
-            <Block marginBottom="scale600">
+        <Block $style={{ overflowY: 'auto', maxHeight: 'calc(90vh - 150px)' }}>
+          {/* Controls row */}
+          <Block display="flex" alignItems="center" justifyContent="space-between" marginBottom="scale600">
+            {/* Checkbox to exclude nil transactions */}
+            {hasDetailedTransactions && (
               <Checkbox
                 checked={excludeNilTransactions}
                 onChange={e => setExcludeNilTransactions(e.currentTarget.checked)}
               >
                 Exclude Non-Transaction Days
               </Checkbox>
-            </Block>
-          )}
-
-          {/* XIRR mode note */}
-          {chartView === 'xirr' && (
-            <Block marginBottom="scale400">
-              <LabelMedium
-                overrides={{
-                  Block: {
-                    style: ({ $theme }) => ({
-                      color: $theme.colors.contentTertiary,
-                      fontStyle: 'italic',
-                      fontSize: '12px',
-                      marginTop: 0,
-                      marginRight: 0,
-                      marginBottom: 0,
-                      marginLeft: 0,
-                    })
-                  }
-                }}
-              >
-                Note: For XIRR calculation, ₹100 is used for simulation purposes.
+            )}
+            
+            {/* XIRR mode note */}
+            {chartView === 'xirr' && (
+              <LabelMedium $style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '12px' }}>
+                Note: ₹100 is used for simulation purposes.
               </LabelMedium>
-            </Block>
-          )}
+            )}
+          </Block>
 
           {/* Table */}
           <Block height="500px" marginBottom="scale800">

@@ -216,7 +216,7 @@ Source: [MFAPI](https://mfapi.in), updated daily.
 
 **Index Funds:**
 NIFTY 50, SENSEX, and other indices.
-Primary source: [NSE India](https://www.niftyindices.com/reports/historical-data). Since the official site can sometimes be unreliable, index data is periodically backed up to [this repository](https://github.com/asrajavel/mf-index-data) (updated quarterly).
+Primary source: [NSE India](https://www.niftyindices.com/reports/historical-data). Since the official site can sometimes be unreliable, index data is periodically backed up to [this repository](https://github.com/asrajavel/mf-index-data) (updated quarterly). We read from this backup, so you might not see the latest data.
 
 **Yahoo Finance:**
 Any ticker available on Yahoo Finance — stocks, global indices, ETFs.

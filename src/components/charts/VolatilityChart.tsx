@@ -2,6 +2,8 @@ import React from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
+import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
+import { useHelp } from '../help';
 import { CHART_STYLES } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
 
@@ -41,7 +43,7 @@ interface VolatilityChartProps {
 };
 
 const getChartOptions = (years: number, sipPortfolioXirrData: Record<string, any[]>, COLORS: string[]) => ({
-  title: { text: `Volatility (Annualized) - Rolling ${years}Y`, style: CHART_STYLES.title },
+  title: { text: undefined },
   credits: { enabled: false },
   chart: {
     backgroundColor: CHART_STYLES.colors.background,
@@ -119,6 +121,8 @@ const getChartOptions = (years: number, sipPortfolioXirrData: Record<string, any
 });
 
 export const VolatilityChart: React.FC<VolatilityChartProps> = ({ sipPortfolioXirrData, COLORS, years }) => {
+  const { openHelp } = useHelp();
+  
   // Check if any portfolio has volatility data
   const hasVolatilityData = Object.values(sipPortfolioXirrData).some(data => 
     Array.isArray(data) && data.some(row => row.volatility !== undefined)
@@ -127,14 +131,35 @@ export const VolatilityChart: React.FC<VolatilityChartProps> = ({ sipPortfolioXi
   if (!hasVolatilityData) return null;
 
   const chartOptions = getChartOptions(years, sipPortfolioXirrData, COLORS);
+  const chartTitle = `Volatility (Annualized) - Rolling ${years}Y`;
 
   return (
     <Block marginTop="2rem">
-      <HighchartsReact
-        highcharts={Highcharts}
-        constructorType={'stockChart'}
-        options={chartOptions}
-      />
+      {/* Chart Title and Subtitle */}
+      <Block marginBottom="scale400" $style={{ textAlign: 'center' }}>
+        <HeadingSmall marginTop="0" marginBottom="scale200">{chartTitle}</HeadingSmall>
+        <ParagraphSmall color="contentTertiary" marginTop="0" marginBottom="0">
+          Measures daily portfolio fluctuations (annualized) — higher values indicate more risk.
+        </ParagraphSmall>
+        <ParagraphSmall color="contentTertiary" marginTop="0" marginBottom="0">
+          Read{' '}
+          <span 
+            onClick={() => openHelp('volatility')} 
+            style={{ color: '#276EF1', cursor: 'pointer' }}
+          >
+            help
+          </span>{' '}
+          to know more.
+        </ParagraphSmall>
+      </Block>
+
+      <Block>
+        <HighchartsReact
+          highcharts={Highcharts}
+          constructorType={'stockChart'}
+          options={chartOptions}
+        />
+      </Block>
     </Block>
   );
 };

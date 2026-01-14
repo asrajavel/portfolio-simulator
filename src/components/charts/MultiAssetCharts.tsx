@@ -6,6 +6,8 @@ import { SipPortfolio } from '../../types/sipPortfolio';
 import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
 import { AssetType } from '../../types/asset';
 import { Block } from 'baseui/block';
+import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
+import { useHelp } from '../help';
 import { TransactionModal } from '../modals/TransactionModal';
 import { CHART_STYLES } from '../../constants';
 import { VolatilityChart } from './VolatilityChart';
@@ -115,16 +117,9 @@ const getPortfolioAssets = (
 // CHART CONFIGURATION FUNCTIONS
 // ============================================================================
 
-const getBaseChartOptions = (title: string) => ({
-  title: { text: title, style: CHART_STYLES.title },
-  subtitle: {
-    text: 'Click on any point to view transactions for a specific date',
-    style: {
-      fontSize: '12px',
-      color: '#9ca3af',
-      fontStyle: 'italic'
-    }
-  },
+const getBaseChartOptions = () => ({
+  title: { text: undefined },
+  subtitle: { text: undefined },
   credits: { enabled: false },
   chart: {
     backgroundColor: CHART_STYLES.colors.background,
@@ -141,8 +136,8 @@ const getBaseChartOptions = (title: string) => ({
   }
 });
 
-const getStockChartOptions = (title: string, portfolioXirrData: Record<string, any[]>, amount: number, chartView: 'xirr' | 'corpus', isLumpsum: boolean = false) => ({
-  ...getBaseChartOptions(title),
+const getStockChartOptions = (portfolioXirrData: Record<string, any[]>, amount: number, chartView: 'xirr' | 'corpus', isLumpsum: boolean = false) => ({
+  ...getBaseChartOptions(),
   xAxis: {
     type: 'datetime',
     title: { text: 'Date', style: CHART_STYLES.axisTitle },
@@ -298,6 +293,7 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
   isLumpsum,
 }) => {
   const [modal, setModal] = useState<ModalState>(initialModalState);
+  const { openHelp } = useHelp();
 
   // Use the appropriate data source based on mode
   const portfolioXirrData = isLumpsum ? lumpsumPortfolioXirrData : sipPortfolioXirrData;
@@ -407,17 +403,17 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
     : `${isLumpsum ? 'Lumpsum' : 'SIP'} Corpus Value - Rolling ${years}Y`;
   
   const chartOptions = {
-    ...getStockChartOptions(chartTitle, portfolioXirrData || {}, amount, chartView, isLumpsum),
+    ...getStockChartOptions(portfolioXirrData || {}, amount, chartView, isLumpsum),
     series: getPortfolioSeries(portfolioXirrData || {}, COLORS, chartView, isLumpsum),
     chart: {
-      ...getStockChartOptions(chartTitle, portfolioXirrData || {}, amount, chartView, isLumpsum).chart,
+      ...getStockChartOptions(portfolioXirrData || {}, amount, chartView, isLumpsum).chart,
       height: 500,
       zooming: { mouseWheel: false },
       events: { click: closeModal }
     },
     plotOptions: {
       series: {
-        ...getStockChartOptions(chartTitle, portfolioXirrData || {}, amount, chartView, isLumpsum).plotOptions.series,
+        ...getStockChartOptions(portfolioXirrData || {}, amount, chartView, isLumpsum).plotOptions.series,
         point: {
           events: {
             click: function (this: Highcharts.Point) {
@@ -435,7 +431,26 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
   return (
     <Block marginTop="2rem">
       <TransactionModal {...modal} onClose={closeModal} funds={modal.portfolioAssets} />
-      <Block marginTop="1.5rem">
+      
+      {/* Chart Title and Subtitle */}
+      <Block marginBottom="scale400" $style={{ textAlign: 'center' }}>
+        <HeadingSmall marginTop="0" marginBottom="scale200">{chartTitle}</HeadingSmall>
+        <ParagraphSmall color="contentTertiary" marginTop="0" marginBottom="0">
+          Each point shows the return if your investment ended on that date. Click any point to see detailed transaction history.
+        </ParagraphSmall>
+        <ParagraphSmall color="contentTertiary" marginTop="0" marginBottom="0">
+          Read{' '}
+          <span 
+            onClick={() => openHelp('rolling-xirr')} 
+            style={{ color: '#276EF1', cursor: 'pointer' }}
+          >
+            help
+          </span>{' '}
+          to know more.
+        </ParagraphSmall>
+      </Block>
+      
+      <Block>
         <HighchartsReact
           highcharts={Highcharts}
           constructorType={'stockChart'}

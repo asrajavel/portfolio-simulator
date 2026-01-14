@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
+import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
 import { CHART_STYLES, COLORS } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
@@ -107,10 +108,7 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
       spacing: [20, 20, 20, 20],
       height: 600,
     },
-    title: {
-      text: 'Investment vs Value',
-      style: CHART_STYLES.title
-    },
+    title: { text: undefined },
     credits: { enabled: false },
     xAxis: {
       type: 'datetime',
@@ -183,11 +181,21 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
 
   return (
     <Block width="50%" margin="0 auto">
-      <HighchartsReact
-        highcharts={Highcharts}
-        constructorType={'stockChart'}
-        options={chartOptions}
-      />
+      {/* Chart Title and Subtitle */}
+      <Block marginBottom="scale400" $style={{ textAlign: 'center' }}>
+        <HeadingSmall marginTop="0" marginBottom="scale200">Investment vs Value</HeadingSmall>
+        <ParagraphSmall color="contentTertiary" marginTop="0" marginBottom="0">
+          Shows how your portfolio value changed over the investment period.
+        </ParagraphSmall>
+      </Block>
+
+      <Block>
+        <HighchartsReact
+          highcharts={Highcharts}
+          constructorType={'stockChart'}
+          options={chartOptions}
+        />
+      </Block>
     </Block>
   );
 };

@@ -367,26 +367,29 @@ function buildDetailedTransactions(
       totalPortfolioValue += currentValue;
       const fundAllocation = (investmentAmount * allocations[fundIdx]) / 100;
       
-      // Determine transaction type and amount
+      // Determine transaction type, amount, and units
       let type: 'buy' | 'sell' | 'nil' = 'nil';
       let amount = 0;
+      let units = 0; // nil transactions have 0 units (no transaction happening)
       
       if (isStartDate) {
         type = 'buy';
         amount = -fundAllocation;
+        units = fundUnits[fundIdx]; // buying these units
       } else if (isEndDate) {
         type = 'sell';
         amount = currentValue;
+        units = fundUnits[fundIdx]; // selling these units
       }
 
       dayTransactions.push({
         fundIdx,
         nav: navEntry.nav,
         when: navEntry.date,
-        units: fundUnits[fundIdx],
+        units,
         amount,
         type,
-        cumulativeUnits: fundUnits[fundIdx],
+        cumulativeUnits: fundUnits[fundIdx], // total units held
         currentValue,
         allocationPercentage: 0 // Calculated below
       });
