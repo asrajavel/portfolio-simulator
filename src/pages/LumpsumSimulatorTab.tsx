@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Block } from 'baseui/block';
+import { ParagraphMedium } from 'baseui/typography';
 import { LoadingOverlay } from '../components/common/LoadingOverlay';
 import { ChartArea } from '../components/layout/ChartArea';
 import { usePlotState } from '../hooks/usePlotState';
@@ -69,6 +70,13 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
   return (
     <Block position="relative">
       <LoadingOverlay active={plotState.loadingNav || plotState.loadingXirr} />
+      
+      {/* Page Description */}
+      <Block maxWidth="900px" margin="0 auto" marginBottom="scale400" paddingTop="0" display="flex" justifyContent="center">
+        <ParagraphMedium color="contentTertiary" marginTop="0" marginBottom="0">
+          Simulate one-time investments and compare rolling returns across different time periods.
+        </ParagraphMedium>
+      </Block>
       
       <Block maxWidth="900px" margin="0 auto">
         <LumpsumPortfolioList

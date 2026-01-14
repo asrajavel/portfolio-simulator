@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Block } from 'baseui/block';
 import { Button } from 'baseui/button';
 import { Checkbox } from 'baseui/checkbox';
-import { LabelLarge } from 'baseui/typography';
+import { LabelLarge, ParagraphMedium } from 'baseui/typography';
 import { AssetTypeDropdown } from '../controls/AssetTypeDropdown';
 import { AssetDropdown } from '../controls/AssetDropdown';
 import { AssetType, Asset } from '../../types/asset';
@@ -142,6 +142,13 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
   return (
     <Block position="relative">
       <LoadingOverlay active={loading} />
+      
+      {/* Page Description */}
+      <Block maxWidth="900px" margin="0 auto" marginBottom="scale400" paddingTop="0" display="flex" justifyContent="center">
+        <ParagraphMedium color="contentTertiary" marginTop="0" marginBottom="0">
+          View and compare historical NAV/price data for mutual funds, indices, and stocks.
+        </ParagraphMedium>
+      </Block>
       
       <Block maxWidth="900px" margin="0 auto">
         <Block marginBottom="scale800">
