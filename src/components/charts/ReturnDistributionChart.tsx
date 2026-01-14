@@ -137,7 +137,14 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
       labels: { style: CHART_STYLES.axisLabels },
       gridLineColor: CHART_STYLES.colors.gridLine,
       lineColor: CHART_STYLES.colors.line,
-      tickColor: CHART_STYLES.colors.tick
+      tickColor: CHART_STYLES.colors.tick,
+      plotLines: chartView === 'xirr' ? [{
+        value: 0,
+        color: '#6b7280',
+        dashStyle: 'Dash',
+        width: 1,
+        zIndex: 5
+      }] : []
     },
     yAxis: {
       opposite: false,

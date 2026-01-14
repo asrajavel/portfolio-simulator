@@ -13,7 +13,7 @@ export const LoadingErrorStates: React.FC<LoadingErrorStatesProps> = ({ loading,
     return (
       <Block display="flex" flexDirection="column" alignItems="center" margin="2rem 0" gridGap="scale400">
         <Spinner />
-        <LabelMedium>Loading list of mutual funds...</LabelMedium>
+        <LabelMedium>Loading...</LabelMedium>
       </Block>
     );
   }

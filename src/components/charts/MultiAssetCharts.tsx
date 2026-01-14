@@ -167,7 +167,7 @@ const getStockChartOptions = (portfolioXirrData: Record<string, any[]>, amount: 
     },
     gridLineColor: CHART_STYLES.colors.gridLine,
     lineColor: CHART_STYLES.colors.line,
-    plotLines: chartView === 'xirr' ? [{ value: 0, width: 2, color: '#aaa', zIndex: 1 }] : []
+    plotLines: chartView === 'xirr' ? [{ value: 0, color: '#6b7280', dashStyle: 'Dash', width: 1, zIndex: 5 }] : []
   },
   rangeSelector: { enabled: false },
   navigator: STOCK_CHART_NAVIGATOR,
