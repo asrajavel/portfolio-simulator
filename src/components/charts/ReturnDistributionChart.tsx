@@ -231,14 +231,41 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
     <span key="name"><span style={{ color: row.color, marginRight: 6 }}>●</span>{row.portfolioName}</span>
   );
 
+  const ranked = (
+    values: number[],
+    formatted: string[],
+    higherIsBetter: boolean,
+  ) => {
+    if (values.length < 2) return formatted.map(f => <span>{f}</span>);
+    const best = higherIsBetter ? Math.max(...values) : Math.min(...values);
+    return values.map((v, i) => (
+      <span key={i} style={{
+        color: v === best ? '#16a34a' : undefined,
+        fontWeight: v === best ? 600 : undefined,
+      }}>{formatted[i]}</span>
+    ));
+  };
+
+  const statsKeys = ['avg', 'median', 'max', 'min'] as const;
   const statsColumns = ['Portfolio', 'Average', 'Median', 'Maximum', 'Minimum'];
-  const statsTableData = statsData.map(row => [
-    portfolioCol(row), fmt(row.avg), fmt(row.median), fmt(row.max), fmt(row.min),
+  const statsRanked = statsKeys.map(key =>
+    ranked(statsData.map(r => r[key]), statsData.map(r => fmt(r[key])), true)
+  );
+  const statsTableData = statsData.map((row, ri) => [
+    portfolioCol(row), ...statsKeys.map((_, ci) => statsRanked[ci][ri]),
   ]);
 
+  const distKeys = ['negative', 'zeroTo5', 'fiveTo10', 'tenTo20', 'moreThan20'] as const;
+  const distRankable: Record<string, boolean> = { negative: true };
+  const distHigherIsBetter: Record<string, boolean> = { negative: false };
   const distColumns = ['Portfolio', 'Negative', '0 - 5%', '5 - 10%', '10 - 20%', '> 20%'];
-  const distTableData = statsData.map(row => [
-    portfolioCol(row), pct(row.negative), pct(row.zeroTo5), pct(row.fiveTo10), pct(row.tenTo20), pct(row.moreThan20),
+  const distCells = distKeys.map(key =>
+    distRankable[key]
+      ? ranked(statsData.map(r => r[key]), statsData.map(r => pct(r[key])), distHigherIsBetter[key])
+      : statsData.map(r => <span>{pct(r[key])}</span>)
+  );
+  const distTableData = statsData.map((row, ri) => [
+    portfolioCol(row), ...distKeys.map((_, ci) => distCells[ci][ri]),
   ]);
 
   return (
