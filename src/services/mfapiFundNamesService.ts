@@ -19,7 +19,12 @@ export const fetchMutualFunds = async (): Promise<mfapiMutualFund[]> => {
         !name.includes('days') &&
         !name.includes('fixed') &&
         !name.includes('series') &&
-        !name.includes('fmp')
+        !name.includes('fmp') &&
+        !name.includes('bonus') &&
+        !name.includes('etf') &&
+        !name.includes('interval') &&
+        !name.includes('segregated') &&
+        !name.includes('institutional')
       );
     })
     .sort((a, b) => a.schemeName.localeCompare(b.schemeName, undefined, { sensitivity: 'base' }));
