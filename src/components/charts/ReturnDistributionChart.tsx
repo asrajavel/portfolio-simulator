@@ -3,6 +3,7 @@ import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
+import { Table } from 'baseui/table-semantic';
 import { useHelp } from '../help';
 import { CHART_STYLES } from '../../constants';
 import { formatCurrency } from '../../utils/numberFormat';
@@ -121,6 +122,44 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
     });
   }, [portfolioXirrData, COLORS, chartView]);
 
+  const statsData = useMemo(() => {
+    const entries = Object.entries(portfolioXirrData || {});
+
+    return entries.map(([portfolioName, data], idx) => {
+      const values = (data || [])
+        .map((row: any) => computeValue(row))
+        .filter((val: number | null): val is number => val !== null);
+
+      if (!values.length) return null;
+
+      const sorted = [...values].sort((a, b) => a - b);
+      const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
+      const median = sorted.length % 2 === 0
+        ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+        : sorted[Math.floor(sorted.length / 2)];
+      const max = sorted[sorted.length - 1];
+      const min = sorted[0];
+
+      const total = values.length;
+      const negative = (values.filter(v => v < 0).length / total) * 100;
+      const zeroTo5 = (values.filter(v => v >= 0 && v < 5).length / total) * 100;
+      const fiveTo10 = (values.filter(v => v >= 5 && v < 10).length / total) * 100;
+      const tenTo20 = (values.filter(v => v >= 10 && v < 20).length / total) * 100;
+      const moreThan20 = (values.filter(v => v >= 20).length / total) * 100;
+
+      return {
+        portfolioName,
+        color: COLORS[idx % COLORS.length],
+        avg, median, max, min,
+        negative, zeroTo5, fiveTo10, tenTo20, moreThan20,
+      };
+    }).filter(Boolean) as Array<{
+      portfolioName: string; color: string;
+      avg: number; median: number; max: number; min: number;
+      negative: number; zeroTo5: number; fiveTo10: number; tenTo20: number; moreThan20: number;
+    }>;
+  }, [portfolioXirrData, COLORS, chartView]);
+
   if (!series.length) return null;
 
   const chartOptions = {
@@ -181,9 +220,29 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
 
   const chartTitle = `${chartView === 'xirr' ? 'Return' : 'Corpus'} Distribution - Rolling ${years}Y`;
 
+  const isXirr = chartView === 'xirr';
+
+  const fmt = (v: number) =>
+    isXirr ? `${v.toFixed(2)}%` : formatCurrency(v, 0);
+
+  const pct = (v: number) => `${v.toFixed(2)}%`;
+
+  const portfolioCol = (row: typeof statsData[number]) => (
+    <span key="name"><span style={{ color: row.color, marginRight: 6 }}>●</span>{row.portfolioName}</span>
+  );
+
+  const statsColumns = ['Portfolio', 'Average', 'Median', 'Maximum', 'Minimum'];
+  const statsTableData = statsData.map(row => [
+    portfolioCol(row), fmt(row.avg), fmt(row.median), fmt(row.max), fmt(row.min),
+  ]);
+
+  const distColumns = ['Portfolio', 'Negative', '0 - 5%', '5 - 10%', '10 - 20%', '> 20%'];
+  const distTableData = statsData.map(row => [
+    portfolioCol(row), pct(row.negative), pct(row.zeroTo5), pct(row.fiveTo10), pct(row.tenTo20), pct(row.moreThan20),
+  ]);
+
   return (
     <Block marginTop="2rem">
-      {/* Chart Title and Subtitle */}
       <Block marginBottom="scale400" $style={{ textAlign: 'center' }}>
         <HeadingSmall marginTop="0" marginBottom="scale200">{chartTitle}</HeadingSmall>
         <ParagraphSmall color="contentTertiary" marginTop="0" marginBottom="0">
@@ -207,6 +266,26 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
           options={chartOptions}
         />
       </Block>
+
+      {statsData.length > 0 && (
+        <Block marginTop="scale800" display="flex" flexDirection={['column', 'column', 'row']}
+          justifyContent="center" gridGap="scale600">
+          <Block $style={{ overflowX: 'auto' }}>
+            <ParagraphSmall marginTop="0" marginBottom="scale300" $style={{ fontWeight: 600, textAlign: 'center' }}>
+              {isXirr ? 'Return Statistics (%)' : 'Corpus Statistics'}
+            </ParagraphSmall>
+            <Table columns={statsColumns} data={statsTableData} divider="grid" size="compact" />
+          </Block>
+          {isXirr && (
+            <Block $style={{ overflowX: 'auto' }}>
+              <ParagraphSmall marginTop="0" marginBottom="scale300" $style={{ fontWeight: 600, textAlign: 'center' }}>
+                Return Distribution (% of times)
+              </ParagraphSmall>
+              <Table columns={distColumns} data={distTableData} divider="grid" size="compact" />
+            </Block>
+          )}
+        </Block>
+      )}
     </Block>
   );
 };
