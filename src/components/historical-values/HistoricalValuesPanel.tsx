@@ -52,7 +52,8 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
       id: 'GOOG',
       name: 'GOOG',
       symbol: 'GOOG',
-      displayName: 'GOOG'
+      displayName: 'GOOG',
+      convertToINR: false
     };
 
     return [
@@ -109,10 +110,10 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
       const newNavDatas: Record<string, any[]> = {};
       const assetsToPlot = validAssets.map(e => e.asset!);
       
-      for (const entry of validAssets) {
-        const data = await loadNavData(entry.asset!);
+      for (let i = 0; i < validAssets.length; i++) {
+        const data = await loadNavData(validAssets[i].asset!);
         const filledData = fillMissingNavDates(data);
-        newNavDatas[entry.asset!.id.toString()] = filledData;
+        newNavDatas[i.toString()] = filledData;
       }
       
       setNavDatas(newNavDatas);

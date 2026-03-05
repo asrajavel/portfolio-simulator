@@ -59,7 +59,7 @@ export function useLumpsumPlot({
                   continue;
                 }
               } else if (asset.type === 'yahoo_finance') {
-                const stockData = await yahooFinanceService.fetchStockData(asset.symbol);
+                const stockData = await yahooFinanceService.fetchStockDataConverted(asset.symbol, asset.convertToINR);
                 
                 if (!stockData || stockData.length === 0) {
                   continue;

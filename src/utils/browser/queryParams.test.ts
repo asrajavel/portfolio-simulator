@@ -85,5 +85,72 @@ describe('Query Params - Lumpsum Portfolios', () => {
     expect(params.lumpsumPortfolios).toEqual([]);
     expect(params.lumpsumAmount).toBe(100000);
   });
+
+  test('should round-trip yahoo finance with convertToINR flag', () => {
+    const portfolios: LumpsumPortfolio[] = [
+      {
+        selectedAssets: [{
+          type: 'yahoo_finance',
+          id: '^GSPC',
+          name: '^GSPC (INR)',
+          symbol: '^GSPC',
+          displayName: '^GSPC (INR)',
+          convertToINR: true
+        }],
+        allocations: [100]
+      },
+      {
+        selectedAssets: [{
+          type: 'yahoo_finance',
+          id: 'AAPL',
+          name: 'AAPL',
+          symbol: 'AAPL',
+          displayName: 'AAPL',
+          convertToINR: false
+        }],
+        allocations: [100]
+      }
+    ];
+
+    setLumpsumQueryParams(portfolios, 5, 100000);
+    const params = getQueryParams();
+
+    expect(params.lumpsumPortfolios).toHaveLength(2);
+    const asset0 = params.lumpsumPortfolios[0].selectedAssets[0];
+    expect(asset0.type).toBe('yahoo_finance');
+    expect(asset0.symbol).toBe('^GSPC');
+    expect(asset0.convertToINR).toBe(true);
+    expect(asset0.displayName).toBe('^GSPC (INR)');
+
+    const asset1 = params.lumpsumPortfolios[1].selectedAssets[0];
+    expect(asset1.symbol).toBe('AAPL');
+    expect(asset1.convertToINR).toBe(false);
+    expect(asset1.displayName).toBe('AAPL');
+  });
+
+  test('should parse yahooinr from historical values URL', () => {
+    mockLocation('assets=yahooinr:^GSPC;yahoo:AAPL&logScale=1');
+    const params = getQueryParams();
+
+    expect(params.assets).toHaveLength(2);
+    const a0 = params.assets[0] as any;
+    const a1 = params.assets[1] as any;
+    expect(a0.type).toBe('yahoo_finance');
+    expect(a0.symbol).toBe('^GSPC');
+    expect(a0.convertToINR).toBe(true);
+    expect(a1.symbol).toBe('AAPL');
+    expect(a1.convertToINR).toBe(false);
+  });
+
+  test('should parse yahooinr from SIP portfolios URL', () => {
+    mockLocation('portfolios=yahooinr:^GSPC:100|0|5|0|5&years=5&sipAmount=10000');
+    const params = getQueryParams();
+
+    expect(params.portfolios).toHaveLength(1);
+    const asset = params.portfolios[0].selectedAssets[0] as any;
+    expect(asset.type).toBe('yahoo_finance');
+    expect(asset.symbol).toBe('^GSPC');
+    expect(asset.convertToINR).toBe(true);
+  });
 });
 

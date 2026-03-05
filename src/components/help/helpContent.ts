@@ -271,7 +271,7 @@ Google "[stock/index name] yahoo finance" and use the symbol shown in the page.
 
 ---
 
-**Note on currency:** This tool does not perform currency conversion. Each ticker is displayed in its native currency (e.g., AAPL in USD, TCS.NS in INR). Please verify the currency on the Yahoo Finance page before comparing assets across different currencies.`,
+**Note on currency:** By default, each ticker is displayed in its native currency (e.g., AAPL in USD, TCS.NS in INR). Use the **INR toggle** next to the ticker input to convert foreign-currency assets to INR using historical exchange rates. Conversion data availability depends on Yahoo Finance (e.g., USD/INR data starts from Dec 2003).`,
   },
 
   // Understanding Charts section

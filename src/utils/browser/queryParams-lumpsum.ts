@@ -17,7 +17,8 @@ export function setLumpsumQueryParams(lumpsumPortfolios: LumpsumPortfolio[], yea
             const cleanIndexName = asset.indexName.replace(/\s+/g, '_');
             return `idx:${cleanIndexName}:${allocation}`;
           } else if (asset.type === 'yahoo_finance') {
-            return `yahoo:${asset.symbol}:${allocation}`;
+            const prefix = asset.convertToINR ? 'yahooinr' : 'yahoo';
+            return `${prefix}:${asset.symbol}:${allocation}`;
           } else if (asset.type === 'fixed_return') {
             return `fixed:${asset.annualReturnPercentage}:${allocation}`;
           } else if (asset.type === 'inflation') {

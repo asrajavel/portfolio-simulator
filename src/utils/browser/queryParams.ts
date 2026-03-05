@@ -51,14 +51,16 @@ export function getQueryParams() {
                     indexName: indexName,
                     displayName: indexName
                   });
-                } else if (type === 'yahoo' && assetParts.length >= 3) {
+                } else if ((type === 'yahoo' || type === 'yahooinr') && assetParts.length >= 3) {
                   const symbol = assetParts[1];
+                  const convertToINR = type === 'yahooinr';
                   selectedAssets.push({
                     type: 'yahoo_finance',
                     id: symbol,
-                    name: symbol,
+                    name: convertToINR ? `${symbol} (INR)` : symbol,
                     symbol: symbol,
-                    displayName: symbol
+                    displayName: convertToINR ? `${symbol} (INR)` : symbol,
+                    convertToINR
                   });
                 } else if (type === 'fixed' && assetParts.length >= 3) {
                   const returnPercentage = parseFloat(assetParts[1]);
@@ -122,14 +124,16 @@ export function getQueryParams() {
               indexName: indexName,
               displayName: indexName
             };
-          } else if (type === 'yahoo') {
+          } else if (type === 'yahoo' || type === 'yahooinr') {
             const symbol = parts[1];
+            const convertToINR = type === 'yahooinr';
             return {
               type: 'yahoo_finance' as const,
               id: symbol,
-              name: symbol,
+              name: convertToINR ? `${symbol} (INR)` : symbol,
               symbol: symbol,
-              displayName: symbol
+              displayName: convertToINR ? `${symbol} (INR)` : symbol,
+              convertToINR
             };
           } else if (type === 'fixed') {
             const returnPercentage = parseFloat(parts[1]);
@@ -204,14 +208,16 @@ export function getQueryParams() {
                     indexName: indexName,
                     displayName: indexName
                   });
-                } else if (type === 'yahoo' && assetParts.length >= 3) {
+                } else if ((type === 'yahoo' || type === 'yahooinr') && assetParts.length >= 3) {
                   const symbol = assetParts[1];
+                  const convertToINR = type === 'yahooinr';
                   selectedAssets.push({
                     type: 'yahoo_finance',
                     id: symbol,
-                    name: symbol,
+                    name: convertToINR ? `${symbol} (INR)` : symbol,
                     symbol: symbol,
-                    displayName: symbol
+                    displayName: convertToINR ? `${symbol} (INR)` : symbol,
+                    convertToINR
                   });
                 } else if (type === 'fixed' && assetParts.length >= 3) {
                   const returnPercentage = parseFloat(assetParts[1]);
@@ -284,7 +290,8 @@ export function setQueryParams(sipPortfolios: SipPortfolio[], years: number, sip
             const cleanIndexName = asset.indexName.replace(/\s+/g, '_');
             return `idx:${cleanIndexName}:${allocation}`;
           } else if (asset.type === 'yahoo_finance') {
-            return `yahoo:${asset.symbol}:${allocation}`;
+            const prefix = asset.convertToINR ? 'yahooinr' : 'yahoo';
+            return `${prefix}:${asset.symbol}:${allocation}`;
           } else if (asset.type === 'fixed_return') {
             return `fixed:${asset.annualReturnPercentage}:${allocation}`;
           } else if (asset.type === 'inflation') {
@@ -314,7 +321,8 @@ export function setHistoricalValuesParams(assets: Asset[], logScale: boolean) {
         const cleanIndexName = asset.indexName.replace(/\s+/g, '_');
         return `idx:${cleanIndexName}`;
       } else if (asset.type === 'yahoo_finance') {
-        return `yahoo:${asset.symbol}`;
+        const prefix = asset.convertToINR ? 'yahooinr' : 'yahoo';
+        return `${prefix}:${asset.symbol}`;
       } else if (asset.type === 'fixed_return') {
         return `fixed:${asset.annualReturnPercentage}`;
       } else if (asset.type === 'inflation') {

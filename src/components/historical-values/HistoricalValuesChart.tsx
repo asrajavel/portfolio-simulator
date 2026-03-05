@@ -20,7 +20,7 @@ export const HistoricalValuesChart: React.FC<HistoricalValuesChartProps> = ({
   colors
 }) => {
   const series = assets.map((asset, idx) => {
-    const navData = navDatas[asset.id.toString()];
+    const navData = navDatas[idx.toString()];
     return {
       name: asset.name,
       data: navData.map(item => [item.date.getTime(), item.nav]),

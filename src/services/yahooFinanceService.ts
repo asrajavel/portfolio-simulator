@@ -69,6 +69,7 @@ interface ProxyResponse {
 
 class YahooFinanceService {
   private stockDataCache: Record<string, ProcessedIndexData[]> = {};
+  private currencyCache: Record<string, string> = {};
 
   async fetchStockData(symbol: string): Promise<ProcessedIndexData[]> {
     if (this.stockDataCache[symbol]) {
@@ -105,6 +106,7 @@ class YahooFinanceService {
       }
 
       const chartResult = yahooData.chart.result[0];
+      this.currencyCache[symbol] = chartResult.meta.currency;
       const timestamps = chartResult.timestamp;
       const adjClosePrices = chartResult.indicators.adjclose[0].adjclose;
 
@@ -211,8 +213,40 @@ class YahooFinanceService {
     return uniqueData;
   }
 
+  async fetchStockDataConverted(symbol: string, convertToINR: boolean): Promise<ProcessedIndexData[]> {
+    const data = await this.fetchStockData(symbol);
+    if (!convertToINR) return data;
+    const currency = this.currencyCache[symbol];
+    if (!currency || currency === 'INR') return data;
+    return this._convertToINR(data, currency);
+  }
+
+  private async _convertToINR(data: ProcessedIndexData[], fromCurrency: string): Promise<ProcessedIndexData[]> {
+    const forexSymbol = `${fromCurrency}INR=X`;
+    const forexData = await this.fetchStockData(forexSymbol);
+
+    const forexStartDate = forexData[0]?.date.getTime() ?? 0;
+
+    // Trim data to only include dates where forex data is available.
+    const trimmedData = data.filter(point => point.date.getTime() >= forexStartDate);
+
+    // Both arrays are sorted by date. Two-pointer forward-fill join.
+    let fxIdx = 0;
+    let lastRate = forexData[0]?.nav || 1;
+
+    return trimmedData.map(point => {
+      const timestamp = point.date.getTime();
+      while (fxIdx < forexData.length && forexData[fxIdx].date.getTime() <= timestamp) {
+        lastRate = forexData[fxIdx].nav;
+        fxIdx++;
+      }
+      return { date: point.date, nav: point.nav * lastRate };
+    });
+  }
+
   clearCache(): void {
     this.stockDataCache = {};
+    this.currencyCache = {};
   }
 }
 

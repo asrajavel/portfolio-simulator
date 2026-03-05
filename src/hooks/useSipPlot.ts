@@ -59,15 +59,14 @@ export function useSipPlot({
                   continue;
                 }
               } else if (asset.type === 'yahoo_finance') {
-                const stockData = await yahooFinanceService.fetchStockData(asset.symbol);
+                const stockData = await yahooFinanceService.fetchStockDataConverted(asset.symbol, asset.convertToINR);
                 
                 if (!stockData || stockData.length === 0) {
                   continue;
                 }
                 
-                // Convert stock data to NAV format (keep Date objects for fillMissingNavDates)
                 nav = stockData.map(item => ({
-                  date: item.date, // Keep as Date object
+                  date: item.date,
                   nav: item.nav
                 }));
                 identifier = `${pIdx}_${asset.symbol}`;
