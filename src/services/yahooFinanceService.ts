@@ -170,7 +170,7 @@ class YahooFinanceService {
     // '2019-12-19', where the price erroneously dropped from ~33 to 0.34 for a day.
     //
     // It works by calculating the relative (percentage) change from the last valid
-    // data point. If the change is unrealistically large (e.g., > 90%), the data point
+    // data point. If the change is unrealistically large (e.g., > 80%), the data point
     // is discarded.
     //
     const outlierFreeData = [];
@@ -181,10 +181,10 @@ class YahooFinanceService {
         const previousNav = outlierFreeData[outlierFreeData.length - 1].nav;
         const currentNav = positiveNavData[i].nav;
 
-        // A daily change > 90% is highly likely to be a data error.
+        // A daily change > 80% is highly likely to be a data error.
         const relativeChange = Math.abs(currentNav - previousNav) / previousNav;
 
-        if (relativeChange < 0.9) {
+        if (relativeChange < 0.8) {
           outlierFreeData.push(positiveNavData[i]);
         } else {
           console.warn(
