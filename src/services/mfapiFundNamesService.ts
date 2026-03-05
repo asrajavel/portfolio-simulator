@@ -15,6 +15,7 @@ export const fetchMutualFunds = async (): Promise<mfapiMutualFund[]> => {
       return (
         !name.includes('idcw') &&
         !name.includes('dividend') &&
+        !name.includes('income distribution') &&
         !name.includes('days') &&
         !name.includes('fixed') &&
         !name.includes('series') &&

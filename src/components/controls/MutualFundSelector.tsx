@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Input } from 'baseui/input';
-import { StatefulMenu } from 'baseui/menu';
 import { Block } from 'baseui/block';
 import { Checkbox } from 'baseui/checkbox';
+import { matchSorter } from 'match-sorter';
 import { Asset } from '../../types/asset';
 
 interface MutualFundSelectorProps {
@@ -116,15 +116,14 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
     };
   }, []);
 
-  const filteredFunds = funds.filter(fund => {
-    if (!query.trim()) return false;
-    
-    const fundNameLower = fund.schemeName.toLowerCase();
-    if (!includeRegular && !fundNameLower.includes('direct')) return false;
+  const eligibleFunds = useMemo(() => {
+    if (includeRegular) return funds;
+    return funds.filter(f => f.schemeName.toLowerCase().includes('direct'));
+  }, [funds, includeRegular]);
 
-    const queryWords = query.toLowerCase().trim().split(/\s+/);
-    return queryWords.every(word => fundNameLower.includes(word));
-  }).slice(0, 20);
+  const filteredFunds = query.trim()
+    ? matchSorter(eligibleFunds, query, { keys: ['schemeName'] }).slice(0, 20)
+    : [];
 
   const menuItems = filteredFunds.map(fund => ({
     label: fund.schemeName,
@@ -217,37 +216,29 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
               Include regular funds
             </Checkbox>
           </Block>
-          <StatefulMenu
-            items={menuItems}
-            onItemSelect={({ item }) => handleSelect(item)}
-            overrides={{
-              List: {
-                style: ({ $theme }) => ({
-                  outline: 'none',
-                  marginTop: 0,
-                  marginRight: 0,
-                  marginBottom: 0,
-                  marginLeft: 0,
-                  paddingTop: 0,
-                  paddingRight: 0,
-                  paddingBottom: 0,
-                  paddingLeft: 0
-                })
-              },
-              Option: {
-                style: ({ $theme, $isHighlighted }) => ({
-                  paddingTop: $theme.sizing.scale300,
-                  paddingBottom: $theme.sizing.scale300,
-                  paddingLeft: $theme.sizing.scale600,
-                  paddingRight: $theme.sizing.scale600,
-                  backgroundColor: $isHighlighted ? $theme.colors.backgroundTertiary : 'transparent',
-                  cursor: 'pointer',
-                  fontSize: $theme.typography.font300.fontSize,
-                  lineHeight: $theme.typography.font300.lineHeight
-                })
-              }
-            }}
-          />
+          {menuItems.map(item => (
+            <Block
+              key={item.id}
+              onClick={() => handleSelect(item)}
+              overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    ...$theme.typography.font300,
+                    paddingTop: $theme.sizing.scale300,
+                    paddingBottom: $theme.sizing.scale300,
+                    paddingLeft: $theme.sizing.scale600,
+                    paddingRight: $theme.sizing.scale600,
+                    cursor: 'pointer',
+                    ':hover': {
+                      backgroundColor: $theme.colors.backgroundTertiary,
+                    },
+                  })
+                }
+              }}
+            >
+              {item.label}
+            </Block>
+          ))}
         </Block>
       )}
       
