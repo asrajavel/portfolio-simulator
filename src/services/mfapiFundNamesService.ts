@@ -10,14 +10,16 @@ export const fetchMutualFunds = async (): Promise<mfapiMutualFund[]> => {
   }
   const allFunds: mfapiMutualFund[] = await response.json();
   return allFunds
-    .filter(fund =>
-      fund.schemeName.toLowerCase().includes('direct') &&
-      !fund.schemeName.toLowerCase().includes('idcw') &&
-      !fund.schemeName.toLowerCase().includes('dividend') &&
-      !fund.schemeName.toLowerCase().includes('days') &&
-      !fund.schemeName.toLowerCase().includes('fixed') &&
-      !fund.schemeName.toLowerCase().includes('series') &&
-      !fund.schemeName.toLowerCase().includes('fmp')
-    )
+    .filter(fund => {
+      const name = fund.schemeName.toLowerCase();
+      return (
+        !name.includes('idcw') &&
+        !name.includes('dividend') &&
+        !name.includes('days') &&
+        !name.includes('fixed') &&
+        !name.includes('series') &&
+        !name.includes('fmp')
+      );
+    })
     .sort((a, b) => a.schemeName.localeCompare(b.schemeName, undefined, { sensitivity: 'base' }));
 }; 

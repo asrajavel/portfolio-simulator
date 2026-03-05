@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Input } from 'baseui/input';
 import { StatefulMenu } from 'baseui/menu';
 import { Block } from 'baseui/block';
+import { Checkbox } from 'baseui/checkbox';
 import { Asset } from '../../types/asset';
 
 interface MutualFundSelectorProps {
@@ -20,6 +21,7 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedName, setSelectedName] = useState<string>('');
+  const [includeRegular, setIncludeRegular] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Set initial value or default
@@ -118,8 +120,9 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
     if (!query.trim()) return false;
     
     const fundNameLower = fund.schemeName.toLowerCase();
+    if (!includeRegular && !fundNameLower.includes('direct')) return false;
+
     const queryWords = query.toLowerCase().trim().split(/\s+/);
-    
     return queryWords.every(word => fundNameLower.includes(word));
   }).slice(0, 20);
 
@@ -188,6 +191,32 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
             }
           }}
         >
+          <Block
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  position: 'sticky' as const,
+                  top: 0,
+                  zIndex: 1,
+                  backgroundColor: $theme.colors.backgroundSecondary,
+                  paddingTop: $theme.sizing.scale200,
+                  paddingBottom: $theme.sizing.scale200,
+                  paddingLeft: $theme.sizing.scale600,
+                  paddingRight: $theme.sizing.scale600,
+                  borderBottomWidth: '1px',
+                  borderBottomStyle: 'solid',
+                  borderBottomColor: $theme.colors.borderOpaque,
+                })
+              }
+            }}
+          >
+            <Checkbox
+              checked={includeRegular}
+              onChange={() => setIncludeRegular(prev => !prev)}
+            >
+              Include regular funds
+            </Checkbox>
+          </Block>
           <StatefulMenu
             items={menuItems}
             onItemSelect={({ item }) => handleSelect(item)}
@@ -229,7 +258,6 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
           left="0"
           right="0"
           backgroundColor="backgroundPrimary"
-          padding="scale600"
           overrides={{
             Block: {
               style: ({ $theme }) => ({
@@ -248,13 +276,46 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
                 borderLeftColor: $theme.colors.borderOpaque,
                 borderRadius: $theme.borders.radius200,
                 boxShadow: $theme.lighting.shadow600,
-                color: $theme.colors.contentSecondary,
-                fontSize: $theme.typography.font300.fontSize
               })
             }
           }}
         >
-          No funds found matching "{query}"
+          <Block
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  backgroundColor: $theme.colors.backgroundSecondary,
+                  paddingTop: $theme.sizing.scale200,
+                  paddingBottom: $theme.sizing.scale200,
+                  paddingLeft: $theme.sizing.scale600,
+                  paddingRight: $theme.sizing.scale600,
+                  borderBottomWidth: '1px',
+                  borderBottomStyle: 'solid',
+                  borderBottomColor: $theme.colors.borderOpaque,
+                })
+              }
+            }}
+          >
+            <Checkbox
+              checked={includeRegular}
+              onChange={() => setIncludeRegular(prev => !prev)}
+            >
+              Include regular funds
+            </Checkbox>
+          </Block>
+          <Block
+            padding="scale600"
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  color: $theme.colors.contentSecondary,
+                  fontSize: $theme.typography.font300.fontSize,
+                })
+              }
+            }}
+          >
+            No funds found matching "{query}"
+          </Block>
         </Block>
       )}
     </Block>
