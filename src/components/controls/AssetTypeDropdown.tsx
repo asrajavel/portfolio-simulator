@@ -47,12 +47,22 @@ const InflationIcon = () => (
   </svg>
 );
 
+const GovSchemeIcon = () => (
+  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 21h18" />
+    <path d="M5 21V7l7-4 7 4v14" />
+    <path d="M9 21v-6h6v6" />
+    <path d="M10 10h4" />
+  </svg>
+);
+
 const iconMap: Record<string, React.ReactNode> = {
   mutual_fund: <MutualFundIcon />,
   index_fund: <IndexIcon />,
   yahoo_finance: <YahooIcon />,
   fixed_return: <FixedReturnIcon />,
   inflation: <InflationIcon />,
+  gov_scheme: <GovSchemeIcon />,
 };
 
 const OptionLabel = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
@@ -67,7 +77,8 @@ const baseOptions = [
   { label: 'Index (TRI)', id: 'index_fund' },
   { label: 'Yahoo Finance', id: 'yahoo_finance' },
   { label: 'Fixed Deposit', id: 'fixed_return' },
-  { label: 'Inflation Rate', id: 'inflation' }
+  { label: 'Inflation Rate', id: 'inflation' },
+  { label: 'Govt Scheme', id: 'gov_scheme' }
 ];
 
 export const AssetTypeDropdown: React.FC<AssetTypeDropdownProps> = ({ value, onChange, disableInflation = false }) => {

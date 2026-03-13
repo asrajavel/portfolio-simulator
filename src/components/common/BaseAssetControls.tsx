@@ -93,6 +93,15 @@ export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
         displayName: 'India - Consumer Price Index'
       };
       onAssetSelect(idx, defaultInflation);
+    } else if (type === 'gov_scheme') {
+      const defaultGovScheme: Asset = {
+        type: 'gov_scheme',
+        id: 'gov_ppf',
+        name: 'PPF - Public Provident Fund',
+        scheme: 'ppf',
+        displayName: 'PPF'
+      };
+      onAssetSelect(idx, defaultGovScheme);
     }
   };
 

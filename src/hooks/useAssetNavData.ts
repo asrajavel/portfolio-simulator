@@ -5,6 +5,7 @@ import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { fixedReturnService } from '../services/fixedReturnService';
 import { inflationService } from '../services/inflationService';
+import { govSchemeService } from '../services/govSchemeService';
 
 export const useAssetNavData = () => {
   const loadNavData = useCallback(async (asset: Asset) => {
@@ -25,6 +26,8 @@ export const useAssetNavData = () => {
           asset.countryCode,
           1960 // World Bank data starts from 1960
         );
+      case 'gov_scheme':
+        return govSchemeService.generateGovSchemeData(asset.scheme);
     }
   }, []);
 

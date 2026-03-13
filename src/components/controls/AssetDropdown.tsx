@@ -5,6 +5,7 @@ import { IndexSelector } from './IndexSelector';
 import { YahooFinanceSelector } from './YahooFinanceSelector';
 import { FixedReturnSelector } from './FixedReturnSelector';
 import { InflationSelector } from './InflationSelector';
+import { GovSchemeSelector } from './GovSchemeSelector';
 
 interface AssetDropdownProps {
   assetType: AssetType;
@@ -62,6 +63,15 @@ export const AssetDropdown: React.FC<AssetDropdownProps> = ({
   if (assetType === 'inflation') {
     return (
       <InflationSelector
+        onSelect={onSelect}
+        value={value}
+      />
+    );
+  }
+
+  if (assetType === 'gov_scheme') {
+    return (
+      <GovSchemeSelector
         onSelect={onSelect}
         value={value}
       />

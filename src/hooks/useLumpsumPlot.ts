@@ -4,6 +4,7 @@ import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { fixedReturnService } from '../services/fixedReturnService';
 import { inflationService } from '../services/inflationService';
+import { govSchemeService } from '../services/govSchemeService';
 import { trackSimulation } from '../utils/analytics';
 
 export function useLumpsumPlot({
@@ -104,6 +105,18 @@ export function useLumpsumPlot({
                   console.error(`Failed to generate inflation data for ${asset.countryCode}:`, inflationError);
                   continue;
                 }
+              } else if (asset.type === 'gov_scheme') {
+                try {
+                  const govData = govSchemeService.generateGovSchemeData(asset.scheme);
+                  if (!govData || govData.length === 0) {
+                    continue;
+                  }
+                  nav = govData;
+                  identifier = `${pIdx}_gov_${asset.scheme}`;
+                } catch (govError) {
+                  console.error(`Failed to generate gov scheme data for ${asset.scheme}:`, govError);
+                  continue;
+                }
               }
               
               if (!Array.isArray(nav) || nav.length === 0) {
@@ -137,8 +150,7 @@ export function useLumpsumPlot({
           continue;
         }
         
-        // Check if this portfolio contains inflation asset
-        const hasInflation = lumpsumPortfolios[pIdx].selectedAssets.some(
+        const hasSmoothAsset = lumpsumPortfolios[pIdx].selectedAssets.some(
           asset => asset?.type === 'inflation'
         );
         
@@ -154,8 +166,7 @@ export function useLumpsumPlot({
             const portfolioEndTime = performance.now();
             let resultData = event.data;
             
-            // Strip volatility for inflation assets (not meaningful for smooth daily compounding)
-            if (hasInflation && Array.isArray(resultData)) {
+            if (hasSmoothAsset && Array.isArray(resultData)) {
               resultData = resultData.map((entry: any) => {
                 const { volatility, ...rest } = entry;
                 return rest;

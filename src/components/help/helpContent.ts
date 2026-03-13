@@ -1,6 +1,15 @@
+import { PPF_RATES, EPF_RATES } from '../../services/govSchemeService';
+
+export interface HelpTable {
+  label: string;
+  columns: string[];
+  data: string[][];
+}
+
 export interface HelpTopic {
   title: string;
   content: string;
+  tables?: HelpTable[];
 }
 
 export const helpContent: Record<string, HelpTopic> = {
@@ -225,6 +234,13 @@ Any ticker available on Yahoo Finance — stocks, global indices, ETFs.
 Synthetic benchmark showing a fixed annual return (e.g., 8% p.a.).
 Useful for comparing against guaranteed return assets.
 
+**Govt Scheme (PPF / EPF):**
+Indian government savings schemes with historical interest rates.
+- PPF (Public Provident Fund): Data from 1968, rates ranged from 4.8% to 12%.
+- EPF (Employee Provident Fund): Data from 1952, rates ranged from 3% to 12%.
+
+Rates follow the Indian financial year (April–March). Daily NAV is generated using actual year-wise rates declared by the government. See [Govt Scheme Rates](help:gov-scheme-rates) for the full rate table.
+
 **Inflation:**
 CPI-based data showing how money loses value over time.
 Source: [World Bank](https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=IN) (Consumer Price Index).
@@ -272,6 +288,27 @@ Google "[stock/index name] yahoo finance" and use the symbol shown in the page.
 ---
 
 **Note on currency:** This tool does not perform currency conversion. Each ticker is displayed in its native currency (e.g., AAPL in USD, TCS.NS in INR). Please verify the currency on the Yahoo Finance page before comparing assets across different currencies.`,
+  },
+
+  'gov-scheme-rates': {
+    title: 'Govt Scheme Rates',
+    content: `Each row shows the financial year (April–March) when the rate took effect.
+
+**How to read gaps:** If a year is not listed, the previous year's rate continues. For example, PPF shows 12% in 1986 and next entry is 2000 — this means 12% applied for FY 1986–87 through FY 1999–2000.
+
+**Note:** Post-2016 PPF rates are declared quarterly by the government. We use a single yearly approximation for simplicity.`,
+    tables: [
+      {
+        label: 'PPF Interest Rates (% p.a.)',
+        columns: ['FY', 'Rate (%)'],
+        data: PPF_RATES.map(({ year, rate }) => [String(year), String(rate)]),
+      },
+      {
+        label: 'EPF Interest Rates (% p.a.)',
+        columns: ['FY', 'Rate (%)'],
+        data: EPF_RATES.map(({ year, rate }) => [String(year), String(rate)]),
+      },
+    ],
   },
 
   // Understanding Charts section
@@ -359,7 +396,7 @@ export const getTopicsByCategory = () => ({
   },
   'Supported Assets': {
     topicId: 'data-sources',
-    subTopics: ['yahoo-tickers'],
+    subTopics: ['yahoo-tickers', 'gov-scheme-rates'],
   },
   'Understanding Charts': {
     topicId: 'understanding-charts',

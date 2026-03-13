@@ -83,6 +83,17 @@ export function getQueryParams() {
                     countryCode: countryCode,
                     displayName: displayName
                   });
+                } else if (type === 'gov' && assetParts.length >= 3) {
+                  const scheme = assetParts[1];
+                  const schemeNames: Record<string, string> = { ppf: 'PPF', epf: 'EPF' };
+                  const displayName = schemeNames[scheme] || scheme.toUpperCase();
+                  selectedAssets.push({
+                    type: 'gov_scheme',
+                    id: `gov_${scheme}`,
+                    name: displayName,
+                    scheme: scheme,
+                    displayName: displayName
+                  });
                 } else {
                   selectedAssets.push(null);
                 }
@@ -152,6 +163,17 @@ export function getQueryParams() {
               id: `inflation_${countryCode}`,
               name: displayName,
               countryCode: countryCode,
+              displayName: displayName
+            };
+          } else if (type === 'gov' && parts.length >= 2) {
+            const scheme = parts[1];
+            const schemeNames: Record<string, string> = { ppf: 'PPF', epf: 'EPF' };
+            const displayName = schemeNames[scheme] || scheme.toUpperCase();
+            return {
+              type: 'gov_scheme' as const,
+              id: `gov_${scheme}`,
+              name: displayName,
+              scheme: scheme,
               displayName: displayName
             };
           }
@@ -236,6 +258,17 @@ export function getQueryParams() {
                     countryCode: countryCode,
                     displayName: displayName
                   });
+                } else if (type === 'gov' && assetParts.length >= 3) {
+                  const scheme = assetParts[1];
+                  const schemeNames: Record<string, string> = { ppf: 'PPF', epf: 'EPF' };
+                  const displayName = schemeNames[scheme] || scheme.toUpperCase();
+                  selectedAssets.push({
+                    type: 'gov_scheme',
+                    id: `gov_${scheme}`,
+                    name: displayName,
+                    scheme: scheme,
+                    displayName: displayName
+                  });
                 } else {
                   selectedAssets.push(null);
                 }
@@ -289,6 +322,8 @@ export function setQueryParams(sipPortfolios: SipPortfolio[], years: number, sip
             return `fixed:${asset.annualReturnPercentage}:${allocation}`;
           } else if (asset.type === 'inflation') {
             return `inflation:${asset.countryCode}:${allocation}`;
+          } else if (asset.type === 'gov_scheme') {
+            return `gov:${asset.scheme}:${allocation}`;
           }
           return `null:${allocation}`;
         })
@@ -319,6 +354,8 @@ export function setHistoricalValuesParams(assets: Asset[], logScale: boolean) {
         return `fixed:${asset.annualReturnPercentage}`;
       } else if (asset.type === 'inflation') {
         return `inflation:${asset.countryCode}`;
+      } else if (asset.type === 'gov_scheme') {
+        return `gov:${asset.scheme}`;
       }
       return null;
     })

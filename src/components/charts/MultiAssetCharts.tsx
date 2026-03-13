@@ -105,6 +105,11 @@ const getPortfolioAssets = (
           schemeName: asset!.displayName || asset!.name,
           type: 'inflation' as const
         };
+      } else if (asset!.type === 'gov_scheme') {
+        return {
+          schemeName: asset!.displayName || asset!.name,
+          type: 'gov_scheme' as const
+        };
       }
       return {
         schemeName: `Unknown Asset`,
@@ -332,6 +337,9 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
                 break;
               case 'inflation':
                 identifier = `${portfolioIdx}_inflation_${asset.countryCode}`;
+                break;
+              case 'gov_scheme':
+                identifier = `${portfolioIdx}_gov_${asset.scheme}`;
                 break;
             }
             

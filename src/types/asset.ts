@@ -1,4 +1,6 @@
-export type AssetType = 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' | 'inflation';
+export type AssetType = 'mutual_fund' | 'index_fund' | 'yahoo_finance' | 'fixed_return' | 'inflation' | 'gov_scheme';
+
+export type GovSchemeType = 'ppf' | 'epf';
 
 export interface BaseAsset {
   id: string | number;
@@ -41,7 +43,14 @@ export interface InflationAsset extends BaseAsset {
   countryCode: string; // e.g., 'IND' for India
 }
 
-export type Asset = MutualFund | IndexFund | YahooFinanceAsset | FixedReturnAsset | InflationAsset;
+export interface GovSchemeAsset extends BaseAsset {
+  type: 'gov_scheme';
+  id: string;
+  scheme: GovSchemeType;
+  displayName: string;
+}
+
+export type Asset = MutualFund | IndexFund | YahooFinanceAsset | FixedReturnAsset | InflationAsset | GovSchemeAsset;
 
 export interface AssetNavData {
   date: Date;

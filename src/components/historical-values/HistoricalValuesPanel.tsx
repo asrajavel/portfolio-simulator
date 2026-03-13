@@ -87,6 +87,15 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
         displayName: 'Fixed 8% Return'
       };
       newAssets[idx] = { assetType: type, asset: defaultFixedReturn };
+    } else if (type === 'gov_scheme') {
+      const defaultGovScheme: Asset = {
+        type: 'gov_scheme',
+        id: 'gov_ppf',
+        name: 'PPF',
+        scheme: 'ppf',
+        displayName: 'PPF'
+      };
+      newAssets[idx] = { assetType: type, asset: defaultGovScheme };
     } else {
       newAssets[idx] = { assetType: type, asset: null };
     }

@@ -22,6 +22,8 @@ export function setLumpsumQueryParams(lumpsumPortfolios: LumpsumPortfolio[], yea
             return `fixed:${asset.annualReturnPercentage}:${allocation}`;
           } else if (asset.type === 'inflation') {
             return `inflation:${asset.countryCode}:${allocation}`;
+          } else if (asset.type === 'gov_scheme') {
+            return `gov:${asset.scheme}:${allocation}`;
           }
           return `null:${allocation}`;
         })

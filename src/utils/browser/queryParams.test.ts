@@ -77,6 +77,65 @@ describe('Query Params - Lumpsum Portfolios', () => {
     expect(params.lumpsumPortfolios[1].selectedAssets[1].type).toBe('inflation');
   });
 
+  test('should round-trip gov_scheme assets', () => {
+    const portfolios: LumpsumPortfolio[] = [
+      {
+        selectedAssets: [{
+          type: 'gov_scheme',
+          id: 'gov_ppf',
+          name: 'PPF',
+          scheme: 'ppf',
+          displayName: 'PPF'
+        }],
+        allocations: [100]
+      },
+      {
+        selectedAssets: [
+          {
+            type: 'gov_scheme',
+            id: 'gov_epf',
+            name: 'EPF',
+            scheme: 'epf',
+            displayName: 'EPF'
+          },
+          {
+            type: 'index_fund',
+            id: 'NIFTY 50',
+            name: 'NIFTY 50',
+            indexName: 'NIFTY 50',
+            displayName: 'NIFTY 50'
+          }
+        ],
+        allocations: [50, 50]
+      }
+    ];
+
+    setLumpsumQueryParams(portfolios, 5, 100000);
+    const params = getQueryParams();
+
+    expect(params.lumpsumPortfolios).toHaveLength(2);
+    expect(params.lumpsumPortfolios[0].selectedAssets[0].type).toBe('gov_scheme');
+    expect(params.lumpsumPortfolios[0].selectedAssets[0].scheme).toBe('ppf');
+    expect(params.lumpsumPortfolios[0].selectedAssets[0].displayName).toBe('PPF');
+    expect(params.lumpsumPortfolios[0].allocations).toEqual([100]);
+    expect(params.lumpsumPortfolios[1].selectedAssets[0].type).toBe('gov_scheme');
+    expect(params.lumpsumPortfolios[1].selectedAssets[0].scheme).toBe('epf');
+    expect(params.lumpsumPortfolios[1].selectedAssets[1].type).toBe('index_fund');
+    expect(params.lumpsumPortfolios[1].allocations).toEqual([50, 50]);
+  });
+
+  test('should decode gov_scheme from URL', () => {
+    mockLocation('lumpsumPortfolios=gov:ppf:60,idx:NIFTY_50:40');
+
+    const params = getQueryParams();
+
+    expect(params.lumpsumPortfolios).toHaveLength(1);
+    expect(params.lumpsumPortfolios[0].selectedAssets[0].type).toBe('gov_scheme');
+    expect(params.lumpsumPortfolios[0].selectedAssets[0].scheme).toBe('ppf');
+    expect(params.lumpsumPortfolios[0].selectedAssets[0].id).toBe('gov_ppf');
+    expect(params.lumpsumPortfolios[0].allocations).toEqual([60, 40]);
+  });
+
   test('should return defaults when no params exist', () => {
     mockLocation('');
     

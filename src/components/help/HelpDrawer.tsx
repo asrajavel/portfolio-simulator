@@ -4,8 +4,9 @@ import { LabelLarge, ParagraphSmall } from 'baseui/typography';
 import { Block } from 'baseui/block';
 import { Navigation } from 'baseui/side-navigation';
 import { StyledLink } from 'baseui/link';
+import { Table } from 'baseui/table-semantic';
 import { useHelp } from './HelpContext';
-import { helpContent, getTopicsByCategory } from './helpContent';
+import { helpContent, getTopicsByCategory, HelpTable } from './helpContent';
 
 export const HelpDrawer: React.FC = () => {
   const { isOpen, currentTopic, closeHelp, openHelp } = useHelp();
@@ -123,11 +124,14 @@ export const HelpDrawer: React.FC = () => {
                   >
                     {paragraph.split('\n').map((line, j) => (
                       <React.Fragment key={j}>
-                        {formatLine(line)}
+                        {formatLine(line, openHelp)}
                         {j < paragraph.split('\n').length - 1 && <br />}
                       </React.Fragment>
                     ))}
                   </ParagraphSmall>
+                ))}
+                {topic.tables?.map((table, i) => (
+                  <RateTable key={i} table={table} />
                 ))}
               </Block>
             </>
@@ -140,30 +144,47 @@ export const HelpDrawer: React.FC = () => {
   );
 };
 
+const RateTable: React.FC<{ table: HelpTable }> = ({ table }) => (
+  <Block marginBottom="scale600">
+    <ParagraphSmall marginTop="0" marginBottom="scale300">
+      <strong>{table.label}</strong>
+    </ParagraphSmall>
+    <Table
+      columns={table.columns}
+      data={table.data}
+      overrides={{
+        Root: { style: { maxWidth: '300px' } },
+        TableHeadCell: { style: { fontSize: '13px', paddingTop: '6px', paddingBottom: '6px' } },
+        TableBodyCell: { style: { fontSize: '13px', paddingTop: '4px', paddingBottom: '4px' } },
+      }}
+    />
+  </Block>
+);
+
 // Simple formatting for bold text and links
-const formatLine = (line: string) => {
-  // First split by links [text](url), then by bold **text**
+const formatLine = (line: string, onNavigate?: (topic: string) => void) => {
   const linkRegex = /(\[[^\]]+\]\([^)]+\))/g;
   const boldRegex = /(\*\*[^*]+\*\*)/g;
   
   const parts = line.split(linkRegex);
   return parts.map((part, i) => {
-    // Check if it's a link
     const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     if (linkMatch) {
+      const [, text, href] = linkMatch;
+      if (href.startsWith('help:') && onNavigate) {
+        return (
+          <StyledLink key={i} href="#" onClick={(e: React.MouseEvent) => { e.preventDefault(); onNavigate(href.slice(5)); }}>
+            {text}
+          </StyledLink>
+        );
+      }
       return (
-        <StyledLink 
-          key={i} 
-          href={linkMatch[2]} 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          {linkMatch[1]}
+        <StyledLink key={i} href={href} target="_blank" rel="noopener noreferrer">
+          {text}
         </StyledLink>
       );
     }
     
-    // Otherwise, handle bold within this part
     const boldParts = part.split(boldRegex);
     return boldParts.map((boldPart, j) => {
       if (boldPart.startsWith('**') && boldPart.endsWith('**')) {
