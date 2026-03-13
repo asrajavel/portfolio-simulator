@@ -4,6 +4,13 @@ import { Select } from 'baseui/select';
 import { Asset } from '../../types/asset';
 import { useIndices } from '../../hooks/useIndices';
 
+const POPULAR_INDICES = [
+  'NIFTY 50', 'NIFTY NEXT 50', 'NIFTY50 EQUAL WEIGHT',
+  'NIFTY 100', 'NIFTY100 LOW VOLATILITY 30',
+  'NIFTY LARGEMIDCAP 250', 'NIFTY MIDCAP 150', 'NIFTY SMALLCAP 250',
+  'NIFTY 500',
+];
+
 interface IndexSelectorProps {
   onSelect: (asset: Asset) => void;
   value?: Asset;
@@ -30,12 +37,18 @@ export const IndexSelector: React.FC<IndexSelectorProps> = ({
     onSelect(asset);
   };
 
-  const indexOptions = indices.map(index => ({
+  const toOption = (index: { indexName: string; displayName: string }) => ({
     label: index.displayName,
     id: index.indexName,
     indexName: index.indexName,
-    displayName: index.displayName
-  }));
+    displayName: index.displayName,
+  });
+
+  const indicesByName = new Map(indices.map(i => [i.indexName, i]));
+  const indexOptions = {
+    'Popular Indices': POPULAR_INDICES.filter(name => indicesByName.has(name)).map(name => toOption(indicesByName.get(name)!)),
+    'All Indices': indices.map(toOption),
+  };
 
   const selectedIndexValue = value && value.type === 'index_fund'
     ? [{ label: value.displayName, id: value.indexName, indexName: value.indexName, displayName: value.displayName }] 
