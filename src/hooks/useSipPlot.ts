@@ -141,9 +141,8 @@ export function useSipPlot({
       // Now calculate XIRR for each portfolio using the worker
       plotState.setLoadingXirr(true);
       const allSipXirrDatas: Record<string, any[]> = {};
-      let completed = 0;
       
-      for (let pIdx = 0; pIdx < sipPortfolios.length; ++pIdx) {
+      const workerPromises = sipPortfolios.map((_, pIdx) => {
         const navDataList = allNavDatas[pIdx];
         const allocations = sipPortfolios[pIdx].allocations;
         const rebalancingEnabled = sipPortfolios[pIdx].rebalancingEnabled;
@@ -153,8 +152,7 @@ export function useSipPlot({
         
         if (!navDataList || navDataList.length === 0) {
           allSipXirrDatas[`Portfolio ${pIdx + 1}`] = [];
-          completed++;
-          continue;
+          return Promise.resolve();
         }
         
         const hasSmoothAsset = sipPortfolios[pIdx].selectedAssets.some(
@@ -163,9 +161,8 @@ export function useSipPlot({
         
         const portfolioStartTime = performance.now();
         
-        await new Promise<void>((resolve) => {
+        return new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url));
-          // Use 100 as base for XIRR view, actual sipAmount for corpus view
           const baseSipAmount = chartView === 'corpus' ? sipAmount : 100;
           worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount: baseSipAmount });
           worker.onmessage = (event: MessageEvent) => {
@@ -183,17 +180,17 @@ export function useSipPlot({
             
             allSipXirrDatas[`Portfolio ${pIdx + 1}`] = resultData;
             worker.terminate();
-            completed++;
             resolve();
           };
           worker.onerror = (err: ErrorEvent) => {
             allSipXirrDatas[`Portfolio ${pIdx + 1}`] = [];
             worker.terminate();
-            completed++;
             resolve();
           };
         });
-      }
+      });
+      
+      await Promise.all(workerPromises);
       plotState.setSipXirrDatas(allSipXirrDatas);
       plotState.setHasPlotted(true);
       plotState.setLoadingNav(false);

@@ -141,13 +141,13 @@ export function useLumpsumPlot({
       plotState.setLoadingXirr(true);
       const allLumpsumXirrDatas: Record<string, any[]> = {};
       
-      for (let pIdx = 0; pIdx < lumpsumPortfolios.length; ++pIdx) {
+      const workerPromises = lumpsumPortfolios.map((_, pIdx) => {
         const navDataList = allNavDatas[pIdx];
         const allocations = lumpsumPortfolios[pIdx].allocations;
         
         if (!navDataList || navDataList.length === 0) {
           allLumpsumXirrDatas[`Portfolio ${pIdx + 1}`] = [];
-          continue;
+          return Promise.resolve();
         }
         
         const hasSmoothAsset = lumpsumPortfolios[pIdx].selectedAssets.some(
@@ -156,9 +156,8 @@ export function useLumpsumPlot({
         
         const portfolioStartTime = performance.now();
         
-        await new Promise<void>((resolve) => {
+        return new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/lumpSumRollingXirr/worker.ts', import.meta.url));
-          // Use actual lumpsumAmount for corpus view, 100 for XIRR view
           const baseAmount = chartView === 'corpus' ? lumpsumAmount : 100;
           worker.postMessage({ navDataList, years, allocations, investmentAmount: baseAmount });
           
@@ -187,7 +186,9 @@ export function useLumpsumPlot({
             resolve();
           };
         });
-      }
+      });
+      
+      await Promise.all(workerPromises);
       
       plotState.setLumpSumXirrDatas(allLumpsumXirrDatas);
       plotState.setHasPlotted(true);
