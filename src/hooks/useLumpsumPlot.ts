@@ -7,6 +7,17 @@ import { inflationService } from '../services/inflationService';
 import { govSchemeService } from '../services/govSchemeService';
 import { trackSimulation } from '../utils/analytics';
 
+const xirrCache = new Map<string, any[]>();
+
+function portfolioCacheKey(portfolio: any, years: number, amount: number): string {
+  return JSON.stringify({
+    assets: (portfolio.selectedAssets || []).filter(Boolean).map((a: any) => ({ id: a.id, type: a.type })),
+    allocations: portfolio.allocations,
+    years,
+    amount,
+  });
+}
+
 export function useLumpsumPlot({
   lumpsumPortfolios,
   years,
@@ -15,7 +26,6 @@ export function useLumpsumPlot({
   lumpsumAmount,
   chartView,
 }) {
-  // Handler for plotting all portfolios
   const handlePlotAllPortfolios = useCallback(async () => {
     trackSimulation('Lumpsum', 'Plot');
     plotState.setLoadingNav(true);
@@ -26,13 +36,13 @@ export function useLumpsumPlot({
     plotState.setSipXirrDatas({});
     plotState.setXirrError(null);
     try {
-      const allNavDatas: Record<string, any[][]> = {}; // key: portfolio index, value: array of nav arrays
-      const allNavsFlat: Record<string, any[]> = {}; // for navDatas prop
+      const allNavDatas: Record<string, any[][]> = {};
+      const allNavsFlat: Record<string, any[]> = {};
+      const baseAmount = chartView === 'corpus' ? lumpsumAmount : 100;
       
       for (let pIdx = 0; pIdx < lumpsumPortfolios.length; ++pIdx) {
         const navs: any[][] = [];
         
-        // Process assets
         if (lumpsumPortfolios[pIdx].selectedAssets && lumpsumPortfolios[pIdx].selectedAssets.length > 0) {
           for (const asset of lumpsumPortfolios[pIdx].selectedAssets.filter(Boolean)) {
             try {
@@ -137,16 +147,23 @@ export function useLumpsumPlot({
       
       plotState.setNavDatas(allNavsFlat);
       
-      // Now calculate XIRR for each portfolio using Web Worker (prevents UI freezing)
       plotState.setLoadingXirr(true);
       const allLumpsumXirrDatas: Record<string, any[]> = {};
       
       const workerPromises = lumpsumPortfolios.map((_, pIdx) => {
         const navDataList = allNavDatas[pIdx];
         const allocations = lumpsumPortfolios[pIdx].allocations;
+        const cacheKey = portfolioCacheKey(lumpsumPortfolios[pIdx], years, baseAmount);
         
         if (!navDataList || navDataList.length === 0) {
           allLumpsumXirrDatas[`Portfolio ${pIdx + 1}`] = [];
+          return Promise.resolve();
+        }
+        
+        const cached = xirrCache.get(cacheKey);
+        if (cached) {
+          console.log(`[Lumpsum] Portfolio ${pIdx + 1}: cache hit (${cached.length} data points)`);
+          allLumpsumXirrDatas[`Portfolio ${pIdx + 1}`] = cached;
           return Promise.resolve();
         }
         
@@ -158,7 +175,6 @@ export function useLumpsumPlot({
         
         return new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/lumpSumRollingXirr/worker.ts', import.meta.url));
-          const baseAmount = chartView === 'corpus' ? lumpsumAmount : 100;
           worker.postMessage({ navDataList, years, allocations, investmentAmount: baseAmount });
           
           worker.onmessage = (event: MessageEvent) => {
@@ -174,6 +190,7 @@ export function useLumpsumPlot({
             
             console.log(`[Lumpsum] Portfolio ${pIdx + 1} total: ${((portfolioEndTime - portfolioStartTime) / 1000).toFixed(2)}s (${resultData.length} data points)`);
             
+            xirrCache.set(cacheKey, resultData);
             allLumpsumXirrDatas[`Portfolio ${pIdx + 1}`] = resultData;
             worker.terminate();
             resolve();

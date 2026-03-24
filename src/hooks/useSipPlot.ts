@@ -7,6 +7,21 @@ import { inflationService } from '../services/inflationService';
 import { govSchemeService } from '../services/govSchemeService';
 import { trackSimulation } from '../utils/analytics';
 
+const xirrCache = new Map<string, any[]>();
+
+function portfolioCacheKey(portfolio: any, years: number, amount: number): string {
+  return JSON.stringify({
+    assets: (portfolio.selectedAssets || []).filter(Boolean).map((a: any) => ({ id: a.id, type: a.type })),
+    allocations: portfolio.allocations,
+    rebalancingEnabled: portfolio.rebalancingEnabled,
+    rebalancingThreshold: portfolio.rebalancingThreshold,
+    stepUpEnabled: portfolio.stepUpEnabled,
+    stepUpPercentage: portfolio.stepUpPercentage,
+    years,
+    amount,
+  });
+}
+
 export function useSipPlot({
   sipPortfolios,
   years,
@@ -15,7 +30,6 @@ export function useSipPlot({
   sipAmount,
   chartView,
 }) {
-  // Handler for plotting all portfolios
   const handlePlotAllPortfolios = useCallback(async () => {
     trackSimulation('SIP', 'Plot');
     plotState.setLoadingNav(true);
@@ -26,12 +40,13 @@ export function useSipPlot({
     plotState.setSipXirrDatas({});
     plotState.setXirrError(null);
     try {
-      const allNavDatas: Record<string, any[][]> = {}; // key: portfolio index, value: array of nav arrays
-      const allNavsFlat: Record<string, any[]> = {}; // for navDatas prop
+      const allNavDatas: Record<string, any[][]> = {};
+      const allNavsFlat: Record<string, any[]> = {};
+      const baseSipAmount = chartView === 'corpus' ? sipAmount : 100;
+
       for (let pIdx = 0; pIdx < sipPortfolios.length; ++pIdx) {
         const navs: any[][] = [];
         
-        // Process assets
         if (sipPortfolios[pIdx].selectedAssets && sipPortfolios[pIdx].selectedAssets.length > 0) {
           for (const asset of sipPortfolios[pIdx].selectedAssets.filter(Boolean)) {
             try {
@@ -49,9 +64,8 @@ export function useSipPlot({
                     continue;
                   }
                   
-                  // Convert index data to NAV format (keep Date objects for fillMissingNavDates)
                   nav = indexData.map(item => ({
-                    date: item.date, // Keep as Date object
+                    date: item.date,
                     nav: item.nav
                   }));
                   identifier = `${pIdx}_${asset.indexName}`;
@@ -66,9 +80,8 @@ export function useSipPlot({
                   continue;
                 }
                 
-                // Convert stock data to NAV format (keep Date objects for fillMissingNavDates)
                 nav = stockData.map(item => ({
-                  date: item.date, // Keep as Date object
+                  date: item.date,
                   nav: item.nav
                 }));
                 identifier = `${pIdx}_${asset.symbol}`;
@@ -83,7 +96,6 @@ export function useSipPlot({
                     continue;
                   }
                   
-                  // Data is already in the correct format
                   nav = fixedReturnData;
                   identifier = `${pIdx}_fixed_${asset.annualReturnPercentage}`;
                 } catch (fixedReturnError) {
@@ -101,7 +113,6 @@ export function useSipPlot({
                     continue;
                   }
                   
-                  // Data is already in the correct format
                   nav = inflationData;
                   identifier = `${pIdx}_inflation_${asset.countryCode}`;
                 } catch (inflationError) {
@@ -138,7 +149,7 @@ export function useSipPlot({
         allNavDatas[pIdx] = navs;
       }
       plotState.setNavDatas(allNavsFlat);
-      // Now calculate XIRR for each portfolio using the worker
+
       plotState.setLoadingXirr(true);
       const allSipXirrDatas: Record<string, any[]> = {};
       
@@ -149,9 +160,17 @@ export function useSipPlot({
         const rebalancingThreshold = sipPortfolios[pIdx].rebalancingThreshold;
         const stepUpEnabled = sipPortfolios[pIdx].stepUpEnabled;
         const stepUpPercentage = sipPortfolios[pIdx].stepUpPercentage;
+        const cacheKey = portfolioCacheKey(sipPortfolios[pIdx], years, baseSipAmount);
         
         if (!navDataList || navDataList.length === 0) {
           allSipXirrDatas[`Portfolio ${pIdx + 1}`] = [];
+          return Promise.resolve();
+        }
+        
+        const cached = xirrCache.get(cacheKey);
+        if (cached) {
+          console.log(`[SIP] Portfolio ${pIdx + 1}: cache hit (${cached.length} data points)`);
+          allSipXirrDatas[`Portfolio ${pIdx + 1}`] = cached;
           return Promise.resolve();
         }
         
@@ -163,7 +182,6 @@ export function useSipPlot({
         
         return new Promise<void>((resolve) => {
           const worker = new Worker(new URL('../utils/calculations/sipRollingXirr/worker.ts', import.meta.url));
-          const baseSipAmount = chartView === 'corpus' ? sipAmount : 100;
           worker.postMessage({ navDataList, years, allocations, rebalancingEnabled, rebalancingThreshold, includeNilTransactions: false, stepUpEnabled, stepUpPercentage, sipAmount: baseSipAmount });
           worker.onmessage = (event: MessageEvent) => {
             const portfolioEndTime = performance.now();
@@ -178,6 +196,7 @@ export function useSipPlot({
             
             console.log(`[SIP] Portfolio ${pIdx + 1} total: ${((portfolioEndTime - portfolioStartTime) / 1000).toFixed(2)}s (${resultData.length} data points)`);
             
+            xirrCache.set(cacheKey, resultData);
             allSipXirrDatas[`Portfolio ${pIdx + 1}`] = resultData;
             worker.terminate();
             resolve();
