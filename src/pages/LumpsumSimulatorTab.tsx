@@ -11,12 +11,14 @@ import { useChartInvalidation } from '../hooks/useChartInvalidation';
 import { LumpsumPortfolioList } from '../components/lumpsum-simulator/LumpsumPortfolioList';
 import { LumpsumControlsPanel } from '../components/controls/LumpsumControlsPanel';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from '../constants';
+import { useMutualFundsContext } from '../hooks/useMutualFunds';
 
 interface LumpsumSimulatorTabProps {
   loadNavData: (schemeCode: number) => Promise<any[]>;
 }
 
 export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ loadNavData }) => {
+  const { loading: fundsLoading, error: fundsError } = useMutualFundsContext();
   const location = useLocation();
   const isActive = location.pathname === '/lumpsum';
   const plotState = usePlotState(loadNavData);
@@ -44,9 +46,13 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ loadNa
     chartView,
   });
 
+  const hasMutualFund = lumpsumPortfolios.some(
+    p => (p.selectedAssets || []).some(a => a?.type === 'mutual_fund')
+  );
   const anyInvalidAlloc = lumpsumPortfolios.some(
     p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
-  );
+      || (p.selectedAssets || []).some(a => !a)
+  ) || (hasMutualFund && (fundsLoading || !!fundsError));
 
   // Use chart invalidation hook to wrap handlers
   const { invalidateChart, withInvalidation } = useChartInvalidation(plotState);

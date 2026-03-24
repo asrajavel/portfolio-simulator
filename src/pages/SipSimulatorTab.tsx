@@ -11,12 +11,14 @@ import { useChartInvalidation } from '../hooks/useChartInvalidation';
 import { SipPortfolioList } from '../components/sip-simulator/SipPortfolioList';
 import { ControlsPanel } from '../components/controls/ControlsPanel';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from '../constants';
+import { useMutualFundsContext } from '../hooks/useMutualFunds';
 
 interface SipSimulatorTabProps {
   loadNavData: (schemeCode: number) => Promise<any[]>;
 }
 
 export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ loadNavData }) => {
+  const { loading: fundsLoading, error: fundsError } = useMutualFundsContext();
   const location = useLocation();
   const isActive = location.pathname === '/sip';
   const plotState = usePlotState(loadNavData);
@@ -48,9 +50,13 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ loadNavData })
     chartView,
   });
 
+  const hasMutualFund = sipPortfolios.some(
+    p => (p.selectedAssets || []).some(a => a?.type === 'mutual_fund')
+  );
   const anyInvalidAlloc = sipPortfolios.some(
     p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
-  );
+      || (p.selectedAssets || []).some(a => !a)
+  ) || (hasMutualFund && (fundsLoading || !!fundsError));
 
   // Use chart invalidation hook to wrap handlers
   const { invalidateChart, withInvalidation } = useChartInvalidation(plotState);
