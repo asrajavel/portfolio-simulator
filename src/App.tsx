@@ -10,6 +10,7 @@ import { useAssetNavData } from './hooks/useAssetNavData';
 import { LumpsumSimulatorTab } from './pages/LumpsumSimulatorTab';
 import { SipSimulatorTab } from './pages/SipSimulatorTab';
 import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
+import { InflationCalculatorTab } from './pages/InflationCalculatorTab';
 import { BottomBar } from './components/layout/BottomBar';
 import { HelpProvider, HelpDrawer, useHelp } from './components/help';
 import { trackPageView } from './utils/analytics';
@@ -38,6 +39,7 @@ const AppContent: React.FC = () => {
   const isLumpsumTab = location.pathname === '/lumpsum';
   const isSipTab = location.pathname === '/sip';
   const isHistoricalTab = location.pathname === '/historical';
+  const isInflationTab = location.pathname === '/inflation';
 
   return (
     <Container>
@@ -58,6 +60,10 @@ const AppContent: React.FC = () => {
             active: isHistoricalTab
           },
           {
+            label: 'Inflation Calculator',
+            active: isInflationTab
+          },
+          {
             label: 'Help',
             info: { id: 'help' }
           }
@@ -65,6 +71,7 @@ const AppContent: React.FC = () => {
         onMainItemSelect={(item) => {
           if (item.label === 'Lumpsum Simulator') navigate('/lumpsum');
           else if (item.label === 'SIP Simulator') navigate('/sip');
+          else if (item.label === 'Inflation Calculator') navigate('/inflation');
           else if (item.label === 'Help') openHelp('getting-started');
           else navigate('/historical');
         }}
@@ -86,6 +93,7 @@ const AppContent: React.FC = () => {
           <Route path="/lumpsum" element={null} />
           <Route path="/sip" element={null} />
           <Route path="/historical" element={null} />
+          <Route path="/inflation" element={null} />
           {/* Legacy route redirect */}
           <Route path="/portfolio" element={<Navigate to="/sip" replace />} />
         </Routes>
@@ -103,6 +111,10 @@ const AppContent: React.FC = () => {
             
             <Block display={isHistoricalTab ? 'block' : 'none'} flex="1">
               <HistoricalValuesTab funds={funds} loadNavData={loadAssetNavData} />
+            </Block>
+            
+            <Block display={isInflationTab ? 'block' : 'none'} flex="1">
+              <InflationCalculatorTab />
             </Block>
           </>
         )}

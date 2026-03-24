@@ -365,3 +365,35 @@ export function setHistoricalValuesParams(assets: Asset[], logScale: boolean) {
   const urlParams = `assets=${assetsStr}&logScale=${logScale ? '1' : '0'}`;
   window.history.replaceState({}, '', `?${urlParams}`);
 }
+
+export function getInflationCalcParams(): {
+  source: 'cpi' | 'custom';
+  customRate: number;
+  amount: number;
+  year: number;
+} {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    source: (params.get('inflSource') as 'cpi' | 'custom') || 'custom',
+    customRate: Number(params.get('inflRate')) || 6,
+    amount: Number(params.get('inflAmount')) || 10000000,
+    year: Number(params.get('inflYear')) || 2026,
+  };
+}
+
+export function setInflationCalcParams(
+  source: 'cpi' | 'custom',
+  customRate: number,
+  amount: number,
+  year: number
+) {
+  const parts = [
+    `inflSource=${source}`,
+    `inflAmount=${amount}`,
+    `inflYear=${year}`,
+  ];
+  if (source === 'custom') {
+    parts.push(`inflRate=${customRate}`);
+  }
+  window.history.replaceState({}, '', `?${parts.join('&')}`);
+}
