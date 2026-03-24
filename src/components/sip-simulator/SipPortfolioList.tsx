@@ -1,14 +1,12 @@
 import React from 'react';
 import { SipAssetControls } from './SipAssetControls';
 import { PortfolioListLayout } from '../common/PortfolioListLayout';
-import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { SipPortfolio } from '../../types/sipPortfolio';
 import { Asset } from '../../types/asset';
 
 interface SipPortfolioListProps {
   sipPortfolios: SipPortfolio[];
   setSipPortfolios: React.Dispatch<React.SetStateAction<SipPortfolio[]>>;
-  funds: mfapiMutualFund[];
   onAssetSelect: (pIdx: number, idx: number, asset: Asset | null) => void;
   onAddAsset: (pIdx: number) => void;
   onRemoveAsset: (pIdx: number, idx: number) => void;
@@ -26,7 +24,6 @@ interface SipPortfolioListProps {
 export const SipPortfolioList: React.FC<SipPortfolioListProps> = ({
   sipPortfolios,
   setSipPortfolios,
-  funds,
   onAssetSelect,
   onAddAsset,
   onRemoveAsset,
@@ -47,7 +44,6 @@ export const SipPortfolioList: React.FC<SipPortfolioListProps> = ({
     <SipAssetControls
       selectedAssets={portfolio.selectedAssets || []}
       allocations={portfolio.allocations}
-      funds={funds}
       onAssetSelect={(idx, asset) => onAssetSelect(pIdx, idx, asset)}
       onAddAsset={() => onAddAsset(pIdx)}
       onRemoveAsset={idx => onRemoveAsset(pIdx, idx)}

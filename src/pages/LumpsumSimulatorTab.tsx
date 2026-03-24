@@ -10,18 +10,16 @@ import { useLumpsumPlot } from '../hooks/useLumpsumPlot';
 import { useChartInvalidation } from '../hooks/useChartInvalidation';
 import { LumpsumPortfolioList } from '../components/lumpsum-simulator/LumpsumPortfolioList';
 import { LumpsumControlsPanel } from '../components/controls/LumpsumControlsPanel';
-import { mfapiMutualFund } from '../types/mfapiMutualFund';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from '../constants';
 
 interface LumpsumSimulatorTabProps {
-  funds: mfapiMutualFund[];
   loadNavData: (schemeCode: number) => Promise<any[]>;
 }
 
-export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds, loadNavData }) => {
+export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ loadNavData }) => {
   const location = useLocation();
   const isActive = location.pathname === '/lumpsum';
-  const plotState = usePlotState(loadNavData, funds);
+  const plotState = usePlotState(loadNavData);
   const [lumpsumAmount, setLumpsumAmount] = useState<number>(100000);
   const [chartView, setChartView] = useState<'xirr' | 'corpus'>('xirr');
   
@@ -82,7 +80,6 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
         <LumpsumPortfolioList
           lumpsumPortfolios={lumpsumPortfolios}
           setLumpsumPortfolios={setLumpsumPortfolios}
-          funds={funds}
           onAssetSelect={(pIdx: number, idx: number, asset) => {
             invalidateChart();
             handleAssetSelect(pIdx, idx, asset);
@@ -115,7 +112,6 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ funds,
         navDatas={plotState.navDatas}
         lumpsumPortfolioXirrData={plotState.lumpSumXirrDatas}
         sipPortfolioXirrData={plotState.sipXirrDatas}
-        funds={funds}
         COLORS={plotState.COLORS}
         loadingNav={plotState.loadingNav}
         loadingXirr={plotState.loadingXirr}

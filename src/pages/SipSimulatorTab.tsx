@@ -10,18 +10,16 @@ import { useSipPlot } from '../hooks/useSipPlot';
 import { useChartInvalidation } from '../hooks/useChartInvalidation';
 import { SipPortfolioList } from '../components/sip-simulator/SipPortfolioList';
 import { ControlsPanel } from '../components/controls/ControlsPanel';
-import { mfapiMutualFund } from '../types/mfapiMutualFund';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from '../constants';
 
 interface SipSimulatorTabProps {
-  funds: mfapiMutualFund[];
   loadNavData: (schemeCode: number) => Promise<any[]>;
 }
 
-export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNavData }) => {
+export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ loadNavData }) => {
   const location = useLocation();
   const isActive = location.pathname === '/sip';
-  const plotState = usePlotState(loadNavData, funds);
+  const plotState = usePlotState(loadNavData);
   const [sipAmount, setSipAmount] = useState<number>(10000);
   const [chartView, setChartView] = useState<'xirr' | 'corpus'>('xirr');
   
@@ -90,7 +88,6 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
         <SipPortfolioList
           sipPortfolios={sipPortfolios}
           setSipPortfolios={setSipPortfolios}
-          funds={funds}
           onAssetSelect={(pIdx: number, idx: number, asset) => {
             invalidateChart();
             handleAssetSelect(pIdx, idx, asset);
@@ -126,7 +123,6 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ funds, loadNav
         hasPlotted={plotState.hasPlotted}
         navDatas={plotState.navDatas}
         sipPortfolioXirrData={plotState.sipXirrDatas}
-        funds={funds}
         COLORS={plotState.COLORS}
         loadingNav={plotState.loadingNav}
         loadingXirr={plotState.loadingXirr}

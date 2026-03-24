@@ -6,7 +6,6 @@ import { LabelLarge, ParagraphMedium } from 'baseui/typography';
 import { AssetTypeDropdown } from '../controls/AssetTypeDropdown';
 import { AssetDropdown } from '../controls/AssetDropdown';
 import { AssetType, Asset } from '../../types/asset';
-import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { LoadingOverlay } from '../common/LoadingOverlay';
 import { HistoricalValuesChart } from './HistoricalValuesChart';
 import { fillMissingNavDates } from '../../utils/data/fillMissingNavDates';
@@ -19,13 +18,11 @@ interface AssetEntry {
 }
 
 interface HistoricalValuesPanelProps {
-  funds: mfapiMutualFund[];
   loadNavData: (asset: Asset) => Promise<any[]>;
   isActive?: boolean;
 }
 
 export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
-  funds,
   loadNavData,
   isActive = true
 }) => {
@@ -186,7 +183,6 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
                 />
                 <AssetDropdown
                   assetType={entry.assetType}
-                  funds={funds}
                   onSelect={(asset) => handleAssetSelect(idx, asset)}
                   value={entry.asset ?? undefined}
                 />

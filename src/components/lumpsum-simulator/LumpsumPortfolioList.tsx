@@ -1,14 +1,12 @@
 import React from 'react';
 import { LumpsumAssetControls } from './LumpsumAssetControls';
 import { PortfolioListLayout } from '../common/PortfolioListLayout';
-import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
 import { Asset } from '../../types/asset';
 
 interface LumpsumPortfolioListProps {
   lumpsumPortfolios: LumpsumPortfolio[];
   setLumpsumPortfolios: React.Dispatch<React.SetStateAction<LumpsumPortfolio[]>>;
-  funds: mfapiMutualFund[];
   onAssetSelect: (pIdx: number, idx: number, asset: Asset | null) => void;
   onAddAsset: (pIdx: number) => void;
   onRemoveAsset: (pIdx: number, idx: number) => void;
@@ -22,7 +20,6 @@ interface LumpsumPortfolioListProps {
 export const LumpsumPortfolioList: React.FC<LumpsumPortfolioListProps> = ({
   lumpsumPortfolios,
   setLumpsumPortfolios,
-  funds,
   onAssetSelect,
   onAddAsset,
   onRemoveAsset,
@@ -39,7 +36,6 @@ export const LumpsumPortfolioList: React.FC<LumpsumPortfolioListProps> = ({
     <LumpsumAssetControls
       selectedAssets={portfolio.selectedAssets || []}
       allocations={portfolio.allocations}
-      funds={funds}
       onAssetSelect={(idx, asset) => onAssetSelect(pIdx, idx, asset)}
       onAddAsset={() => onAddAsset(pIdx)}
       onRemoveAsset={idx => onRemoveAsset(pIdx, idx)}

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
-import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { SipPortfolio } from '../../types/sipPortfolio';
 import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
 import { AssetType } from '../../types/asset';
@@ -15,6 +14,7 @@ import { ReturnDistributionChart } from './ReturnDistributionChart';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
 import { recalculateTransactionsForDate } from '../../utils/calculations/sipRollingXirr';
 import { recalculateLumpsumTransactionsForDate } from '../../utils/calculations/lumpSumRollingXirr';
+import { useMutualFundsContext } from '../../hooks/useMutualFunds';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -24,12 +24,11 @@ interface MultiAssetChartsProps {
   navDatas: Record<string, any[]>;
   lumpsumPortfolioXirrData?: Record<string, any[]>;
   sipPortfolioXirrData?: Record<string, any[]>;
-  funds: mfapiMutualFund[];
   COLORS: string[];
   sipPortfolios?: SipPortfolio[];
   lumpsumPortfolios?: LumpsumPortfolio[];
   years: number;
-  amount: number; // Can be sipAmount or lumpsumAmount
+  amount: number;
   chartView: 'xirr' | 'corpus';
   isLumpsum: boolean;
 }
@@ -62,7 +61,7 @@ const initialModalState: ModalState = {
 // UTILITY FUNCTIONS
 // ============================================================================
 
-const getFundName = (schemeCode: number, funds: mfapiMutualFund[]): string => {
+const getFundName = (schemeCode: number, funds: { schemeCode: number; schemeName: string }[]): string => {
   const fund = funds.find(f => f.schemeCode === schemeCode);
   return fund ? fund.schemeName : String(schemeCode);
 };
@@ -70,7 +69,7 @@ const getFundName = (schemeCode: number, funds: mfapiMutualFund[]): string => {
 const getPortfolioAssets = (
   portfolioName: string, 
   portfolios: (SipPortfolio | LumpsumPortfolio)[], 
-  funds: mfapiMutualFund[]
+  funds: { schemeCode: number; schemeName: string }[]
 ): Array<{ schemeName: string; type: AssetType }> => {
   const idx = parseInt(portfolioName.replace('Portfolio ', '')) - 1;
   const portfolio = portfolios[idx];
@@ -288,7 +287,6 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
   navDatas,
   lumpsumPortfolioXirrData,
   sipPortfolioXirrData,
-  funds,
   COLORS,
   sipPortfolios,
   lumpsumPortfolios,
@@ -299,6 +297,7 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
 }) => {
   const [modal, setModal] = useState<ModalState>(initialModalState);
   const { openHelp } = useHelp();
+  const { funds } = useMutualFundsContext();
 
   // Use the appropriate data source based on mode
   const portfolioXirrData = isLumpsum ? lumpsumPortfolioXirrData : sipPortfolioXirrData;

@@ -5,7 +5,6 @@ import { Asset } from '../../types/asset';
 interface LumpsumAssetControlsProps {
   selectedAssets: (Asset | null)[];
   allocations: (number | null)[];
-  funds: { schemeCode: number; schemeName: string }[];
   onAssetSelect: (idx: number, asset: Asset | null) => void;
   onAddAsset: () => void;
   onRemoveAsset: (idx: number) => void;
@@ -17,7 +16,6 @@ interface LumpsumAssetControlsProps {
 export const LumpsumAssetControls: React.FC<LumpsumAssetControlsProps> = ({
   selectedAssets,
   allocations,
-  funds,
   onAssetSelect,
   onAddAsset,
   onRemoveAsset,
@@ -29,7 +27,6 @@ export const LumpsumAssetControls: React.FC<LumpsumAssetControlsProps> = ({
     <BaseAssetControls
       selectedAssets={selectedAssets}
       allocations={allocations}
-      funds={funds}
       onAssetSelect={onAssetSelect}
       onAddAsset={onAddAsset}
       onRemoveAsset={onRemoveAsset}
@@ -41,4 +38,3 @@ export const LumpsumAssetControls: React.FC<LumpsumAssetControlsProps> = ({
     </BaseAssetControls>
   );
 };
-

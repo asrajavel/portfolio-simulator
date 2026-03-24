@@ -5,24 +5,23 @@ import { Block } from 'baseui/block';
 import { AssetTypeDropdown } from '../controls/AssetTypeDropdown';
 import { AssetDropdown } from '../controls/AssetDropdown';
 import { AssetType, Asset } from '../../types/asset';
+import { useMutualFundsContext } from '../../hooks/useMutualFunds';
 
 interface BaseAssetControlsProps {
   selectedAssets: (Asset | null)[];
   allocations: (number | null)[];
-  funds: { schemeCode: number; schemeName: string }[];
   onAssetSelect: (idx: number, asset: Asset | null) => void;
   onAddAsset: () => void;
   onRemoveAsset: (idx: number) => void;
   onAllocationChange: (idx: number, value: number) => void;
   useAssets?: boolean;
   defaultSchemeCode?: number;
-  children?: React.ReactNode; // For additional controls (SIP-specific)
+  children?: React.ReactNode;
 }
 
 export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
   selectedAssets,
   allocations,
-  funds,
   onAssetSelect,
   onAddAsset,
   onRemoveAsset,
@@ -31,6 +30,7 @@ export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
   defaultSchemeCode,
   children,
 }) => {
+  const { funds } = useMutualFundsContext();
   const [assetTypes, setAssetTypes] = useState<AssetType[]>(() => {
     return selectedAssets.map(asset => asset?.type || 'mutual_fund' as AssetType);
   });
@@ -70,6 +70,8 @@ export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
           schemeName: defaultFund.schemeName
         };
         onAssetSelect(idx, defaultAsset);
+      } else {
+        onAssetSelect(idx, null);
       }
     } else if (type === 'index_fund') {
       onAssetSelect(idx, null);
@@ -116,14 +118,12 @@ export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
           />
           <AssetDropdown
             assetType={assetTypes[idx] || 'mutual_fund'}
-            funds={funds.filter(f => 
-              selectedAssets.every((asset, i) => 
-                i === idx || !asset || asset.type !== 'mutual_fund' || asset.id !== f.schemeCode
-              )
-            )}
             onSelect={(asset) => onAssetSelect(idx, asset)}
             value={selectedAssets?.[idx] ?? undefined}
             defaultSchemeCode={defaultSchemeCode}
+            excludeSchemeCodes={selectedAssets
+              .filter((a, i): a is Asset => i !== idx && a?.type === 'mutual_fund')
+              .map(a => a.id as number)}
           />
           <Input
             type="number"

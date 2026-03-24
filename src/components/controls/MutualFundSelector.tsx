@@ -4,20 +4,24 @@ import { Block } from 'baseui/block';
 import { Checkbox } from 'baseui/checkbox';
 import { matchSorter } from 'match-sorter';
 import { Asset } from '../../types/asset';
+import { useMutualFundsContext } from '../../hooks/useMutualFunds';
 
 interface MutualFundSelectorProps {
-  funds: { schemeCode: number; schemeName: string }[];
   onSelect: (asset: Asset) => void;
   value?: Asset;
   defaultSchemeCode?: number;
+  excludeSchemeCodes?: number[];
 }
 
+const isPlaceholderName = (name: string) => /^Scheme \d+$/.test(name);
+
 export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({ 
-  funds, 
   onSelect, 
   value,
-  defaultSchemeCode
+  defaultSchemeCode,
+  excludeSchemeCodes = [],
 }) => {
+  const { funds, loading, error } = useMutualFundsContext();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [selectedName, setSelectedName] = useState<string>('');
@@ -28,7 +32,7 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
   useEffect(() => {
     if (value && value.type === 'mutual_fund') {
       // If we have a value but the name looks like a placeholder, find the real fund name
-      if (value.schemeName.startsWith('Scheme ')) {
+      if (isPlaceholderName(value.schemeName)) {
         const actualFund = funds.find(f => f.schemeCode === value.schemeCode);
         if (actualFund) {
           // Update the asset with the correct name
@@ -117,9 +121,16 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
   }, []);
 
   const eligibleFunds = useMemo(() => {
-    if (includeRegular) return funds;
-    return funds.filter(f => f.schemeName.toLowerCase().includes('direct'));
-  }, [funds, includeRegular]);
+    let filtered = funds;
+    if (!includeRegular) {
+      filtered = filtered.filter(f => f.schemeName.toLowerCase().includes('direct'));
+    }
+    if (excludeSchemeCodes.length > 0) {
+      const excludeSet = new Set(excludeSchemeCodes);
+      filtered = filtered.filter(f => !excludeSet.has(f.schemeCode));
+    }
+    return filtered;
+  }, [funds, includeRegular, excludeSchemeCodes]);
 
   const filteredFunds = query.trim()
     ? matchSorter(eligibleFunds, query, { keys: ['schemeName'] }).slice(0, 20)
@@ -145,10 +156,11 @@ export const MutualFundSelector: React.FC<MutualFundSelectorProps> = ({
       }}
     >
       <Input
-        value={query}
+        value={(error || loading) && isPlaceholderName(query) ? '' : query}
         onChange={handleChange}
         onFocus={handleFocus}
-        placeholder="Type to search mutual funds..."
+        placeholder={loading ? "Loading mutual funds..." : error ? "Mutual fund data unavailable, try again later" : "Type to search mutual funds..."}
+        disabled={loading || !!error}
         size="compact"
         overrides={{
           Root: {

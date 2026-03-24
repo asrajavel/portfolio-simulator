@@ -4,7 +4,14 @@ import { mfapiMutualFund } from '../types/mfapiMutualFund';
 const API_BASE_URL = 'https://api.mfapi.in';
 
 export const fetchMutualFunds = async (): Promise<mfapiMutualFund[]> => {
-  const response = await fetch(`${API_BASE_URL}/mf`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/mf`, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
   if (!response.ok) {
     throw new Error('Failed to fetch mutual funds');
   }

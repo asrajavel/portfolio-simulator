@@ -1,6 +1,5 @@
 import React from 'react';
 import { MultiAssetCharts } from '../charts/MultiAssetCharts';
-import { mfapiMutualFund } from '../../types/mfapiMutualFund';
 import { SipPortfolio } from '../../types/sipPortfolio';
 import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
 import { Block } from 'baseui/block';
@@ -12,14 +11,13 @@ interface ChartAreaProps {
   navDatas: Record<number, any[]>;
   lumpsumPortfolioXirrData?: Record<string, any[]>;
   sipPortfolioXirrData?: Record<string, any[]>;
-  funds: mfapiMutualFund[];
   COLORS: string[];
   loadingNav?: boolean;
   loadingXirr?: boolean;
   sipPortfolios?: SipPortfolio[];
   lumpsumPortfolios?: LumpsumPortfolio[];
   years: number;
-  amount: number; // Can be sipAmount or lumpsumAmount
+  amount: number;
   chartView: 'xirr' | 'corpus';
   isLumpsum: boolean;
 }
@@ -30,7 +28,6 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
   navDatas,
   lumpsumPortfolioXirrData,
   sipPortfolioXirrData,
-  funds,
   COLORS,
   loadingNav = false,
   loadingXirr = false,
@@ -71,7 +68,6 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
           navDatas={navDatas}
           lumpsumPortfolioXirrData={lumpsumPortfolioXirrData}
           sipPortfolioXirrData={sipPortfolioXirrData}
-          funds={funds}
           COLORS={COLORS}
           sipPortfolios={sipPortfolios}
           lumpsumPortfolios={lumpsumPortfolios}

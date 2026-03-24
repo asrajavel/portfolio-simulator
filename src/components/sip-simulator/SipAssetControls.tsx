@@ -9,7 +9,6 @@ import { HelpButton } from '../help';
 interface SipAssetControlsProps {
   selectedAssets: (Asset | null)[];
   allocations: (number | null)[];
-  funds: { schemeCode: number; schemeName: string }[];
   onAssetSelect: (idx: number, asset: Asset | null) => void;
   onAddAsset: () => void;
   onRemoveAsset: (idx: number) => void;
@@ -29,7 +28,6 @@ interface SipAssetControlsProps {
 export const SipAssetControls: React.FC<SipAssetControlsProps> = ({
   selectedAssets,
   allocations,
-  funds,
   onAssetSelect,
   onAddAsset,
   onRemoveAsset,
@@ -49,7 +47,6 @@ export const SipAssetControls: React.FC<SipAssetControlsProps> = ({
     <BaseAssetControls
       selectedAssets={selectedAssets}
       allocations={allocations}
-      funds={funds}
       onAssetSelect={onAssetSelect}
       onAddAsset={onAddAsset}
       onRemoveAsset={onRemoveAsset}

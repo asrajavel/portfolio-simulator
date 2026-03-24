@@ -1,6 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, createContext, useContext } from 'react';
 import { mfapiMutualFund } from '../types/mfapiMutualFund';
 import { fetchMutualFunds } from '../services/mfapiFundNamesService';
+
+interface MutualFundsContextValue {
+  funds: mfapiMutualFund[];
+  loading: boolean;
+  error: string | null;
+}
+
+const MutualFundsContext = createContext<MutualFundsContextValue>({
+  funds: [],
+  loading: true,
+  error: null,
+});
+
+export const MutualFundsProvider = MutualFundsContext.Provider;
+
+export const useMutualFundsContext = () => useContext(MutualFundsContext);
 
 export const useMutualFunds = () => {
   const [funds, setFunds] = useState<mfapiMutualFund[]>([]);
@@ -25,5 +41,5 @@ export const useMutualFunds = () => {
     loadFunds();
   }, []);
 
-  return { funds, loading, error };
-}; 
+  return useMemo(() => ({ funds, loading, error }), [funds, loading, error]);
+};

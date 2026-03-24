@@ -9,26 +9,26 @@ import { GovSchemeSelector } from './GovSchemeSelector';
 
 interface AssetDropdownProps {
   assetType: AssetType;
-  funds: { schemeCode: number; schemeName: string }[];
   onSelect: (asset: Asset | null) => void;
   value?: Asset;
   defaultSchemeCode?: number;
+  excludeSchemeCodes?: number[];
 }
 
 export const AssetDropdown: React.FC<AssetDropdownProps> = ({ 
   assetType, 
-  funds, 
   onSelect, 
   value,
-  defaultSchemeCode
+  defaultSchemeCode,
+  excludeSchemeCodes,
 }) => {
   if (assetType === 'mutual_fund') {
     return (
       <MutualFundSelector
-        funds={funds}
         onSelect={onSelect}
         value={value}
         defaultSchemeCode={defaultSchemeCode}
+        excludeSchemeCodes={excludeSchemeCodes}
       />
     );
   }
