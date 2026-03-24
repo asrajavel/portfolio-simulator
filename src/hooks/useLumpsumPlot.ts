@@ -6,6 +6,7 @@ import { fixedReturnService } from '../services/fixedReturnService';
 import { inflationService } from '../services/inflationService';
 import { govSchemeService } from '../services/govSchemeService';
 import { trackSimulation } from '../utils/analytics';
+import { warnInsufficientData } from '../utils/warnInsufficientData';
 
 const xirrCache = new Map<string, any[]>();
 
@@ -206,6 +207,8 @@ export function useLumpsumPlot({
       });
       
       await Promise.all(workerPromises);
+      
+      warnInsufficientData(lumpsumPortfolios, allNavDatas, allLumpsumXirrDatas, years);
       
       plotState.setLumpSumXirrDatas(allLumpsumXirrDatas);
       plotState.setHasPlotted(true);

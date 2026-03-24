@@ -6,6 +6,7 @@ import { fixedReturnService } from '../services/fixedReturnService';
 import { inflationService } from '../services/inflationService';
 import { govSchemeService } from '../services/govSchemeService';
 import { trackSimulation } from '../utils/analytics';
+import { warnInsufficientData } from '../utils/warnInsufficientData';
 
 const xirrCache = new Map<string, any[]>();
 
@@ -210,6 +211,9 @@ export function useSipPlot({
       });
       
       await Promise.all(workerPromises);
+      
+      warnInsufficientData(sipPortfolios, allNavDatas, allSipXirrDatas, years);
+      
       plotState.setSipXirrDatas(allSipXirrDatas);
       plotState.setHasPlotted(true);
       plotState.setLoadingNav(false);
