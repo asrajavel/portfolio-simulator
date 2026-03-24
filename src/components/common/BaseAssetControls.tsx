@@ -131,7 +131,7 @@ export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
             max={100}
             value={allocations[idx] ?? 0}
             onChange={e => onAllocationChange(idx, Number((e.target as HTMLInputElement).value))}
-            disabled={hasInflation}
+            disabled={hasInflation || selectedAssets.length <= 1}
             size="compact"
             overrides={{
               Root: {

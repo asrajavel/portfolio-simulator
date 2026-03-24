@@ -94,9 +94,9 @@ export function PortfolioListLayout<T>({
             
             {allocationSum !== 100 && (
               <Block 
-                position="absolute"
-                bottom="scale300"
-                right="scale400"
+                display="flex"
+                justifyContent="flex-end"
+                marginTop="scale300"
               >
                 <LabelSmall
                   overrides={{
