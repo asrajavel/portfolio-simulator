@@ -12,7 +12,7 @@ import { Checkbox } from 'baseui/checkbox';
 import { TransactionChart } from '../charts/TransactionChart';
 import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
 import { AssetType } from '../../types/asset';
-import { COLORS } from '../../constants';
+import { getPortfolioColor } from '../../constants';
 
 function formatDate(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -43,9 +43,7 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
 }) => {
   const [excludeNilTransactions, setExcludeNilTransactions] = useState(true);
 
-  // Extract portfolio color
-  const portfolioIdx = parseInt(portfolioName.replace('Portfolio ', '')) - 1;
-  const portfolioColor = COLORS[portfolioIdx % COLORS.length];
+  const portfolioColor = getPortfolioColor(portfolioName);
 
   // Both SIP and Lumpsum now return the same transaction format
   const isDetailedTransaction = (tx: any): tx is Transaction => {

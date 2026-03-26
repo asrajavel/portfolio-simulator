@@ -8,7 +8,7 @@ import { Block } from 'baseui/block';
 import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
 import { useHelp } from '../help';
 import { TransactionModal } from '../modals/TransactionModal';
-import { CHART_STYLES } from '../../constants';
+import { CHART_STYLES, getPortfolioColor } from '../../constants';
 import { VolatilityChart } from './VolatilityChart';
 import { ReturnDistributionChart } from './ReturnDistributionChart';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
@@ -250,7 +250,7 @@ const getStockChartOptions = (portfolioXirrData: Record<string, any[]>, amount: 
 
 const getPortfolioSeries = (portfolioXirrData: Record<string, any[]>, COLORS: string[], chartView: 'xirr' | 'corpus', isLumpsum: boolean = false) => {
   const allDates = getAllDates(portfolioXirrData);
-  return Object.entries(portfolioXirrData).map(([portfolioName, data], idx) => {
+  return Object.entries(portfolioXirrData).map(([portfolioName, data]) => {
     const dateToValue: Record<string, number> = {};
     (data || []).forEach((row: any) => {
       if (chartView === 'xirr') {
@@ -276,7 +276,7 @@ const getPortfolioSeries = (portfolioXirrData: Record<string, any[]>, COLORS: st
       name: portfolioName,
       data: seriesData,
       type: 'line',
-      color: COLORS[idx % COLORS.length],
+      color: getPortfolioColor(portfolioName),
       marker: { enabled: false },
       showInNavigator: true,
     };

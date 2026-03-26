@@ -5,7 +5,7 @@ import { Block } from 'baseui/block';
 import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
 import { Table } from 'baseui/table-semantic';
 import { useHelp } from '../help';
-import { CHART_STYLES } from '../../constants';
+import { CHART_STYLES, getPortfolioColor } from '../../constants';
 import { formatCurrency } from '../../utils/numberFormat';
 
 interface ReturnDistributionChartProps {
@@ -41,14 +41,14 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
     const BINS = 20;
     const entries = Object.entries(portfolioXirrData || {});
 
-    const preparedValues = entries.map(([portfolioName, data], idx) => {
+    const preparedValues = entries.map(([portfolioName, data]) => {
       const values = (data || [])
         .map((row: any) => computeValue(row))
         .filter((val: number | null): val is number => val !== null);
 
       return {
         portfolioName,
-        color: COLORS[idx % COLORS.length],
+        color: getPortfolioColor(portfolioName),
         values
       };
     });
@@ -125,7 +125,7 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
   const statsData = useMemo(() => {
     const entries = Object.entries(portfolioXirrData || {});
 
-    return entries.map(([portfolioName, data], idx) => {
+    return entries.map(([portfolioName, data]) => {
       const values = (data || [])
         .map((row: any) => computeValue(row))
         .filter((val: number | null): val is number => val !== null);
@@ -149,7 +149,7 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
 
       return {
         portfolioName,
-        color: COLORS[idx % COLORS.length],
+        color: getPortfolioColor(portfolioName),
         avg, median, max, min,
         negative, zeroTo5, fiveTo10, tenTo20, moreThan20,
       };

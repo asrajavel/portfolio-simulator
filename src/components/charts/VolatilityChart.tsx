@@ -4,7 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
 import { useHelp } from '../help';
-import { CHART_STYLES } from '../../constants';
+import { CHART_STYLES, getPortfolioColor } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
 
 interface VolatilityChartProps {
@@ -15,7 +15,7 @@ interface VolatilityChartProps {
 
   const getVolatilitySeries = (sipPortfolioXirrData: Record<string, any[]>, COLORS: string[]) => {
     const allDates = getAllDates(sipPortfolioXirrData);
-    return Object.entries(sipPortfolioXirrData).map(([portfolioName, data], idx) => {
+    return Object.entries(sipPortfolioXirrData).map(([portfolioName, data]) => {
       const dateToVolatility: Record<string, number> = {};
       (data || []).forEach((row: any) => {
         if (row.volatility !== undefined) {
@@ -35,7 +35,7 @@ interface VolatilityChartProps {
       name: portfolioName,
       data: seriesData,
       type: 'line',
-      color: COLORS[idx % COLORS.length],
+      color: getPortfolioColor(portfolioName),
       marker: { enabled: false },
       showInNavigator: true,
     };

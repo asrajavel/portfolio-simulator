@@ -3,7 +3,7 @@ import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
-import { CHART_STYLES, COLORS } from '../../constants';
+import { CHART_STYLES, getPortfolioColor } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
 import { buildTransactionChartData, FundSeries } from './transactionChartData';
@@ -30,9 +30,7 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
   portfolioName,
   funds
 }) => {
-  // Extract portfolio index and get its color
-  const portfolioIdx = portfolioName ? parseInt(portfolioName.replace('Portfolio ', '')) - 1 : 0;
-  const portfolioColor = COLORS[portfolioIdx % COLORS.length];
+  const portfolioColor = getPortfolioColor(portfolioName || 'Portfolio 1');
 
   // Process transactions for the chart
   const { totals, perFund, rebalancePlotLines } = useMemo(

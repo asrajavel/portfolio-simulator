@@ -16,6 +16,14 @@ export const COLORS = [
   '#9c27b0', '#00bcd4', '#795548', '#607d8b'
 ];
 
+export const getPortfolioColorIndex = (name: string): number => {
+  const match = name.match(/Portfolio\s+(\d+)/);
+  return match ? parseInt(match[1], 10) - 1 : 0;
+};
+
+export const getPortfolioColor = (name: string): string =>
+  COLORS[getPortfolioColorIndex(name) % COLORS.length];
+
 // Validation
 export const ALLOCATION_TOTAL = 100;
 export const MIN_ALLOCATION = 0;
