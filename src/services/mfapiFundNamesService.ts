@@ -1,14 +1,13 @@
 import { mfapiMutualFund } from '../types/mfapiMutualFund';
-import { CORS_PROXY_URL, API_ENDPOINTS } from '../constants';
+
+const API_BASE_URL = 'https://api.mfapi.in';
 
 export const fetchMutualFunds = async (): Promise<mfapiMutualFund[]> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
   let response: Response;
   try {
-    const targetUrl = `${API_ENDPOINTS.MFAPI_BASE}/mf`;
-    const proxyUrl = `${CORS_PROXY_URL}?url=${encodeURIComponent(targetUrl)}`;
-    response = await fetch(proxyUrl, { signal: controller.signal });
+    response = await fetch(`${API_BASE_URL}/mf`, { signal: controller.signal });
   } finally {
     clearTimeout(timeoutId);
   }
