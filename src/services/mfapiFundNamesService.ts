@@ -1,14 +1,14 @@
 import { mfapiMutualFund } from '../types/mfapiMutualFund';
-
-// Service for fetching mutual fund names from mfapi.in
-const API_BASE_URL = 'https://api.mfapi.in';
+import { CORS_PROXY_URL, API_ENDPOINTS } from '../constants';
 
 export const fetchMutualFunds = async (): Promise<mfapiMutualFund[]> => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
   let response: Response;
   try {
-    response = await fetch(`${API_BASE_URL}/mf`, { signal: controller.signal });
+    const targetUrl = `${API_ENDPOINTS.MFAPI_BASE}/mf`;
+    const proxyUrl = `${CORS_PROXY_URL}?url=${encodeURIComponent(targetUrl)}`;
+    response = await fetch(proxyUrl, { signal: controller.signal });
   } finally {
     clearTimeout(timeoutId);
   }
@@ -35,4 +35,4 @@ export const fetchMutualFunds = async (): Promise<mfapiMutualFund[]> => {
       );
     })
     .sort((a, b) => a.schemeName.localeCompare(b.schemeName, undefined, { sensitivity: 'base' }));
-}; 
+};

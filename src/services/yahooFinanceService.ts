@@ -1,6 +1,7 @@
 import { ProcessedIndexData } from '../types/index';
 import { toaster } from 'baseui/toast';
 import React from 'react';
+import { CORS_PROXY_URL } from '../constants';
 
 let globalOpenHelp: ((topic: string) => void) | null = null;
 
@@ -77,7 +78,7 @@ class YahooFinanceService {
 
     try {
       const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=100y`;
-      const proxyUrl = `https://cors-proxy-lake-omega.vercel.app/api/proxy?url=${encodeURIComponent(yahooUrl)}`;
+      const proxyUrl = `${CORS_PROXY_URL}?url=${encodeURIComponent(yahooUrl)}`;
       
       const response = await fetch(proxyUrl);
       

@@ -3,6 +3,7 @@ export const DEFAULT_SCHEME_CODE = 120716;
 export const DEFAULT_REBALANCING_THRESHOLD = 5;
 
 // API Configuration
+export const CORS_PROXY_URL = 'https://cors-proxy-lake-omega.vercel.app/api/proxy';
 export const API_ENDPOINTS = {
   MFAPI_BASE: 'https://api.mfapi.in',
   YAHOO_FINANCE_PROXY: 'https://api.allorigins.win/get?url=',
