@@ -39,7 +39,7 @@ async function fetchNavsForHolding(holding: HoldingData): Promise<NavEntry[]> {
     case 'index_fund':
       return indexService.fetchIndexData(holding.indexName);
     case 'yahoo_finance':
-      return yahooFinanceService.fetchStockData(holding.symbol);
+      return yahooFinanceService.fetchStockDataInINR(holding.symbol);
     case 'fixed_return':
       return FixedReturnService.generateFixedReturnData(holding.annualReturnPercentage);
     case 'inflation':

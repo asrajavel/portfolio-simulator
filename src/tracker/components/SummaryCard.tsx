@@ -2,7 +2,7 @@ import React from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
-import { HeadingSmall, LabelLarge, LabelSmall, ParagraphSmall } from 'baseui/typography';
+import { LabelLarge, LabelSmall } from 'baseui/typography';
 import { Table } from 'baseui/table-semantic';
 import { GoalSummary } from '../../types/tracker';
 import { formatNumber } from '../../utils/numberFormat';
@@ -14,27 +14,34 @@ interface SummaryCardProps {
 
 export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
   const isPositiveChange = summary.dailyChange >= 0;
+  const xirrStr = isNaN(summary.xirr) ? 'N/A' : `${(summary.xirr * 100).toFixed(2)}%`;
 
-  const tableColumns = ['', 'Investment', 'Value', 'Allocation'];
+  const right = { textAlign: 'right' as const, display: 'block' };
+  const returnColor = (v: number) => (v >= 0 ? '#16a34a' : '#dc2626');
+
+  const tableColumns = ['', 'Investment', 'Value', 'Return', 'Allocation'];
   const tableData = [
-    ...summary.holdings.map((h) => [
-      <span key="n" style={{ fontWeight: 500 }}>{h.name}</span>,
-      formatNumber(Math.round(h.investment)),
-      formatNumber(Math.round(h.value)),
-      `${h.allocation.toFixed(1)}%`,
-    ]),
+    ...summary.holdings.map((h) => {
+      const ret = h.value - h.investment;
+      return [
+        <span key="n" style={{ fontWeight: 500 }}>{h.name}</span>,
+        <span key="i" style={right}>{formatNumber(Math.round(h.investment))}</span>,
+        <span key="v" style={right}>{formatNumber(Math.round(h.value))}</span>,
+        <span key="r" style={{ ...right, color: returnColor(ret), fontWeight: 600 }}>
+          {ret >= 0 ? '+' : ''}{formatNumber(Math.round(ret))}
+        </span>,
+        <span key="a" style={right}>{h.allocation.toFixed(1)}%</span>,
+      ];
+    }),
     [
       <strong key="t">Total</strong>,
-      <strong key="ti">{formatNumber(Math.round(summary.totalInvestment))}</strong>,
-      '',
-      '',
-    ],
-    [
-      <strong key="x">XIRR</strong>,
-      <strong key="xv" style={{ color: '#16a34a' }}>
-        {isNaN(summary.xirr) ? 'N/A' : `${(summary.xirr * 100).toFixed(2)}%`}
+      <strong key="ti"><span style={right}>{formatNumber(Math.round(summary.totalInvestment))}</span></strong>,
+      <strong key="tv"><span style={right}>{formatNumber(Math.round(summary.totalValue))}</span></strong>,
+      <strong key="tr">
+        <span style={{ ...right, color: returnColor(summary.interest), fontWeight: 700 }}>
+          {summary.interest >= 0 ? '+' : ''}{formatNumber(Math.round(summary.interest))}
+        </span>
       </strong>,
-      '',
       '',
     ],
   ];
@@ -79,8 +86,6 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
 
   return (
     <Block>
-      <HeadingSmall marginTop="0" marginBottom="scale400">{summary.name}</HeadingSmall>
-
       <Block
         display="flex"
         justifyContent="space-between"
@@ -96,25 +101,17 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
           },
         }}
       >
-        <Block flex="1" overrides={{ Block: { style: { overflowX: 'auto' } } }}>
-          <Table
-            columns={tableColumns}
-            data={tableData}
-            divider="grid"
-            size="compact"
-          />
-        </Block>
-
         <Block
           display="flex"
           flexDirection="column"
           alignItems="center"
-          marginLeft="scale600"
+          marginRight="scale600"
           overrides={{
             Block: {
               style: {
+                minWidth: '200px',
                 '@media (max-width: 700px)': {
-                  marginLeft: '0',
+                  marginRight: '0',
                   alignSelf: 'center',
                 },
               },
@@ -130,7 +127,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
                   color: CHART_STYLES.title.color,
                   lineHeight: '1.1',
                   marginTop: '0',
-                  marginBottom: '0',
+                  marginBottom: '4px',
                 },
               },
             }}
@@ -142,10 +139,8 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
             overrides={{
               Block: {
                 style: {
-                  fontWeight: '500',
+                  fontWeight: '600',
                   color: isPositiveChange ? '#16a34a' : '#dc2626',
-                  marginTop: '4px',
-                  marginBottom: '0',
                 },
               },
             }}
@@ -153,13 +148,33 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
             {isPositiveChange ? '↑' : '↓'} {formatNumber(Math.abs(Math.round(summary.dailyChange)))}
           </LabelSmall>
 
+          <LabelSmall
+            overrides={{
+              Block: {
+                style: {
+                  marginTop: '4px',
+                  fontWeight: '600',
+                  color: CHART_STYLES.title.color,
+                },
+              },
+            }}
+          >
+            XIRR: {xirrStr}
+          </LabelSmall>
+
           <Block marginTop="scale200">
             <HighchartsReact highcharts={Highcharts} options={pieOptions} />
           </Block>
 
-          <ParagraphSmall color="contentTertiary" marginTop="0" marginBottom="0">
-            Investment vs Interest
-          </ParagraphSmall>
+        </Block>
+
+        <Block flex="1" overrides={{ Block: { style: { overflowX: 'auto' } } }}>
+          <Table
+            columns={tableColumns}
+            data={tableData}
+            divider="grid"
+            size="compact"
+          />
         </Block>
       </Block>
     </Block>
