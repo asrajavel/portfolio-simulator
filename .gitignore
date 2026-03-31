@@ -33,4 +33,7 @@ yarn-error.log*
 *.sw?
 
 # TypeScript
-*.tsbuildinfo 
+*.tsbuildinfo
+
+# Personal portfolio data
+/data/

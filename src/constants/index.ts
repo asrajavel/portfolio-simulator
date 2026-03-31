@@ -33,6 +33,9 @@ export const MAX_ALLOCATION = 100;
 export const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
 export const MONTHS_PER_YEAR = 12;
 
+// Tracker
+export const TRACKER_STORAGE_KEY = 'portfolio-simulator-tracker-data';
+
 // Chart Styling Configuration
 export const CHART_STYLES = {
   title: {
