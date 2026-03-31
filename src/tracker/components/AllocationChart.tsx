@@ -5,7 +5,6 @@ import { Block } from 'baseui/block';
 import { HeadingXSmall } from 'baseui/typography';
 import { DailyGoalSnapshot } from '../../types/tracker';
 import { CHART_STYLES, COLORS } from '../../constants';
-import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 
 interface AllocationChartProps {
   snapshots: DailyGoalSnapshot[];
@@ -54,8 +53,8 @@ export const AllocationChart: React.FC<AllocationChartProps> = ({ snapshots, hol
       opposite: false,
     },
     rangeSelector: { enabled: false },
-    navigator: STOCK_CHART_NAVIGATOR,
-    scrollbar: STOCK_CHART_SCROLLBAR,
+    navigator: { enabled: false },
+    scrollbar: { enabled: false },
     plotOptions: {
       area: { stacking: 'normal', animation: false, marker: { enabled: false } },
     },

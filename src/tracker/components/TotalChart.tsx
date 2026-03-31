@@ -5,7 +5,6 @@ import { Block } from 'baseui/block';
 import { HeadingXSmall } from 'baseui/typography';
 import { DailyGoalSnapshot } from '../../types/tracker';
 import { CHART_STYLES, COLORS } from '../../constants';
-import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 import { formatNumber } from '../../utils/numberFormat';
 
 interface TotalChartProps {
@@ -23,7 +22,7 @@ export const TotalChart: React.FC<TotalChartProps> = ({ snapshots }) => {
       backgroundColor: CHART_STYLES.colors.background,
       borderRadius: 8,
       spacing: [10, 20, 20, 20],
-      height: 300,
+      height: 450,
       zooming: { mouseWheel: false },
     },
     xAxis: {
@@ -45,8 +44,8 @@ export const TotalChart: React.FC<TotalChartProps> = ({ snapshots }) => {
       opposite: false,
     },
     rangeSelector: { enabled: false },
-    navigator: STOCK_CHART_NAVIGATOR,
-    scrollbar: STOCK_CHART_SCROLLBAR,
+    navigator: { enabled: false },
+    scrollbar: { enabled: false },
     tooltip: {
       shared: true,
       crosshairs: true,
