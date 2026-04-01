@@ -225,7 +225,7 @@ export async function computeGoal(
     totalInvestment: latest?.totalInv || 0,
     totalValue: latest?.totalValue || 0,
     interest: (latest?.totalValue || 0) - (latest?.totalInv || 0),
-    xirr: latest?.xirr || 0,
+    xirr: latest?.xirr ?? 0,
     dailyChange: previousDay
       ? latest.totalValue - previousDay.totalValue
       : 0,

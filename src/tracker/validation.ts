@@ -26,6 +26,12 @@ export function validateTrackerData(parsed: unknown): parsed is TrackerData {
         if (hld[field] == null) return false;
       }
       if (!Array.isArray(hld.transactions)) return false;
+      for (const t of hld.transactions as unknown[]) {
+        if (!t || typeof t !== 'object') return false;
+        const tx = t as Record<string, unknown>;
+        if (typeof tx.date !== 'string') return false;
+        if (typeof tx.amount !== 'number') return false;
+      }
     }
   }
   return true;
