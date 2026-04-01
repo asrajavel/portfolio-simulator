@@ -170,16 +170,15 @@ export const TrackerTab: React.FC = () => {
 
   return (
     <Block maxWidth="900px" marginLeft="auto" marginRight="auto">
-      <Block display="flex" justifyContent="flex-end" marginBottom="scale200">
-        <Button size="mini" kind="tertiary" onClick={() => setEditorOpen(true)}>
-          Edit Data
-        </Button>
-      </Block>
-
       <Tabs
         activeKey={activeKey}
         onChange={({ activeKey }) => setActiveKey(String(activeKey))}
         activateOnFocus
+        endEnhancer={() => (
+          <Button size="mini" kind="secondary" onClick={() => setEditorOpen(true)}>
+            Edit Data
+          </Button>
+        )}
       >
         {goals.map((goal, idx) => (
           <Tab key={idx} title={goal.name}>

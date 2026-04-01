@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, ModalButton, SIZE } from 'baseui/modal';
-import { Textarea } from 'baseui/textarea';
 import { Input } from 'baseui/input';
 import { LabelSmall } from 'baseui/typography';
 import { Block } from 'baseui/block';
+import Editor, { type OnMount } from '@monaco-editor/react';
 import { TrackerData } from '../../types/tracker';
 import { validateTrackerData, VALID_HOLDING_TYPES } from '../validation';
 
@@ -63,12 +63,15 @@ export const JsonEditorModal: React.FC<JsonEditorModalProps> = ({
   onSubmit,
   currentData,
 }) => {
-  const [json, setJson] = useState(
-    currentData ? JSON.stringify(currentData, null, 2) : PLACEHOLDER
-  );
+  const initialValue = currentData ? JSON.stringify(currentData, null, 2) : PLACEHOLDER;
+  const jsonRef = useRef(initialValue);
   const [error, setError] = useState<string | null>(null);
   const [sourceUrl, setSourceUrl] = useState('');
   const [fetchingUrl, setFetchingUrl] = useState(false);
+
+  const handleEditorMount: OnMount = (editor) => {
+    editor.getAction('editor.action.formatDocument')?.run();
+  };
 
   const toRawGistUrl = (url: string): string => {
     const match = url.match(/^https?:\/\/gist\.github\.com\/([^/]+)\/([a-f0-9]+)\/?$/);
@@ -101,9 +104,10 @@ export const JsonEditorModal: React.FC<JsonEditorModalProps> = ({
 
   const handleSubmit = () => {
     setError(null);
+    const value = jsonRef.current;
     let parsed: unknown;
     try {
-      parsed = JSON.parse(json);
+      parsed = JSON.parse(value);
     } catch {
       setError('Invalid JSON. Please check the syntax.');
       return;
@@ -127,7 +131,7 @@ export const JsonEditorModal: React.FC<JsonEditorModalProps> = ({
       overrides={{
         Dialog: {
           style: {
-            width: '640px',
+            width: '720px',
             maxWidth: '95vw',
           },
         },
@@ -159,23 +163,28 @@ export const JsonEditorModal: React.FC<JsonEditorModalProps> = ({
         <LabelSmall color="contentTertiary" marginBottom="scale400">
           Or paste your portfolio JSON below:
         </LabelSmall>
-        <Textarea
-          value={json}
-          onChange={(e) => {
-            setJson(e.currentTarget.value);
-            setError(null);
-          }}
-          overrides={{
-            Input: {
-              style: {
-                minHeight: '320px',
-                fontFamily: 'monospace',
-                fontSize: '13px',
-                lineHeight: '1.5',
-              },
-            },
-          }}
-        />
+        <Block overrides={{ Block: { style: { border: '1px solid #e2e2e2', borderRadius: '4px', overflow: 'hidden' } } }}>
+          <Editor
+            height="320px"
+            defaultLanguage="json"
+            defaultValue={initialValue}
+            onChange={(value) => {
+              jsonRef.current = value || '';
+              setError(null);
+            }}
+            onMount={handleEditorMount}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 13,
+              lineNumbers: 'on',
+              scrollBeyondLastLine: false,
+              automaticLayout: true,
+              tabSize: 2,
+              formatOnPaste: true,
+              wordWrap: 'on',
+            }}
+          />
+        </Block>
         {error && (
           <Block marginTop="scale300">
             <LabelSmall color="negative">{error}</LabelSmall>
@@ -186,7 +195,7 @@ export const JsonEditorModal: React.FC<JsonEditorModalProps> = ({
         <ModalButton kind="tertiary" onClick={onClose}>
           Cancel
         </ModalButton>
-        <ModalButton onClick={handleSubmit} disabled={!json.trim()}>
+        <ModalButton onClick={handleSubmit}>
           Load Data
         </ModalButton>
       </ModalFooter>
