@@ -16,6 +16,16 @@ export const trackPageView = (page: string) => {
   }
 };
 
+// Tracker events
+export const trackTracker = (action: 'ImportData' | 'LoadGoal' | 'ImportRemote') => {
+  if (MEASUREMENT_ID) {
+    ReactGA.event({
+      category: 'Tracker',
+      action,
+    });
+  }
+};
+
 // Simulation events
 export const trackSimulation = (type: 'SIP' | 'Lumpsum', action: 'Plot' | 'AddPortfolio' | 'RemovePortfolio') => {
   if (MEASUREMENT_ID) {

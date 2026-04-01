@@ -33,6 +33,7 @@ export const MAX_ALLOCATION = 100;
 export const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
 export const MONTHS_PER_YEAR = 12;
 
+
 // Chart Styling Configuration
 export const CHART_STYLES = {
   title: {

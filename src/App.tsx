@@ -14,6 +14,7 @@ import { HelpProvider, HelpDrawer, useHelp } from './components/help';
 import { trackPageView } from './utils/analytics';
 import { ToasterContainer } from 'baseui/toast';
 import { setGlobalOpenHelp } from './services/yahooFinanceService';
+import { TrackerTab } from './pages/TrackerTab';
 
 const AppContent: React.FC = () => {
   const mutualFundsState = useMutualFunds();
@@ -34,6 +35,7 @@ const AppContent: React.FC = () => {
   const isLumpsumTab = location.pathname === '/lumpsum';
   const isSipTab = location.pathname === '/sip';
   const isHistoricalTab = location.pathname === '/historical';
+  const isTrackerTab = location.pathname === '/tracker';
 
   return (
     <MutualFundsProvider value={mutualFundsState}>
@@ -62,6 +64,7 @@ const AppContent: React.FC = () => {
           onMainItemSelect={(item) => {
             if (item.label === 'Lumpsum Simulator') navigate('/lumpsum');
             else if (item.label === 'SIP Simulator') navigate('/sip');
+            else if (item.label === 'Tracker') navigate('/tracker');
             else if (item.label === 'Help') openHelp('getting-started');
             else navigate('/historical');
           }}
@@ -80,6 +83,7 @@ const AppContent: React.FC = () => {
             <Route path="/lumpsum" element={null} />
             <Route path="/sip" element={null} />
             <Route path="/historical" element={null} />
+            <Route path="/tracker" element={null} />
             <Route path="/portfolio" element={<Navigate to="/sip" replace />} />
           </Routes>
           
@@ -93,6 +97,10 @@ const AppContent: React.FC = () => {
           
           <Block display={isHistoricalTab ? 'block' : 'none'} flex="1">
             <HistoricalValuesTab loadNavData={loadAssetNavData} />
+          </Block>
+          
+          <Block display={isTrackerTab ? 'block' : 'none'} flex="1">
+            <TrackerTab />
           </Block>
         </Block>
         
