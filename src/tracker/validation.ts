@@ -2,10 +2,8 @@ import { TrackerData } from '../types/tracker';
 
 const TYPE_REQUIRED_FIELDS: Record<string, string[]> = {
   mutual_fund: ['schemeCode'],
-  index_fund: ['indexName'],
   yahoo_finance: ['symbol'],
   fixed_return: ['annualReturnPercentage'],
-  inflation: [],
   gov_scheme: ['scheme'],
 };
 

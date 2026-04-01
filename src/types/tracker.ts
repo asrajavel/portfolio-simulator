@@ -1,6 +1,6 @@
 import {
-  MutualFund, IndexFund, YahooFinanceAsset,
-  FixedReturnAsset, InflationAsset, GovSchemeAsset,
+  MutualFund, YahooFinanceAsset,
+  FixedReturnAsset, GovSchemeAsset,
 } from './asset';
 
 export interface TransactionData {
@@ -15,10 +15,8 @@ interface BaseHolding {
 
 export type HoldingData =
   | (Pick<MutualFund, 'type' | 'schemeCode'> & BaseHolding)
-  | (Pick<IndexFund, 'type' | 'indexName'> & BaseHolding)
   | (Pick<YahooFinanceAsset, 'type' | 'symbol'> & BaseHolding)
   | (Pick<FixedReturnAsset, 'type' | 'annualReturnPercentage'> & BaseHolding)
-  | (Pick<InflationAsset, 'type' | 'countryCode'> & BaseHolding)
   | (Pick<GovSchemeAsset, 'type' | 'scheme'> & BaseHolding);
 
 export interface GoalData {

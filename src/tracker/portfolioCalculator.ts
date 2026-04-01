@@ -1,9 +1,7 @@
 import { fetchNavData } from '../services/mfapiNavService';
 import { GovSchemeService } from '../services/govSchemeService';
-import { indexService } from '../services/indexService';
 import { yahooFinanceService } from '../services/yahooFinanceService';
 import { FixedReturnService } from '../services/fixedReturnService';
-import { inflationService } from '../services/inflationService';
 import { NavEntry } from '../types/navData';
 import {
   GoalData,
@@ -36,14 +34,10 @@ async function fetchNavsForHolding(holding: HoldingData): Promise<NavEntry[]> {
   switch (holding.type) {
     case 'mutual_fund':
       return fetchNavData(holding.schemeCode);
-    case 'index_fund':
-      return indexService.fetchIndexData(holding.indexName);
     case 'yahoo_finance':
       return yahooFinanceService.fetchStockDataInINR(holding.symbol);
     case 'fixed_return':
       return FixedReturnService.generateFixedReturnData(holding.annualReturnPercentage);
-    case 'inflation':
-      return inflationService.generateInflationNavData(holding.countryCode || 'IND');
     case 'gov_scheme':
       return GovSchemeService.generateGovSchemeData(holding.scheme);
   }
@@ -198,7 +192,7 @@ export async function computeGoal(
   const holdingNames = goal.holdings.map((h) => h.name);
 
   for (const holding of goal.holdings) {
-    onProgress?.(`Fetching NAVs for ${holding.name}...`);
+    onProgress?.(`Fetching data for ${holding.name}...`);
     const navEntries = await fetchNavsForHolding(holding);
     const navMap = buildNavMap(navEntries);
 

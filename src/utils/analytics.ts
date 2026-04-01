@@ -17,7 +17,7 @@ export const trackPageView = (page: string) => {
 };
 
 // Tracker events
-export const trackTracker = (action: 'ImportData' | 'LoadGoal') => {
+export const trackTracker = (action: 'ImportData' | 'LoadGoal' | 'ImportRemote') => {
   if (MEASUREMENT_ID) {
     ReactGA.event({
       category: 'Tracker',
