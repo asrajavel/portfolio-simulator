@@ -67,7 +67,8 @@ export const AllocationChart: React.FC<AllocationChartProps> = ({ snapshots, hol
       style: CHART_STYLES.tooltip,
       formatter: function (this: any) {
         let html = `<div style="font-size:12px;color:#fff"><strong>${Highcharts.dateFormat('%e %b %Y', this.x)}</strong><br/>`;
-        for (const point of (this.points || []).slice().reverse()) {
+        const sortedPoints = this.points ? [...this.points].sort((a: any, b: any) => b.y - a.y) : [];
+        for (const point of sortedPoints) {
           html += `<span style="color:${point.series.color}">●</span> ${point.series.name}: <strong>${point.y.toFixed(1)}%</strong><br/>`;
         }
         return html + '</div>';

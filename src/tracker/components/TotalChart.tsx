@@ -56,7 +56,8 @@ export const TotalChart: React.FC<TotalChartProps> = ({ snapshots }) => {
       style: CHART_STYLES.tooltip,
       formatter: function (this: any) {
         let html = `<div style="font-size:12px;color:#fff"><strong>${Highcharts.dateFormat('%e %b %Y', this.x)}</strong><br/>`;
-        for (const point of this.points || []) {
+        const sortedPoints = this.points ? [...this.points].sort((a: any, b: any) => b.y - a.y) : [];
+        for (const point of sortedPoints) {
           html += `<span style="color:${point.series.color}">●</span> ${point.series.name}: <strong>${formatNumber(Math.round(point.y))}</strong><br/>`;
         }
         return html + '</div>';
@@ -69,8 +70,8 @@ export const TotalChart: React.FC<TotalChartProps> = ({ snapshots }) => {
       },
     },
     series: [
-      { type: 'line', name: 'Investment', data: investmentData, color: '#5A5A5A', lineWidth: 2, showInNavigator: true },
       { type: 'line', name: 'Value', data: valueData, color: COLORS[0], lineWidth: 2, showInNavigator: true },
+      { type: 'line', name: 'Investment', data: investmentData, color: '#5A5A5A', lineWidth: 2, showInNavigator: true },
     ],
     legend: { enabled: true, itemStyle: CHART_STYLES.legend },
   };
