@@ -144,16 +144,43 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
   }, [assets, useLogScale, isActive]);
 
   const anyInvalidSelection = assets.some(entry => entry.asset === null);
+  const [listCopied, setListCopied] = useState(false);
+
+  const copyInstrumentList = () => {
+    const lines = assets
+      .filter(entry => entry.asset !== null)
+      .map(entry => {
+        const a = entry.asset!;
+        if (a.type === 'mutual_fund') return `mf:${a.schemeCode} — ${a.schemeName}`;
+        if (a.type === 'yahoo_finance') return `yahoo:${a.symbol} — ${a.displayName || a.symbol}`;
+        if (a.type === 'gov_scheme') return `gov:${a.scheme} — ${a.displayName || a.scheme}`;
+        if (a.type === 'fixed_return') return `fixed:${a.annualReturnPercentage} — Fixed ${a.annualReturnPercentage}% Return`;
+        if (a.type === 'index_fund') return `idx:${a.indexName} — ${a.displayName || a.indexName}`;
+        return null;
+      })
+      .filter(Boolean);
+    navigator.clipboard.writeText(lines.join('\n'));
+    setListCopied(true);
+    setTimeout(() => setListCopied(false), 2000);
+  };
 
   return (
     <Block position="relative">
       <LoadingOverlay active={loading} />
       
       {/* Page Description */}
-      <Block maxWidth="900px" margin="0 auto" marginBottom="scale400" paddingTop="0" display="flex" justifyContent="center">
+      <Block maxWidth="900px" margin="0 auto" marginBottom="scale400" paddingTop="0" display="flex" justifyContent="space-between" alignItems="center">
         <ParagraphMedium color="contentTertiary" marginTop="0" marginBottom="0">
           View and compare historical NAV/price data for mutual funds, indices, and stocks.
         </ParagraphMedium>
+        <Button
+          kind="secondary"
+          size="mini"
+          onClick={copyInstrumentList}
+          disabled={!assets.some(e => e.asset !== null)}
+        >
+          {listCopied ? 'Copied!' : 'Copy for Tracker'}
+        </Button>
       </Block>
       
       <Block maxWidth="900px" margin="0 auto">
