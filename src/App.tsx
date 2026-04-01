@@ -57,10 +57,6 @@ const AppContent: React.FC = () => {
               active: isHistoricalTab
             },
             {
-              label: 'Tracker',
-              active: isTrackerTab
-            },
-            {
               label: 'Help',
               info: { id: 'help' }
             }

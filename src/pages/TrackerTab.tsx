@@ -127,15 +127,19 @@ export const TrackerTab: React.FC = () => {
 
   const goals = trackerData?.goals || [];
 
-  const loadGoal = useCallback(
-    async (idx: number) => {
-      if (cache[idx] || !goals[idx]) return;
+  const loadAllGoals = useCallback(
+    async () => {
+      if (goals.length === 0) return;
       setLoading(true);
       setError(null);
-      setProgress(`Loading ${goals[idx].name}...`);
+      const newCache: Record<number, ComputedGoalData> = {};
       try {
-        const result = await computeGoal(goals[idx], (msg) => setProgress(msg));
-        setCache((prev) => ({ ...prev, [idx]: result }));
+        for (let i = 0; i < goals.length; i++) {
+          setProgress(`Loading ${goals[i].name}...`);
+          const result = await computeGoal(goals[i], (msg) => setProgress(msg));
+          newCache[i] = result;
+        }
+        setCache(newCache);
         trackTracker('LoadGoal');
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
@@ -143,16 +147,16 @@ export const TrackerTab: React.FC = () => {
         setLoading(false);
       }
     },
-    [cache, goals]
+    [goals]
   );
 
   const activeIdx = parseInt(activeKey, 10);
 
   useEffect(() => {
-    if (goals.length > 0 && !cache[activeIdx]) {
-      loadGoal(activeIdx);
+    if (goals.length > 0 && Object.keys(cache).length === 0) {
+      loadAllGoals();
     }
-  }, [activeIdx, trackerData]);
+  }, [trackerData]);
 
   const handleDataSubmit = (data: TrackerData, source?: string) => {
     if (source) {
