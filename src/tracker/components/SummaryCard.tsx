@@ -61,6 +61,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
     },
     title: { text: '' },
     credits: { enabled: false },
+    tooltip: { enabled: false },
     plotOptions: {
       pie: {
         innerSize: '0%',
