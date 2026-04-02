@@ -5,6 +5,7 @@ import { SummaryCard } from './SummaryCard';
 import { TotalChart } from './TotalChart';
 import { AllocationChart } from './AllocationChart';
 import { HoldingChart } from './HoldingChart';
+import { HoldingXirrChart } from './HoldingXirrChart';
 import { XirrChart } from './XirrChart';
 
 interface TrackerDashboardProps {
@@ -49,13 +50,16 @@ export const TrackerDashboard: React.FC<TrackerDashboardProps> = ({ data }) => {
         </Block>
       </Block>
 
-      <Block marginTop="scale600" display="grid" overrides={{ Block: { style: twoColGrid } }}>
-        {holdingNames.map((name) => (
-          <Block key={name} overrides={{ Block: { style: cardStyle } }}>
+      {holdingNames.map((name) => (
+        <Block key={name} marginTop="scale600" display="grid" overrides={{ Block: { style: twoColGrid } }}>
+          <Block overrides={{ Block: { style: cardStyle } }}>
             <HoldingChart name={name} snapshots={data.holdingTimeSeries[name] || []} />
           </Block>
-        ))}
-      </Block>
+          <Block overrides={{ Block: { style: cardStyle } }}>
+            <HoldingXirrChart name={name} snapshots={data.holdingTimeSeries[name] || []} />
+          </Block>
+        </Block>
+      ))}
     </Block>
   );
 };

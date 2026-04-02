@@ -32,6 +32,7 @@ export interface DailyHoldingSnapshot {
   todayUnits: number;
   cumUnits: number;
   totalValue: number;
+  xirr: number;
 }
 
 export interface DailyGoalSnapshot {
@@ -48,6 +49,7 @@ export interface HoldingSummary {
   name: string;
   investment: number;
   value: number;
+  xirr: number;
   allocation: number;
 }
 

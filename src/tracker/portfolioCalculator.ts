@@ -69,6 +69,7 @@ function computeHoldingTimeSeries(
   let cumInv = 0;
   let cumUnits = 0;
   let lastKnownNav = 0;
+  const xirrCashflows: { amount: number; when: Date }[] = [];
 
   for (
     let d = new Date(startDate);
@@ -86,6 +87,14 @@ function computeHoldingTimeSeries(
     cumUnits += todayUnits;
     const totalValue = cumUnits * nav;
 
+    if (todayInv !== 0) {
+      xirrCashflows.push({ amount: -todayInv, when: new Date(d) });
+    }
+    const holdingXirr = computeXirr([
+      ...xirrCashflows,
+      { amount: totalValue, when: new Date(d) },
+    ]);
+
     snapshots.push({
       date: new Date(d),
       nav,
@@ -94,6 +103,7 @@ function computeHoldingTimeSeries(
       todayUnits,
       cumUnits,
       totalValue,
+      xirr: holdingXirr,
     });
   }
 
@@ -215,10 +225,13 @@ export async function computeGoal(
   const holdingSummaries: HoldingSummary[] = holdingNames.map((name) => {
     const value = latest?.holdingValues[name] || 0;
     const investment = latest?.holdingInvestments[name] || 0;
+    const series = holdingTimeSeries[name] || [];
+    const latestHolding = series[series.length - 1];
     return {
       name,
       investment,
       value,
+      xirr: latestHolding?.xirr ?? 0,
       allocation: latest ? (value / latest.totalValue) * 100 : 0,
     };
   });

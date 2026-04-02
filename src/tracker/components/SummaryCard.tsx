@@ -23,16 +23,17 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
   const right = { textAlign: 'right' as const, display: 'block' };
   const returnColor = (v: number) => (v >= 0 ? positiveColor : negativeColor);
 
-  const tableColumns = ['', 'Investment', 'Value', 'Return', 'Allocation'];
+  const formatXirr = (v: number) => isNaN(v) ? 'N/A' : `${(v * 100).toFixed(2)}%`;
+
+  const tableColumns = ['', 'Investment', 'Value', 'XIRR', 'Allocation'];
   const tableData = [
     ...summary.holdings.map((h) => {
-      const ret = h.value - h.investment;
       return [
         <span key="n" style={{ fontWeight: 500 }}>{h.name}</span>,
         <span key="i" style={right}>{formatNumber(Math.round(h.investment))}</span>,
         <span key="v" style={right}>{formatNumber(Math.round(h.value))}</span>,
-        <span key="r" style={{ ...right, color: returnColor(ret), fontWeight: 600 }}>
-          {ret >= 0 ? '+' : ''}{formatNumber(Math.round(ret))}
+        <span key="x" style={{ ...right, color: returnColor(h.xirr), fontWeight: 600 }}>
+          {formatXirr(h.xirr)}
         </span>,
         <span key="a" style={right}>{h.allocation.toFixed(1)}%</span>,
       ];
@@ -41,9 +42,9 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
       <strong key="t">Total</strong>,
       <strong key="ti"><span style={right}>{formatNumber(Math.round(summary.totalInvestment))}</span></strong>,
       <strong key="tv"><span style={right}>{formatNumber(Math.round(summary.totalValue))}</span></strong>,
-      <strong key="tr">
-        <span style={{ ...right, color: returnColor(summary.interest), fontWeight: 700 }}>
-          {summary.interest >= 0 ? '+' : ''}{formatNumber(Math.round(summary.interest))}
+      <strong key="tx">
+        <span style={{ ...right, color: returnColor(summary.xirr), fontWeight: 700 }}>
+          {formatXirr(summary.xirr)}
         </span>
       </strong>,
       '',
