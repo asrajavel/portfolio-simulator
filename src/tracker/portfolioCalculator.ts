@@ -68,6 +68,7 @@ function computeHoldingTimeSeries(
   const snapshots: DailyHoldingSnapshot[] = [];
   let cumInv = 0;
   let cumUnits = 0;
+  let lastKnownNav = 0;
 
   for (
     let d = new Date(startDate);
@@ -75,7 +76,9 @@ function computeHoldingTimeSeries(
     d.setDate(d.getDate() + 1)
   ) {
     const dateKey = toDateKey(d);
-    const nav = getNav(navMap, d);
+    const rawNav = getNav(navMap, d);
+    const nav = rawNav > 0 ? rawNav : lastKnownNav;
+    if (rawNav > 0) lastKnownNav = rawNav;
     const todayInv = transactions.get(dateKey) || 0;
 
     cumInv += todayInv;
