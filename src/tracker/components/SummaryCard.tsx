@@ -1,6 +1,7 @@
 import React from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
+import { useStyletron } from 'baseui';
 import { Block } from 'baseui/block';
 import { LabelLarge, LabelSmall } from 'baseui/typography';
 import { Table } from 'baseui/table-semantic';
@@ -13,11 +14,14 @@ interface SummaryCardProps {
 }
 
 export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
+  const [, theme] = useStyletron();
+  const positiveColor = theme.colors.positive;
+  const negativeColor = theme.colors.negative;
   const isPositiveChange = summary.dailyChange >= 0;
   const xirrStr = isNaN(summary.xirr) ? 'N/A' : `${(summary.xirr * 100).toFixed(2)}%`;
 
   const right = { textAlign: 'right' as const, display: 'block' };
-  const returnColor = (v: number) => (v >= 0 ? '#16a34a' : '#dc2626');
+  const returnColor = (v: number) => (v >= 0 ? positiveColor : negativeColor);
 
   const tableColumns = ['', 'Investment', 'Value', 'Return', 'Allocation'];
   const tableData = [
@@ -76,10 +80,15 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
     series: [
       {
         type: 'pie',
-        data: [
-          { name: 'Investment', y: summary.totalInvestment, color: COLORS[0] },
-          { name: 'Interest', y: Math.max(0, summary.interest), color: COLORS[1] },
-        ],
+        data: summary.interest >= 0
+          ? [
+              { name: 'Investment', y: summary.totalInvestment, color: COLORS[0] },
+              { name: 'Interest', y: summary.interest, color: COLORS[1] },
+            ]
+          : [
+              { name: 'Value', y: summary.totalValue, color: COLORS[0] },
+              { name: 'Loss', y: -summary.interest, color: negativeColor },
+            ],
       },
     ],
   };
@@ -140,7 +149,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
               Block: {
                 style: {
                   fontWeight: '600',
-                  color: isPositiveChange ? '#16a34a' : '#dc2626',
+                  color: isPositiveChange ? positiveColor : negativeColor,
                 },
               },
             }}

@@ -67,6 +67,6 @@ export const CHART_STYLES = {
     line: '#e5e7eb',
     tick: '#e5e7eb',
     background: '#ffffff',
-    tooltipBackground: '#1f2937'
+    tooltipBackground: '#1f2937',
   }
 } as const;
