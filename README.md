@@ -1,4 +1,4 @@
-# MF Analysis React
+# Portfolio Simulator
 
 A React application for mutual fund analysis with interactive charts and portfolio simulation.
 
