@@ -5,6 +5,7 @@ import { Spinner } from 'baseui/spinner';
 import { Tabs, Tab } from 'baseui/tabs-motion';
 import { LabelSmall, ParagraphSmall } from 'baseui/typography';
 import { TrackerDashboard } from '../tracker/components/TrackerDashboard';
+import { SummaryDashboard } from '../tracker/components/SummaryDashboard';
 import { JsonEditorModal } from '../tracker/components/JsonEditorModal';
 import { computeGoal } from '../tracker/portfolioCalculator';
 import { ComputedGoalData, TrackerData } from '../types/tracker';
@@ -151,6 +152,7 @@ export const TrackerTab: React.FC = () => {
   );
 
   const activeIdx = parseInt(activeKey, 10);
+  const goalIdx = activeIdx - 1;
 
   useEffect(() => {
     if (goals.length > 0 && Object.keys(cache).length === 0) {
@@ -168,7 +170,7 @@ export const TrackerTab: React.FC = () => {
     trackTracker('ImportData');
   };
 
-  const activeData = cache[activeIdx] || null;
+  const activeData = cache[goalIdx] || null;
 
   if (remoteLoading) {
     return (
@@ -291,34 +293,32 @@ export const TrackerTab: React.FC = () => {
           </Button>
         )}
       >
+        <Tab key={0} title="Summary">
+          {loading ? (
+            <Block display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="400px">
+              <Spinner />
+              <LabelSmall color="contentTertiary" overrides={{ Block: { style: { marginTop: '16px' } } }}>{progress}</LabelSmall>
+            </Block>
+          ) : error ? (
+            <Block display="flex" alignItems="center" justifyContent="center" height="400px">
+              <LabelSmall color="negative">Error: {error}</LabelSmall>
+            </Block>
+          ) : Object.keys(cache).length > 0 ? (
+            <SummaryDashboard goals={goals} cache={cache} />
+          ) : null}
+        </Tab>
         {goals.map((goal, idx) => (
-          <Tab key={idx} title={goal.name}>
-            {loading && activeIdx === idx ? (
-              <Block
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                justifyContent="center"
-                height="400px"
-              >
+          <Tab key={idx + 1} title={goal.name}>
+            {loading && goalIdx === idx ? (
+              <Block display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="400px">
                 <Spinner />
-                <LabelSmall
-                  color="contentTertiary"
-                  overrides={{ Block: { style: { marginTop: '16px' } } }}
-                >
-                  {progress}
-                </LabelSmall>
+                <LabelSmall color="contentTertiary" overrides={{ Block: { style: { marginTop: '16px' } } }}>{progress}</LabelSmall>
               </Block>
-            ) : error && activeIdx === idx ? (
-              <Block
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                height="400px"
-              >
+            ) : error && goalIdx === idx ? (
+              <Block display="flex" alignItems="center" justifyContent="center" height="400px">
                 <LabelSmall color="negative">Error: {error}</LabelSmall>
               </Block>
-            ) : activeData && activeIdx === idx ? (
+            ) : activeData && goalIdx === idx ? (
               <TrackerDashboard data={activeData} />
             ) : null}
           </Tab>
