@@ -222,6 +222,8 @@ export async function computeGoal(
       ? dailySnapshots[dailySnapshots.length - 2]
       : null;
 
+  const lockedMap = new Map(goal.holdings.map((h) => [h.name, !!h.locked]));
+
   const holdingSummaries: HoldingSummary[] = holdingNames.map((name) => {
     const value = latest?.holdingValues[name] || 0;
     const investment = latest?.holdingInvestments[name] || 0;
@@ -233,8 +235,13 @@ export async function computeGoal(
       value,
       xirr: latestHolding?.xirr ?? 0,
       allocation: latest ? (value / latest.totalValue) * 100 : 0,
+      locked: lockedMap.get(name) ?? false,
     };
   });
+
+  const lockedValue = holdingSummaries
+    .filter((h) => h.locked)
+    .reduce((sum, h) => sum + h.value, 0);
 
   const summary: GoalSummary = {
     name: goal.name,
@@ -245,6 +252,7 @@ export async function computeGoal(
     dailyChange: previousDay
       ? latest.totalValue - previousDay.totalValue
       : 0,
+    lockedValue,
     holdings: holdingSummaries,
   };
 

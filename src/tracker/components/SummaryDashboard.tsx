@@ -3,7 +3,7 @@ import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { useStyletron } from 'baseui';
 import { Block } from 'baseui/block';
-import { LabelLarge, HeadingXSmall } from 'baseui/typography';
+import { LabelLarge, LabelSmall, HeadingXSmall } from 'baseui/typography';
 import { Table } from 'baseui/table-semantic';
 import { ComputedGoalData, GoalData } from '../../types/tracker';
 import { formatNumber } from '../../utils/numberFormat';
@@ -38,39 +38,51 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache
 
   const totalInvestment = goalSummaries.reduce((sum, g) => sum + g.summary!.totalInvestment, 0);
   const totalValue = goalSummaries.reduce((sum, g) => sum + g.summary!.totalValue, 0);
+  const totalLocked = goalSummaries.reduce((sum, g) => sum + g.summary!.lockedValue, 0);
 
-  const tableColumns = ['Goal', 'Investment', 'Value', 'XIRR', 'Allocation'];
+  const tableColumns = ['Goal', 'Value', 'XIRR'];
   const tableData = [
     ...goalSummaries.map((g) => {
       const s = g.summary!;
-      const allocation = totalValue > 0 ? (s.totalValue / totalValue) * 100 : 0;
       return [
         <span key="n" style={{ fontWeight: 500 }}>{g.name}</span>,
-        <span key="i" style={right}>{formatNumber(Math.round(s.totalInvestment))}</span>,
         <span key="v" style={right}>{formatNumber(Math.round(s.totalValue))}</span>,
         <span key="x" style={{ ...right, color: returnColor(s.xirr), fontWeight: 600 }}>
           {formatXirr(s.xirr)}
         </span>,
-        <span key="a" style={right}>{allocation.toFixed(1)}%</span>,
       ];
     }),
     [
       <strong key="t">Total</strong>,
-      <strong key="ti"><span style={right}>{formatNumber(Math.round(totalInvestment))}</span></strong>,
       <strong key="tv"><span style={right}>{formatNumber(Math.round(totalValue))}</span></strong>,
-      '',
       '',
     ],
   ];
 
-  const chartSeries: Highcharts.SeriesOptionsType[] = goalSummaries.map((g, idx) => ({
-    type: 'area' as const,
+  const goalDataUnsorted = goalSummaries.map((g, idx) => ({
     name: g.name,
     data: (g.snapshots || []).map((s) => [s.date.getTime(), s.totalValue]),
     color: COLORS[idx % COLORS.length],
+    latestValue: g.summary!.totalValue,
+  }));
+  const goalData = [...goalDataUnsorted].sort((a, b) => b.latestValue - a.latestValue);
+
+  const chartSeries: Highcharts.SeriesOptionsType[] = goalData.map((g) => ({
+    type: 'area' as const,
+    name: g.name,
+    data: g.data,
+    color: g.color,
     lineWidth: 1.5,
     stacking: 'normal' as const,
     fillOpacity: 0.4,
+  }));
+
+  const lineSeries: Highcharts.SeriesOptionsType[] = goalData.map((g) => ({
+    type: 'line' as const,
+    name: g.name,
+    data: g.data,
+    color: g.color,
+    lineWidth: 2,
   }));
 
   const chartOptions: Highcharts.Options = {
@@ -152,6 +164,20 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache
         >
           {formatNumber(Math.round(totalValue))}
         </LabelLarge>
+        {totalLocked > 0 && (
+          <LabelSmall
+            overrides={{
+              Block: {
+                style: {
+                  fontWeight: '600',
+                  color: theme.colors.accent,
+                },
+              },
+            }}
+          >
+            🔒 {formatNumber(Math.round(totalLocked))} locked
+          </LabelSmall>
+        )}
       </Block>
 
       <Block overrides={{ Block: { style: { overflowX: 'auto' } } }}>
@@ -163,9 +189,68 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache
         />
       </Block>
 
+      <Block marginTop="scale800" display="flex" justifyContent="center">
+        <HighchartsReact highcharts={Highcharts} options={{
+          chart: {
+            type: 'pie',
+            height: 280,
+            width: 400,
+            backgroundColor: 'transparent',
+          },
+          title: { text: '' },
+          credits: { enabled: false },
+          tooltip: { enabled: false },
+          plotOptions: {
+            pie: {
+              innerSize: '50%',
+              dataLabels: {
+                enabled: true,
+                formatter: function (this: any) {
+                  const v = this.point.y;
+                  const label = v >= 1e7
+                    ? `${Math.round(v / 1e7)} Cr`
+                    : `${Math.round(v / 1e5)} L`;
+                  return `${this.point.name}<br/>${label}`;
+                },
+                style: {
+                  fontSize: '12px',
+                  fontWeight: '400',
+                  textOutline: 'none',
+                  fontFamily: CHART_STYLES.axisLabels.fontFamily,
+                  color: CHART_STYLES.axisLabels.color,
+                },
+                distance: 15,
+              },
+            },
+          },
+          series: [{
+            type: 'pie',
+            data: goalData.map((g) => ({
+              name: g.name,
+              y: g.latestValue,
+              color: g.color,
+            })),
+          }],
+        }} />
+      </Block>
+
       <Block marginTop="scale800" overrides={{ Block: { style: cardStyle } }}>
         <HeadingXSmall marginTop="scale300" marginBottom="0" paddingLeft="scale400">Goals</HeadingXSmall>
-        <HighchartsReact highcharts={Highcharts} constructorType="stockChart" options={chartOptions} />
+        <HighchartsReact highcharts={Highcharts} constructorType="stockChart" options={{
+          ...chartOptions,
+          series: lineSeries,
+          tooltip: {
+            ...chartOptions.tooltip,
+            formatter: function (this: any) {
+              let html = `<div style="font-size:12px;color:#fff"><strong>${Highcharts.dateFormat('%e %b %Y', this.x)}</strong><br/>`;
+              const sortedPoints = this.points ? [...this.points].sort((a: any, b: any) => b.y - a.y) : [];
+              for (const point of sortedPoints) {
+                html += `<span style="color:${point.series.color}">●</span> ${point.series.name}: <strong>${formatNumber(Math.round(point.y))}</strong><br/>`;
+              }
+              return html + '</div>';
+            },
+          },
+        }} />
       </Block>
     </Block>
   );

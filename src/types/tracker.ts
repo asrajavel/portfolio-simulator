@@ -11,6 +11,7 @@ export interface TransactionData {
 interface BaseHolding {
   name: string;
   transactions: TransactionData[];
+  locked?: boolean;
 }
 
 export type HoldingData =
@@ -51,6 +52,7 @@ export interface HoldingSummary {
   value: number;
   xirr: number;
   allocation: number;
+  locked: boolean;
 }
 
 export interface GoalSummary {
@@ -60,6 +62,7 @@ export interface GoalSummary {
   interest: number;
   xirr: number;
   dailyChange: number;
+  lockedValue: number;
   holdings: HoldingSummary[];
 }
 
