@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Block } from 'baseui/block';
+import { Modal, ModalHeader, ModalBody, SIZE } from 'baseui/modal';
+import { Button, KIND } from 'baseui/button';
 import { ComputedGoalData } from '../../types/tracker';
 import { SummaryCard } from './SummaryCard';
 import { TotalChart } from './TotalChart';
@@ -7,6 +9,7 @@ import { AllocationChart } from './AllocationChart';
 import { HoldingChart } from './HoldingChart';
 import { HoldingXirrChart } from './HoldingXirrChart';
 import { XirrChart } from './XirrChart';
+import { TransactionTable } from './TransactionTable';
 
 interface TrackerDashboardProps {
   data: ComputedGoalData;
@@ -30,12 +33,19 @@ const twoColGrid = ({ $theme }: { $theme: any }) => ({
 
 export const TrackerDashboard: React.FC<TrackerDashboardProps> = ({ data }) => {
   const holdingNames = data.summary.holdings.map((h) => h.name);
+  const [tableOpen, setTableOpen] = useState(false);
 
   return (
     <Block>
       <SummaryCard summary={data.summary} />
 
-      <Block marginTop="scale800">
+      <Block marginTop="scale600" display="flex" justifyContent="flex-end">
+        <Button kind={KIND.secondary} onClick={() => setTableOpen(true)}>
+          View Transactions
+        </Button>
+      </Block>
+
+      <Block marginTop="scale600">
         <Block overrides={{ Block: { style: cardStyle } }}>
           <TotalChart snapshots={data.dailySnapshots} />
         </Block>
@@ -53,13 +63,39 @@ export const TrackerDashboard: React.FC<TrackerDashboardProps> = ({ data }) => {
       {holdingNames.map((name) => (
         <Block key={name} marginTop="scale600" display="grid" overrides={{ Block: { style: twoColGrid } }}>
           <Block overrides={{ Block: { style: cardStyle } }}>
-            <HoldingChart name={name} snapshots={data.holdingTimeSeries[name] || []} />
+            <HoldingChart name={name} snapshots={data.holdingTimeSeries[name] ?? []} />
           </Block>
           <Block overrides={{ Block: { style: cardStyle } }}>
-            <HoldingXirrChart name={name} snapshots={data.holdingTimeSeries[name] || []} />
+            <HoldingXirrChart name={name} snapshots={data.holdingTimeSeries[name] ?? []} />
           </Block>
         </Block>
       ))}
+
+      <Modal
+        isOpen={tableOpen}
+        onClose={() => setTableOpen(false)}
+        size={SIZE.full}
+        overrides={{
+          Dialog: {
+            style: {
+              maxWidth: '1200px',
+              width: '95vw',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+            },
+          },
+        }}
+      >
+        <ModalHeader>{data.summary.name} — Transactions</ModalHeader>
+        <ModalBody $style={{ overflowY: 'auto', maxHeight: 'calc(90vh - 120px)' }}>
+          <TransactionTable
+            dailySnapshots={data.dailySnapshots}
+            holdingTimeSeries={data.holdingTimeSeries}
+            holdingNames={holdingNames}
+          />
+        </ModalBody>
+      </Modal>
     </Block>
   );
 };

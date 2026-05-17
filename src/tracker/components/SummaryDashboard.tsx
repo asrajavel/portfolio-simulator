@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { useStyletron } from 'baseui';
 import { Block } from 'baseui/block';
 import { LabelLarge, LabelSmall, HeadingXSmall } from 'baseui/typography';
 import { Table } from 'baseui/table-semantic';
+import { Modal, ModalHeader, ModalBody, SIZE } from 'baseui/modal';
+import { Button, KIND } from 'baseui/button';
 import { ComputedGoalData, GoalData } from '../../types/tracker';
 import { formatNumber } from '../../utils/numberFormat';
 import { CHART_STYLES, COLORS } from '../../constants';
+import { SummaryTransactionTable } from './SummaryTransactionTable';
 
 interface SummaryDashboardProps {
   goals: GoalData[];
@@ -24,6 +27,7 @@ const cardStyle = ({ $theme }: { $theme: any }) => ({
 
 export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache }) => {
   const [, theme] = useStyletron();
+  const [tableOpen, setTableOpen] = useState(false);
   const positiveColor = theme.colors.positive;
   const negativeColor = theme.colors.negative;
   const right = { textAlign: 'right' as const, display: 'block' };
@@ -188,6 +192,37 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache
           size="compact"
         />
       </Block>
+
+      <Block marginTop="scale400" display="flex" justifyContent="flex-end">
+        <Button kind={KIND.secondary} onClick={() => setTableOpen(true)}>
+          View Transactions
+        </Button>
+      </Block>
+
+      <Modal
+        isOpen={tableOpen}
+        onClose={() => setTableOpen(false)}
+        size={SIZE.full}
+        overrides={{
+          Dialog: {
+            style: {
+              maxWidth: '1200px',
+              width: '95vw',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+            },
+          },
+        }}
+      >
+        <ModalHeader>Portfolio — Transactions</ModalHeader>
+        <ModalBody $style={{ overflowY: 'auto', maxHeight: 'calc(90vh - 120px)' }}>
+          <SummaryTransactionTable
+            goalNames={goalSummaries.map((g) => g.name)}
+            cache={cache}
+          />
+        </ModalBody>
+      </Modal>
 
       <Block marginTop="scale800" display="flex" justifyContent="center">
         <HighchartsReact highcharts={Highcharts} options={{
