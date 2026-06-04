@@ -4,6 +4,7 @@ import { Button, KIND } from 'baseui/button';
 import { Input } from 'baseui/input';
 import { LabelMedium, LabelLarge } from 'baseui/typography';
 import { Select } from 'baseui/select';
+import { Checkbox } from 'baseui/checkbox';
 import { formatNumber, parseFormattedNumber } from '../../utils/numberFormat';
 
 interface ControlsPanelProps {
@@ -16,6 +17,9 @@ interface ControlsPanelProps {
   setSipAmount: (amount: number) => void;
   chartView: 'xirr' | 'corpus';
   setChartView: (view: 'xirr' | 'corpus') => void;
+  convertToINR: boolean;
+  setConvertToINR: (value: boolean) => void;
+  hasYahooAsset: boolean;
 }
 
 export const ControlsPanel: React.FC<ControlsPanelProps> = ({
@@ -27,7 +31,10 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
   sipAmount,
   setSipAmount,
   chartView,
-  setChartView
+  setChartView,
+  convertToINR,
+  setConvertToINR,
+  hasYahooAsset,
 }) => {
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -162,6 +169,18 @@ export const ControlsPanel: React.FC<ControlsPanelProps> = ({
             />
           </Block>
         </Block>
+
+        {/* Convert to INR - only shown when Yahoo Finance assets are selected */}
+        {hasYahooAsset && (
+          <Block display="flex" alignItems="center" marginBottom="scale500">
+            <Checkbox
+              checked={convertToINR}
+              onChange={(e) => setConvertToINR(e.target.checked)}
+            >
+              Convert foreign currencies to INR
+            </Checkbox>
+          </Block>
+        )}
       </Block>
       
       {/* Plot button below the panel */}

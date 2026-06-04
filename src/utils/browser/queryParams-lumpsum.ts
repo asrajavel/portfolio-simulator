@@ -1,7 +1,7 @@
 import { LumpsumPortfolio } from '../../types/lumpsumPortfolio';
 
 // Simple version for lumpsum (no rebalancing, no step-up)
-export function setLumpsumQueryParams(lumpsumPortfolios: LumpsumPortfolio[], years: number, lumpsumAmount: number = 100000) {
+export function setLumpsumQueryParams(lumpsumPortfolios: LumpsumPortfolio[], years: number, lumpsumAmount: number = 100000, convertToINR: boolean = true) {
   // For now, use same format as SIP but without rebalancing/stepup params
   const portfoliosStr = lumpsumPortfolios
     .map(p => {
@@ -33,7 +33,7 @@ export function setLumpsumQueryParams(lumpsumPortfolios: LumpsumPortfolio[], yea
     })
     .join(';');
   
-  const urlParams = `lumpsumPortfolios=${portfoliosStr}&years=${years}&lumpsumAmount=${lumpsumAmount}`;
+  const urlParams = `lumpsumPortfolios=${portfoliosStr}&years=${years}&lumpsumAmount=${lumpsumAmount}${convertToINR ? '' : '&convertToINR=0'}`;
   window.history.replaceState({}, '', `?${urlParams}`);
 }
 

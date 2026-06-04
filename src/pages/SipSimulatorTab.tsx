@@ -12,6 +12,7 @@ import { SipPortfolioList } from '../components/sip-simulator/SipPortfolioList';
 import { ControlsPanel } from '../components/controls/ControlsPanel';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from '../constants';
 import { useMutualFundsContext } from '../hooks/useMutualFunds';
+import { getQueryParams } from '../utils/browser/queryParams';
 
 interface SipSimulatorTabProps {
   loadNavData: (schemeCode: number) => Promise<any[]>;
@@ -22,8 +23,10 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ loadNavData })
   const location = useLocation();
   const isActive = location.pathname === '/sip';
   const plotState = usePlotState(loadNavData);
+  const initialParams = React.useMemo(() => getQueryParams(), []);
   const [sipAmount, setSipAmount] = useState<number>(10000);
   const [chartView, setChartView] = useState<'xirr' | 'corpus'>('xirr');
+  const [convertToINR, setConvertToINR] = useState<boolean>(initialParams.convertToINR);
   
   const {
     sipPortfolios,
@@ -39,7 +42,7 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ loadNavData })
     handleRebalancingThresholdChange,
     handleToggleStepUp,
     handleStepUpPercentageChange,
-  } = useSipPortfolios(DEFAULT_SCHEME_CODE, [sipAmount, setSipAmount], isActive);
+  } = useSipPortfolios(DEFAULT_SCHEME_CODE, [sipAmount, setSipAmount], isActive, convertToINR);
 
   const { handlePlotAllPortfolios } = useSipPlot({
     sipPortfolios,
@@ -48,10 +51,14 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ loadNavData })
     plotState,
     sipAmount,
     chartView,
+    convertToINR,
   });
 
   const hasMutualFund = sipPortfolios.some(
     p => (p.selectedAssets || []).some(a => a?.type === 'mutual_fund')
+  );
+  const hasYahooAsset = sipPortfolios.some(
+    p => (p.selectedAssets || []).some(a => a?.type === 'yahoo_finance')
   );
   const anyInvalidAlloc = sipPortfolios.some(
     p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
@@ -76,6 +83,11 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ loadNavData })
   // Handle chart view change - invalidate charts when switching between XIRR and Corpus
   const handleChartViewChange = (view: 'xirr' | 'corpus') => {
     setChartView(view);
+    invalidateChart();
+  };
+
+  const handleConvertToINRChange = (value: boolean) => {
+    setConvertToINR(value);
     invalidateChart();
   };
 
@@ -121,6 +133,9 @@ export const SipSimulatorTab: React.FC<SipSimulatorTabProps> = ({ loadNavData })
           setSipAmount={setSipAmount}
           chartView={chartView}
           setChartView={handleChartViewChange}
+          convertToINR={convertToINR}
+          setConvertToINR={handleConvertToINRChange}
+          hasYahooAsset={hasYahooAsset}
         />
       </Block>
 

@@ -12,6 +12,7 @@ import { LumpsumPortfolioList } from '../components/lumpsum-simulator/LumpsumPor
 import { LumpsumControlsPanel } from '../components/controls/LumpsumControlsPanel';
 import { DEFAULT_SCHEME_CODE, ALLOCATION_TOTAL } from '../constants';
 import { useMutualFundsContext } from '../hooks/useMutualFunds';
+import { getQueryParams } from '../utils/browser/queryParams';
 
 interface LumpsumSimulatorTabProps {
   loadNavData: (schemeCode: number) => Promise<any[]>;
@@ -22,8 +23,10 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ loadNa
   const location = useLocation();
   const isActive = location.pathname === '/lumpsum';
   const plotState = usePlotState(loadNavData);
+  const initialParams = React.useMemo(() => getQueryParams(), []);
   const [lumpsumAmount, setLumpsumAmount] = useState<number>(100000);
   const [chartView, setChartView] = useState<'xirr' | 'corpus'>('xirr');
+  const [convertToINR, setConvertToINR] = useState<boolean>(initialParams.convertToINR);
   
   const {
     lumpsumPortfolios,
@@ -35,7 +38,7 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ loadNa
     handleAddFund,
     handleRemoveFund,
     handleAllocationChange,
-  } = useLumpsumPortfolios(DEFAULT_SCHEME_CODE, [lumpsumAmount, setLumpsumAmount], isActive);
+  } = useLumpsumPortfolios(DEFAULT_SCHEME_CODE, [lumpsumAmount, setLumpsumAmount], isActive, convertToINR);
 
   const { handlePlotAllPortfolios } = useLumpsumPlot({
     lumpsumPortfolios,
@@ -44,10 +47,14 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ loadNa
     plotState,
     lumpsumAmount,
     chartView,
+    convertToINR,
   });
 
   const hasMutualFund = lumpsumPortfolios.some(
     p => (p.selectedAssets || []).some(a => a?.type === 'mutual_fund')
+  );
+  const hasYahooAsset = lumpsumPortfolios.some(
+    p => (p.selectedAssets || []).some(a => a?.type === 'yahoo_finance')
   );
   const anyInvalidAlloc = lumpsumPortfolios.some(
     p => (p.allocations || []).reduce((a, b) => a + (Number(b) || 0), 0) !== ALLOCATION_TOTAL
@@ -68,6 +75,11 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ loadNa
   // Handle chart view change - invalidate charts when switching between XIRR and Corpus
   const handleChartViewChange = (view: 'xirr' | 'corpus') => {
     setChartView(view);
+    invalidateChart();
+  };
+
+  const handleConvertToINRChange = (value: boolean) => {
+    setConvertToINR(value);
     invalidateChart();
   };
 
@@ -109,6 +121,9 @@ export const LumpsumSimulatorTab: React.FC<LumpsumSimulatorTabProps> = ({ loadNa
           setLumpsumAmount={setLumpsumAmount}
           chartView={chartView}
           setChartView={handleChartViewChange}
+          convertToINR={convertToINR}
+          setConvertToINR={handleConvertToINRChange}
+          hasYahooAsset={hasYahooAsset}
         />
       </Block>
 

@@ -6,7 +6,7 @@ import { LumpsumPortfolio } from '../types/lumpsumPortfolio';
 import { Asset } from '../types/asset';
 import { ALLOCATION_TOTAL } from '../constants';
 
-export function useLumpsumPortfolios(DEFAULT_SCHEME_CODE: number, lumpsumAmountState: [number, (v: number) => void], isActive: boolean = true) {
+export function useLumpsumPortfolios(DEFAULT_SCHEME_CODE: number, lumpsumAmountState: [number, (v: number) => void], isActive: boolean = true, convertToINR: boolean = true) {
   // Initialize portfolios and years from query params
   const initialParams = React.useMemo(() => getQueryParams(), []);
   const [lumpsumAmount, setLumpsumAmount] = lumpsumAmountState;
@@ -113,9 +113,9 @@ export function useLumpsumPortfolios(DEFAULT_SCHEME_CODE: number, lumpsumAmountS
   // Sync portfolios, years, and lumpsumAmount to query params (only when tab is active)
   React.useEffect(() => {
     if (isActive) {
-      setLumpsumQueryParams(lumpsumPortfolios, years, lumpsumAmount);
+      setLumpsumQueryParams(lumpsumPortfolios, years, lumpsumAmount, convertToINR);
     }
-  }, [lumpsumPortfolios, years, lumpsumAmount, isActive]);
+  }, [lumpsumPortfolios, years, lumpsumAmount, isActive, convertToINR]);
 
   return {
     lumpsumPortfolios,

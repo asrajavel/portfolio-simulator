@@ -10,12 +10,13 @@ import { warnInsufficientData } from '../utils/warnInsufficientData';
 
 const xirrCache = new Map<string, any[]>();
 
-function portfolioCacheKey(portfolio: any, years: number, amount: number): string {
+function portfolioCacheKey(portfolio: any, years: number, amount: number, convertToINR?: boolean): string {
   return JSON.stringify({
     assets: (portfolio.selectedAssets || []).filter(Boolean).map((a: any) => ({ id: a.id, type: a.type })),
     allocations: portfolio.allocations,
     years,
     amount,
+    convertToINR,
   });
 }
 
@@ -26,6 +27,7 @@ export function useLumpsumPlot({
   plotState,
   lumpsumAmount,
   chartView,
+  convertToINR,
 }) {
   const handlePlotAllPortfolios = useCallback(async () => {
     trackSimulation('Lumpsum', 'Plot');
@@ -71,7 +73,9 @@ export function useLumpsumPlot({
                   continue;
                 }
               } else if (asset.type === 'yahoo_finance') {
-                const stockData = await yahooFinanceService.fetchStockData(asset.symbol);
+                const stockData = convertToINR
+                  ? await yahooFinanceService.fetchStockDataInINR(asset.symbol)
+                  : await yahooFinanceService.fetchStockData(asset.symbol);
                 
                 if (!stockData || stockData.length === 0) {
                   continue;
@@ -154,7 +158,7 @@ export function useLumpsumPlot({
       const workerPromises = lumpsumPortfolios.map((_, pIdx) => {
         const navDataList = allNavDatas[pIdx];
         const allocations = lumpsumPortfolios[pIdx].allocations;
-        const cacheKey = portfolioCacheKey(lumpsumPortfolios[pIdx], years, baseAmount);
+        const cacheKey = portfolioCacheKey(lumpsumPortfolios[pIdx], years, baseAmount, convertToINR);
         
         if (!navDataList || navDataList.length === 0) {
           allLumpsumXirrDatas[`Portfolio ${pIdx + 1}`] = [];
@@ -223,7 +227,7 @@ export function useLumpsumPlot({
       plotState.setLoadingNav(false);
       plotState.setLoadingXirr(false);
     }
-  }, [lumpsumPortfolios, years, loadNavData, plotState, lumpsumAmount, chartView]);
+  }, [lumpsumPortfolios, years, loadNavData, plotState, lumpsumAmount, chartView, convertToINR]);
 
   return { handlePlotAllPortfolios };
 }

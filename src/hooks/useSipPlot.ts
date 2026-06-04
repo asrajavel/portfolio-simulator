@@ -10,7 +10,7 @@ import { warnInsufficientData } from '../utils/warnInsufficientData';
 
 const xirrCache = new Map<string, any[]>();
 
-function portfolioCacheKey(portfolio: any, years: number, amount: number): string {
+function portfolioCacheKey(portfolio: any, years: number, amount: number, convertToINR?: boolean): string {
   return JSON.stringify({
     assets: (portfolio.selectedAssets || []).filter(Boolean).map((a: any) => ({ id: a.id, type: a.type })),
     allocations: portfolio.allocations,
@@ -20,6 +20,7 @@ function portfolioCacheKey(portfolio: any, years: number, amount: number): strin
     stepUpPercentage: portfolio.stepUpPercentage,
     years,
     amount,
+    convertToINR,
   });
 }
 
@@ -30,6 +31,7 @@ export function useSipPlot({
   plotState,
   sipAmount,
   chartView,
+  convertToINR,
 }) {
   const handlePlotAllPortfolios = useCallback(async () => {
     trackSimulation('SIP', 'Plot');
@@ -75,7 +77,9 @@ export function useSipPlot({
                   continue;
                 }
               } else if (asset.type === 'yahoo_finance') {
-                const stockData = await yahooFinanceService.fetchStockData(asset.symbol);
+                const stockData = convertToINR
+                  ? await yahooFinanceService.fetchStockDataInINR(asset.symbol)
+                  : await yahooFinanceService.fetchStockData(asset.symbol);
                 
                 if (!stockData || stockData.length === 0) {
                   continue;
@@ -161,7 +165,7 @@ export function useSipPlot({
         const rebalancingThreshold = sipPortfolios[pIdx].rebalancingThreshold;
         const stepUpEnabled = sipPortfolios[pIdx].stepUpEnabled;
         const stepUpPercentage = sipPortfolios[pIdx].stepUpPercentage;
-        const cacheKey = portfolioCacheKey(sipPortfolios[pIdx], years, baseSipAmount);
+        const cacheKey = portfolioCacheKey(sipPortfolios[pIdx], years, baseSipAmount, convertToINR);
         
         if (!navDataList || navDataList.length === 0) {
           allSipXirrDatas[`Portfolio ${pIdx + 1}`] = [];
@@ -227,7 +231,7 @@ export function useSipPlot({
       plotState.setLoadingNav(false);
       plotState.setLoadingXirr(false);
     }
-  }, [sipPortfolios, years, loadNavData, plotState, sipAmount, chartView]);
+  }, [sipPortfolios, years, loadNavData, plotState, sipAmount, chartView, convertToINR]);
 
   return { handlePlotAllPortfolios };
 }

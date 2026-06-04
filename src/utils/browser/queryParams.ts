@@ -182,6 +182,8 @@ export function getQueryParams() {
       : [],
     // Default to logarithmic scale when not specified
     logScale: logScale ? logScale === '1' : true,
+    // Default to true (convert to INR) when not specified - backward compatible
+    convertToINR: params.get('convertToINR') !== '0',
     portfolios: portfoliosParam
       ? portfoliosParam.split(';').map(p_str => {
           // Format: asset1:alloc1,asset2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
@@ -299,7 +301,7 @@ export function getQueryParams() {
   };
 }
 
-export function setQueryParams(sipPortfolios: SipPortfolio[], years: number, sipAmount: number = 10000) {
+export function setQueryParams(sipPortfolios: SipPortfolio[], years: number, sipAmount: number = 10000, convertToINR: boolean = true) {
   // Format: asset1:alloc1,asset2:alloc2,...|rebalFlag|rebalThreshold|stepUpFlag|stepUpPercentage
   // asset format: type:id (e.g., mf:120716 or idx:NIFTY50 or fixed:8)
   const portfoliosStr = sipPortfolios
@@ -333,9 +335,7 @@ export function setQueryParams(sipPortfolios: SipPortfolio[], years: number, sip
     })
     .join(';');
   
-  // Construct URL manually since we're using safe characters now
-  // Keep 'portfolios' param name for backward compatibility
-  const urlParams = `portfolios=${portfoliosStr}&years=${years}&sipAmount=${sipAmount}`;
+  const urlParams = `portfolios=${portfoliosStr}&years=${years}&sipAmount=${sipAmount}${convertToINR ? '' : '&convertToINR=0'}`;
   window.history.replaceState({}, '', `?${urlParams}`);
 }
 
