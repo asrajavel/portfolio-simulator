@@ -16,6 +16,7 @@ interface TransactionTableProps {
 const MAX_ALL_DAYS_ROWS = 500;
 
 const right: React.CSSProperties = { textAlign: 'right', display: 'block' };
+const deltaStyle: React.CSSProperties = { fontSize: '0.8em', color: '#888', fontWeight: 400 };
 
 const formatDate = (date: Date): string =>
   date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -33,15 +34,24 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const [, theme] = useStyletron();
   const [showAllDays, setShowAllDays] = useState(false);
 
-  const transactionDateKeys = useMemo(() => {
-    const keys = new Set<string>();
+  const todayInvLookup = useMemo(() => {
+    const lookup: Record<string, Record<string, number>> = {};
     for (const name of holdingNames) {
       for (const snap of holdingTimeSeries[name] ?? []) {
-        if (snap.todayInv > 0) keys.add(toDateKey(snap.date));
+        if (snap.todayInv > 0) {
+          const dk = toDateKey(snap.date);
+          if (!lookup[dk]) lookup[dk] = {};
+          lookup[dk][name] = snap.todayInv;
+        }
       }
     }
-    return keys;
+    return lookup;
   }, [holdingNames, holdingTimeSeries]);
+
+  const transactionDateKeys = useMemo(
+    () => new Set(Object.keys(todayInvLookup)),
+    [todayInvLookup],
+  );
 
   const filteredSnapshots = useMemo(() => {
     const reversed = [...dailySnapshots].reverse();
@@ -61,31 +71,47 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     const negativeColor = theme.colors.negative;
 
     return filteredSnapshots.map((s) => {
-      const isTxnDay = transactionDateKeys.has(toDateKey(s.date));
+      const dk = toDateKey(s.date);
+      const isTxnDay = transactionDateKeys.has(dk);
       const xirrColor = isNaN(s.xirr) || !isFinite(s.xirr)
         ? undefined
         : s.xirr >= 0 ? positiveColor : negativeColor;
+      const dayInvestments = todayInvLookup[dk];
+      const totalDayInv = dayInvestments
+        ? Object.values(dayInvestments).reduce((a, b) => a + b, 0)
+        : 0;
 
       return [
         <span key="d" style={{ fontWeight: isTxnDay ? 600 : 400 }}>
           {formatDate(s.date)}
           {isTxnDay && <span style={{ marginLeft: 6, fontSize: 10, color: '#007bff' }}>●</span>}
         </span>,
-        <span key="i" style={right}>{formatNumber(Math.round(s.totalInv))}</span>,
+        <span key="i" style={right}>
+          {formatNumber(Math.round(s.totalInv))}
+          {totalDayInv > 0 && (
+            <><br /><span style={deltaStyle}>+{formatNumber(Math.round(totalDayInv))}</span></>
+          )}
+        </span>,
         <span key="v" style={{ ...right, fontWeight: isTxnDay ? 600 : 400 }}>
           {formatNumber(Math.round(s.totalValue))}
         </span>,
         <span key="x" style={{ ...right, color: xirrColor, fontWeight: 600 }}>
           {formatXirr(s.xirr)}
         </span>,
-        ...holdingNames.map((name) => (
-          <span key={name} style={right}>
-            {formatNumber(Math.round(s.holdingValues[name] ?? 0))}
-          </span>
-        )),
+        ...holdingNames.map((name) => {
+          const holdingDayInv = dayInvestments?.[name] ?? 0;
+          return (
+            <span key={name} style={right}>
+              {formatNumber(Math.round(s.holdingValues[name] ?? 0))}
+              {holdingDayInv > 0 && (
+                <><br /><span style={deltaStyle}>+{formatNumber(Math.round(holdingDayInv))}</span></>
+              )}
+            </span>
+          );
+        }),
       ];
     });
-  }, [filteredSnapshots, transactionDateKeys, holdingNames, theme.colors]);
+  }, [filteredSnapshots, transactionDateKeys, holdingNames, theme.colors, todayInvLookup]);
 
   return (
     <Block>
