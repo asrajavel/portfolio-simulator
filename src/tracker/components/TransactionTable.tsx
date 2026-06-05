@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { useStyletron } from 'baseui';
 import { Block } from 'baseui/block';
 import { HeadingXSmall, LabelSmall } from 'baseui/typography';
 import { Table } from 'baseui/table-semantic';
@@ -16,7 +15,7 @@ interface TransactionTableProps {
 const MAX_ALL_DAYS_ROWS = 500;
 
 const right: React.CSSProperties = { textAlign: 'right', display: 'block' };
-const deltaStyle: React.CSSProperties = { fontSize: '0.8em', color: '#888', fontWeight: 400 };
+const deltaColor = (v: number): string => (Math.round(v) >= 0 ? '#048a04' : '#d32f2f');
 const monthRowStyle: React.CSSProperties = {
   fontWeight: 700, fontSize: '0.85em', color: '#555',
   display: 'block', background: '#f0f0f0',
@@ -42,7 +41,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   holdingTimeSeries,
   holdingNames,
 }) => {
-  const [, theme] = useStyletron();
   const [showAllDays, setShowAllDays] = useState(false);
 
   const todayInvLookup = useMemo(() => {
@@ -78,8 +76,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   );
 
   const tableData = useMemo(() => {
-    const positiveColor = theme.colors.positive;
-    const negativeColor = theme.colors.negative;
     const rows: React.ReactNode[][] = [];
     let lastMonth = '';
 
@@ -110,13 +106,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       }
 
       const isTxnDay = transactionDateKeys.has(dk);
-      const xirrColor = isNaN(s.xirr) || !isFinite(s.xirr)
-        ? undefined
-        : s.xirr >= 0 ? positiveColor : negativeColor;
       const dayInvestments = todayInvLookup[dk];
-      const totalDayInv = dayInvestments
-        ? Object.values(dayInvestments).reduce((a, b) => a + b, 0)
-        : 0;
 
       rows.push([
         <span key="d" style={{ fontWeight: isTxnDay ? 600 : 400 }}>
@@ -125,14 +115,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         </span>,
         <span key="i" style={right}>
           {formatNumber(Math.round(s.totalInv))}
-          {totalDayInv !== 0 && (
-            <><br /><span style={deltaStyle}>{formatDelta(totalDayInv)}</span></>
-          )}
         </span>,
         <span key="v" style={{ ...right, fontWeight: isTxnDay ? 600 : 400 }}>
           {formatNumber(Math.round(s.totalValue))}
         </span>,
-        <span key="x" style={{ ...right, color: xirrColor, fontWeight: 600 }}>
+        <span key="x" style={{ ...right, fontWeight: 600 }}>
           {formatXirr(s.xirr)}
         </span>,
         ...holdingNames.map((name) => {
@@ -141,7 +128,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             <span key={name} style={right}>
               {formatNumber(Math.round(s.holdingValues[name] ?? 0))}
               {holdingDayInv !== 0 && (
-                <><br /><span style={deltaStyle}>{formatDelta(holdingDayInv)}</span></>
+                <><br /><span style={{ fontSize: '0.8em', fontWeight: 400, color: deltaColor(holdingDayInv) }}>{formatDelta(holdingDayInv)}</span></>
               )}
             </span>
           );
@@ -150,7 +137,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     }
 
     return rows;
-  }, [filteredSnapshots, transactionDateKeys, holdingNames, theme.colors, todayInvLookup]);
+  }, [filteredSnapshots, transactionDateKeys, holdingNames, todayInvLookup]);
 
   return (
     <Block>

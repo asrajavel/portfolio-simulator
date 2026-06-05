@@ -14,7 +14,7 @@ interface SummaryTransactionTableProps {
 const MAX_ALL_DAYS_ROWS = 500;
 
 const right: React.CSSProperties = { textAlign: 'right', display: 'block' };
-const deltaStyle: React.CSSProperties = { fontSize: '0.8em', color: '#888', fontWeight: 400 };
+const deltaColor = (v: number): string => (Math.round(v) >= 0 ? '#048a04' : '#d32f2f');
 const monthRowStyle: React.CSSProperties = {
   fontWeight: 700, fontSize: '0.85em', color: '#555',
   display: 'block', background: '#f0f0f0',
@@ -128,9 +128,6 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
       const totalInv = goalSnaps.reduce((sum, s) => sum + (s?.totalInv ?? 0), 0);
       const totalValue = goalSnaps.reduce((sum, s) => sum + (s?.totalValue ?? 0), 0);
       const dayInvestments = dayInvLookup[dateKey];
-      const totalDayInv = dayInvestments
-        ? Object.values(dayInvestments).reduce((a, b) => a + b, 0)
-        : 0;
 
       rows.push([
         <span key="d" style={{ fontWeight: isTxnDay ? 600 : 400 }}>
@@ -139,9 +136,6 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
         </span>,
         <span key="i" style={right}>
           {formatNumber(Math.round(totalInv))}
-          {totalDayInv !== 0 && (
-            <><br /><span style={deltaStyle}>{formatDelta(totalDayInv)}</span></>
-          )}
         </span>,
         <span key="v" style={{ ...right, fontWeight: isTxnDay ? 600 : 400 }}>
           {formatNumber(Math.round(totalValue))}
@@ -152,7 +146,7 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
             <span key={idx} style={right}>
               {formatNumber(Math.round(s?.totalValue ?? 0))}
               {goalDayInv !== 0 && (
-                <><br /><span style={deltaStyle}>{formatDelta(goalDayInv)}</span></>
+                <><br /><span style={{ fontSize: '0.8em', fontWeight: 400, color: deltaColor(goalDayInv) }}>{formatDelta(goalDayInv)}</span></>
               )}
             </span>
           );
