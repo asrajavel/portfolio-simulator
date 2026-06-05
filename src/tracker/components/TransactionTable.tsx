@@ -188,15 +188,17 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           <LabelSmall color="contentSecondary">No transactions found.</LabelSmall>
         </Block>
       ) : (
-        <Block overrides={{ Block: { style: { overflowX: 'auto' } } }}>
-          <Table
+        <Table
             columns={columns}
             data={tableData}
             divider="grid"
             size="compact"
-            overrides={{ TableBodyRow: { style: { ':hover': { backgroundColor: 'unset' } } } }}
+            overrides={{
+              Root: { style: { maxHeight: '70vh', overflow: 'auto' } },
+              TableHeadCell: { style: { position: 'sticky', top: '0', zIndex: 1, backgroundColor: '#fff' } },
+              TableBodyRow: { style: { ':hover': { backgroundColor: 'unset' } } },
+            }}
           />
-        </Block>
       )}
     </Block>
   );
