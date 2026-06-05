@@ -15,6 +15,11 @@ const MAX_ALL_DAYS_ROWS = 500;
 
 const right: React.CSSProperties = { textAlign: 'right', display: 'block' };
 const deltaStyle: React.CSSProperties = { fontSize: '0.8em', color: '#888', fontWeight: 400 };
+const monthRowStyle: React.CSSProperties = {
+  fontWeight: 700, fontSize: '0.85em', color: '#555',
+  display: 'block', background: '#f0f0f0',
+  margin: '-8px -12px', padding: '8px 12px',
+};
 
 const formatDate = (dateKey: string): string => {
   const d = new Date(dateKey);
@@ -22,6 +27,13 @@ const formatDate = (dateKey: string): string => {
 };
 
 const toDateKey = (date: Date): string => date.toISOString().slice(0, 10);
+
+const toMonthKey = (dateKey: string): string => dateKey.slice(0, 7);
+
+const formatDelta = (v: number): string => {
+  const rounded = Math.round(v);
+  return rounded >= 0 ? `+${formatNumber(rounded)}` : `−${formatNumber(Math.abs(rounded))}`;
+};
 
 export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = ({
   goalNames,
@@ -48,7 +60,7 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
     goalNames.forEach((_, idx) => {
       for (const series of Object.values(cache[idx]?.holdingTimeSeries ?? {})) {
         for (const snap of series) {
-          if (snap.todayInv > 0) {
+          if (snap.todayInv !== 0) {
             const dk = toDateKey(snap.date);
             if (!lookup[dk]) lookup[dk] = {};
             lookup[dk][idx] = (lookup[dk][idx] ?? 0) + snap.todayInv;
@@ -83,47 +95,73 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
     [goalNames],
   );
 
-  const tableData = useMemo(
-    () =>
-      filteredDateKeys.map((dateKey) => {
-        const isTxnDay = transactionDateKeys.has(dateKey);
-        const goalSnaps = goalDateMaps.map((map) => map.get(dateKey));
-        const totalInv = goalSnaps.reduce((sum, s) => sum + (s?.totalInv ?? 0), 0);
-        const totalValue = goalSnaps.reduce((sum, s) => sum + (s?.totalValue ?? 0), 0);
-        const dayInvestments = dayInvLookup[dateKey];
-        const totalDayInv = dayInvestments
-          ? Object.values(dayInvestments).reduce((a, b) => a + b, 0)
-          : 0;
+  const tableData = useMemo(() => {
+    const rows: React.ReactNode[][] = [];
+    let lastMonth = '';
 
-        return [
-          <span key="d" style={{ fontWeight: isTxnDay ? 600 : 400 }}>
-            {formatDate(dateKey)}
-            {isTxnDay && <span style={{ marginLeft: 6, fontSize: 10, color: '#007bff' }}>●</span>}
+    for (const dateKey of filteredDateKeys) {
+      const month = toMonthKey(dateKey);
+      if (month !== lastMonth) {
+        lastMonth = month;
+        // Compute month total across all goals
+        const monthDates = filteredDateKeys.filter((dk) => toMonthKey(dk) === month);
+        const monthTotal = monthDates.reduce((sum, dk) => {
+          const di = dayInvLookup[dk];
+          return sum + (di ? Object.values(di).reduce((a, b) => a + b, 0) : 0);
+        }, 0);
+        const monthLabel = new Date(month + '-15').toLocaleDateString('en-IN', {
+          month: 'long',
+          year: 'numeric',
+        });
+        const colCount = 3 + goalNames.length; // Date + Invested + Total Value + goals
+        rows.push([
+          <span key="m" style={monthRowStyle}>{monthLabel}</span>,
+          <span key="mi" style={{ ...right, ...monthRowStyle }}>
+            {monthTotal !== 0 ? formatDelta(monthTotal) : ''}
           </span>,
-          <span key="i" style={right}>
-            {formatNumber(Math.round(totalInv))}
-            {totalDayInv > 0 && (
-              <><br /><span style={deltaStyle}>+{formatNumber(Math.round(totalDayInv))}</span></>
-            )}
-          </span>,
-          <span key="v" style={{ ...right, fontWeight: isTxnDay ? 600 : 400 }}>
-            {formatNumber(Math.round(totalValue))}
-          </span>,
-          ...goalSnaps.map((s, idx) => {
-            const goalDayInv = dayInvestments?.[idx] ?? 0;
-            return (
-              <span key={idx} style={right}>
-                {formatNumber(Math.round(s?.totalValue ?? 0))}
-                {goalDayInv > 0 && (
-                  <><br /><span style={deltaStyle}>+{formatNumber(Math.round(goalDayInv))}</span></>
-                )}
-              </span>
-            );
-          }),
-        ];
-      }),
-    [filteredDateKeys, transactionDateKeys, goalDateMaps, dayInvLookup],
-  );
+          ...Array.from({ length: colCount - 2 }, (_, i) => <span key={i} />),
+        ]);
+      }
+
+      const isTxnDay = transactionDateKeys.has(dateKey);
+      const goalSnaps = goalDateMaps.map((map) => map.get(dateKey));
+      const totalInv = goalSnaps.reduce((sum, s) => sum + (s?.totalInv ?? 0), 0);
+      const totalValue = goalSnaps.reduce((sum, s) => sum + (s?.totalValue ?? 0), 0);
+      const dayInvestments = dayInvLookup[dateKey];
+      const totalDayInv = dayInvestments
+        ? Object.values(dayInvestments).reduce((a, b) => a + b, 0)
+        : 0;
+
+      rows.push([
+        <span key="d" style={{ fontWeight: isTxnDay ? 600 : 400 }}>
+          {formatDate(dateKey)}
+          {isTxnDay && <span style={{ marginLeft: 6, fontSize: 10, color: '#007bff' }}>●</span>}
+        </span>,
+        <span key="i" style={right}>
+          {formatNumber(Math.round(totalInv))}
+          {totalDayInv !== 0 && (
+            <><br /><span style={deltaStyle}>{formatDelta(totalDayInv)}</span></>
+          )}
+        </span>,
+        <span key="v" style={{ ...right, fontWeight: isTxnDay ? 600 : 400 }}>
+          {formatNumber(Math.round(totalValue))}
+        </span>,
+        ...goalSnaps.map((s, idx) => {
+          const goalDayInv = dayInvestments?.[idx] ?? 0;
+          return (
+            <span key={idx} style={right}>
+              {formatNumber(Math.round(s?.totalValue ?? 0))}
+              {goalDayInv !== 0 && (
+                <><br /><span style={deltaStyle}>{formatDelta(goalDayInv)}</span></>
+              )}
+            </span>
+          );
+        }),
+      ]);
+    }
+
+    return rows;
+  }, [filteredDateKeys, transactionDateKeys, goalDateMaps, dayInvLookup, goalNames.length]);
 
   return (
     <Block>
@@ -162,7 +200,13 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
         </Block>
       ) : (
         <Block overrides={{ Block: { style: { overflowX: 'auto' } } }}>
-          <Table columns={columns} data={tableData} divider="grid" size="compact" />
+          <Table
+            columns={columns}
+            data={tableData}
+            divider="grid"
+            size="compact"
+            overrides={{ TableBodyRow: { style: { ':hover': { backgroundColor: 'unset' } } } }}
+          />
         </Block>
       )}
     </Block>

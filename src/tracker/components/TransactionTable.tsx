@@ -17,6 +17,11 @@ const MAX_ALL_DAYS_ROWS = 500;
 
 const right: React.CSSProperties = { textAlign: 'right', display: 'block' };
 const deltaStyle: React.CSSProperties = { fontSize: '0.8em', color: '#888', fontWeight: 400 };
+const monthRowStyle: React.CSSProperties = {
+  fontWeight: 700, fontSize: '0.85em', color: '#555',
+  display: 'block', background: '#f0f0f0',
+  margin: '-8px -12px', padding: '8px 12px',
+};
 
 const formatDate = (date: Date): string =>
   date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -25,6 +30,12 @@ const formatXirr = (v: number): string =>
   isNaN(v) || !isFinite(v) ? 'N/A' : `${(v * 100).toFixed(2)}%`;
 
 const toDateKey = (date: Date): string => date.toISOString().slice(0, 10);
+const toMonthKey = (date: Date): string => date.toISOString().slice(0, 7);
+
+const formatDelta = (v: number): string => {
+  const rounded = Math.round(v);
+  return rounded >= 0 ? `+${formatNumber(rounded)}` : `−${formatNumber(Math.abs(rounded))}`;
+};
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({
   dailySnapshots,
@@ -38,7 +49,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     const lookup: Record<string, Record<string, number>> = {};
     for (const name of holdingNames) {
       for (const snap of holdingTimeSeries[name] ?? []) {
-        if (snap.todayInv > 0) {
+        if (snap.todayInv !== 0) {
           const dk = toDateKey(snap.date);
           if (!lookup[dk]) lookup[dk] = {};
           lookup[dk][name] = snap.todayInv;
@@ -69,9 +80,35 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const tableData = useMemo(() => {
     const positiveColor = theme.colors.positive;
     const negativeColor = theme.colors.negative;
+    const rows: React.ReactNode[][] = [];
+    let lastMonth = '';
 
-    return filteredSnapshots.map((s) => {
+    for (const s of filteredSnapshots) {
       const dk = toDateKey(s.date);
+      const month = toMonthKey(s.date);
+
+      if (month !== lastMonth) {
+        lastMonth = month;
+        const monthTotal = filteredSnapshots
+          .filter((snap) => toMonthKey(snap.date) === month)
+          .reduce((sum, snap) => {
+            const di = todayInvLookup[toDateKey(snap.date)];
+            return sum + (di ? Object.values(di).reduce((a, b) => a + b, 0) : 0);
+          }, 0);
+        const monthLabel = new Date(month + '-15').toLocaleDateString('en-IN', {
+          month: 'long',
+          year: 'numeric',
+        });
+        const colCount = 4 + holdingNames.length; // Date + Invested + Value + XIRR + holdings
+        rows.push([
+          <span key="m" style={monthRowStyle}>{monthLabel}</span>,
+          <span key="mi" style={{ ...right, ...monthRowStyle }}>
+            {monthTotal !== 0 ? formatDelta(monthTotal) : ''}
+          </span>,
+          ...Array.from({ length: colCount - 2 }, (_, i) => <span key={i} />),
+        ]);
+      }
+
       const isTxnDay = transactionDateKeys.has(dk);
       const xirrColor = isNaN(s.xirr) || !isFinite(s.xirr)
         ? undefined
@@ -81,15 +118,15 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         ? Object.values(dayInvestments).reduce((a, b) => a + b, 0)
         : 0;
 
-      return [
+      rows.push([
         <span key="d" style={{ fontWeight: isTxnDay ? 600 : 400 }}>
           {formatDate(s.date)}
           {isTxnDay && <span style={{ marginLeft: 6, fontSize: 10, color: '#007bff' }}>●</span>}
         </span>,
         <span key="i" style={right}>
           {formatNumber(Math.round(s.totalInv))}
-          {totalDayInv > 0 && (
-            <><br /><span style={deltaStyle}>+{formatNumber(Math.round(totalDayInv))}</span></>
+          {totalDayInv !== 0 && (
+            <><br /><span style={deltaStyle}>{formatDelta(totalDayInv)}</span></>
           )}
         </span>,
         <span key="v" style={{ ...right, fontWeight: isTxnDay ? 600 : 400 }}>
@@ -103,14 +140,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           return (
             <span key={name} style={right}>
               {formatNumber(Math.round(s.holdingValues[name] ?? 0))}
-              {holdingDayInv > 0 && (
-                <><br /><span style={deltaStyle}>+{formatNumber(Math.round(holdingDayInv))}</span></>
+              {holdingDayInv !== 0 && (
+                <><br /><span style={deltaStyle}>{formatDelta(holdingDayInv)}</span></>
               )}
             </span>
           );
         }),
-      ];
-    });
+      ]);
+    }
+
+    return rows;
   }, [filteredSnapshots, transactionDateKeys, holdingNames, theme.colors, todayInvLookup]);
 
   return (
@@ -150,7 +189,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         </Block>
       ) : (
         <Block overrides={{ Block: { style: { overflowX: 'auto' } } }}>
-          <Table columns={columns} data={tableData} divider="grid" size="compact" />
+          <Table
+            columns={columns}
+            data={tableData}
+            divider="grid"
+            size="compact"
+            overrides={{ TableBodyRow: { style: { ':hover': { backgroundColor: 'unset' } } } }}
+          />
         </Block>
       )}
     </Block>
