@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Block } from 'baseui/block';
-import { HeadingXSmall, LabelSmall } from 'baseui/typography';
+import { LabelSmall } from 'baseui/typography';
 import { Table } from 'baseui/table-semantic';
-import { Button, KIND, SIZE } from 'baseui/button';
+import { Select } from 'baseui/select';
 import { ComputedGoalData } from '../../types/tracker';
 import { formatNumber } from '../../utils/numberFormat';
 
@@ -12,6 +12,13 @@ interface SummaryTransactionTableProps {
 }
 
 const MAX_ALL_DAYS_ROWS = 500;
+
+type ViewMode = 'monthly' | 'transactions' | 'daily';
+const VIEW_OPTIONS = [
+  { id: 'monthly', label: 'Monthly' },
+  { id: 'transactions', label: 'Transaction Days' },
+  { id: 'daily', label: 'Daily' },
+];
 
 const right: React.CSSProperties = { textAlign: 'right', display: 'block' };
 const deltaColor = (v: number): string => (Math.round(v) >= 0 ? '#048a04' : '#d32f2f');
@@ -39,7 +46,7 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
   goalNames,
   cache,
 }) => {
-  const [showAllDays, setShowAllDays] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('monthly');
 
   // Per-goal snapshot maps keyed by date string
   const goalDateMaps = useMemo(
@@ -84,11 +91,12 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
   }, [goalDateMaps]);
 
   const filteredDateKeys = useMemo(() => {
-    if (showAllDays) return allDateKeys.slice(0, MAX_ALL_DAYS_ROWS);
+    if (viewMode === 'daily') return allDateKeys.slice(0, MAX_ALL_DAYS_ROWS);
+    if (viewMode === 'monthly') return [];
     return allDateKeys.filter((k) => transactionDateKeys.has(k));
-  }, [allDateKeys, showAllDays, transactionDateKeys]);
+  }, [allDateKeys, viewMode, transactionDateKeys]);
 
-  const isCapped = showAllDays && allDateKeys.length > MAX_ALL_DAYS_ROWS;
+  const isCapped = viewMode === 'daily' && allDateKeys.length > MAX_ALL_DAYS_ROWS;
 
   const columns = useMemo(
     () => ['Date', 'Invested', 'Total Value', ...goalNames],
@@ -98,6 +106,48 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
   const tableData = useMemo(() => {
     const rows: React.ReactNode[][] = [];
     let lastMonth = '';
+
+    if (viewMode === 'monthly') {
+      const months: string[] = [];
+      const seen = new Set<string>();
+      for (const dk of allDateKeys) {
+        const m = toMonthKey(dk);
+        if (!seen.has(m)) { seen.add(m); months.push(m); }
+      }
+      for (const month of months) {
+        const monthDates = allDateKeys.filter((dk) => toMonthKey(dk) === month);
+        const monthPerGoal: Record<number, number> = {};
+        let monthTotal = 0;
+        for (const dk of monthDates) {
+          const di = dayInvLookup[dk];
+          if (di) {
+            for (const [idx, val] of Object.entries(di)) {
+              monthPerGoal[+idx] = (monthPerGoal[+idx] ?? 0) + val;
+            }
+            monthTotal += Object.values(di).reduce((a, b) => a + b, 0);
+          }
+        }
+        const monthLabel = new Date(month + '-15').toLocaleDateString('en-IN', {
+          month: 'long', year: 'numeric',
+        });
+        rows.push([
+          <span key="m" style={monthRowStyle}>{monthLabel}</span>,
+          <span key="mi" style={{ ...right, ...monthRowStyle }}>
+            {monthTotal !== 0 ? formatDelta(monthTotal) : ' '}
+          </span>,
+          <span key="mv" style={{ ...right, ...monthRowStyle }}>{' '}</span>,
+          ...goalNames.map((_, idx) => {
+            const val = monthPerGoal[idx] ?? 0;
+            return (
+              <span key={idx} style={{ ...right, ...monthRowStyle }}>
+                {val !== 0 ? formatDelta(val) : ' '}
+              </span>
+            );
+          }),
+        ]);
+      }
+      return rows;
+    }
 
     for (const dateKey of filteredDateKeys) {
       const month = toMonthKey(dateKey);
@@ -168,29 +218,29 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
     }
 
     return rows;
-  }, [filteredDateKeys, transactionDateKeys, goalDateMaps, dayInvLookup, goalNames.length]);
+  }, [filteredDateKeys, transactionDateKeys, goalDateMaps, dayInvLookup, goalNames, viewMode, allDateKeys]);
 
   return (
     <Block>
       <Block
         display="flex"
         alignItems="center"
-        justifyContent="space-between"
+        justifyContent="flex-end"
         paddingLeft="scale400"
         paddingRight="scale400"
         paddingTop="scale300"
         paddingBottom="scale300"
       >
-        <HeadingXSmall marginTop="0" marginBottom="0">
-          {showAllDays ? 'All Days' : 'Transaction Days'}
-        </HeadingXSmall>
-        <Button
-          size={SIZE.mini}
-          kind={KIND.secondary}
-          onClick={() => setShowAllDays((v) => !v)}
-        >
-          {showAllDays ? 'Show Transaction Days Only' : 'Show All Days'}
-        </Button>
+        <Block width="200px">
+          <Select
+            size="mini"
+            clearable={false}
+            searchable={false}
+            options={VIEW_OPTIONS}
+            value={[{ id: viewMode }]}
+            onChange={({ value }) => setViewMode(value[0].id as ViewMode)}
+          />
+        </Block>
       </Block>
 
       {isCapped && (
@@ -201,7 +251,7 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
         </Block>
       )}
 
-      {filteredDateKeys.length === 0 ? (
+      {tableData.length === 0 ? (
         <Block padding="scale600">
           <LabelSmall color="contentSecondary">No transactions found.</LabelSmall>
         </Block>

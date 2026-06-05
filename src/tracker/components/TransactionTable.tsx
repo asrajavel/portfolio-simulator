@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Block } from 'baseui/block';
-import { HeadingXSmall, LabelSmall } from 'baseui/typography';
+import { LabelSmall } from 'baseui/typography';
 import { Table } from 'baseui/table-semantic';
-import { Button, KIND, SIZE } from 'baseui/button';
+import { Select } from 'baseui/select';
 import { DailyGoalSnapshot, DailyHoldingSnapshot } from '../../types/tracker';
 import { formatNumber } from '../../utils/numberFormat';
 
@@ -13,6 +13,13 @@ interface TransactionTableProps {
 }
 
 const MAX_ALL_DAYS_ROWS = 500;
+
+type ViewMode = 'monthly' | 'transactions' | 'daily';
+const VIEW_OPTIONS = [
+  { id: 'monthly', label: 'Monthly' },
+  { id: 'transactions', label: 'Transaction Days' },
+  { id: 'daily', label: 'Daily' },
+];
 
 const right: React.CSSProperties = { textAlign: 'right', display: 'block' };
 const deltaColor = (v: number): string => (Math.round(v) >= 0 ? '#048a04' : '#d32f2f');
@@ -41,7 +48,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   holdingTimeSeries,
   holdingNames,
 }) => {
-  const [showAllDays, setShowAllDays] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('monthly');
 
   const todayInvLookup = useMemo(() => {
     const lookup: Record<string, Record<string, number>> = {};
@@ -64,11 +71,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
   const filteredSnapshots = useMemo(() => {
     const reversed = [...dailySnapshots].reverse();
-    if (showAllDays) return reversed.slice(0, MAX_ALL_DAYS_ROWS);
+    if (viewMode === 'daily') return reversed.slice(0, MAX_ALL_DAYS_ROWS);
+    if (viewMode === 'monthly') return [];
     return reversed.filter((s) => transactionDateKeys.has(toDateKey(s.date)));
-  }, [dailySnapshots, showAllDays, transactionDateKeys]);
+  }, [dailySnapshots, viewMode, transactionDateKeys]);
 
-  const isCapped = showAllDays && dailySnapshots.length > MAX_ALL_DAYS_ROWS;
+  const isCapped = viewMode === 'daily' && dailySnapshots.length > MAX_ALL_DAYS_ROWS;
 
   const columns = useMemo(
     () => ['Date', 'Invested', 'Value', 'XIRR', ...holdingNames],
@@ -78,6 +86,50 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const tableData = useMemo(() => {
     const rows: React.ReactNode[][] = [];
     let lastMonth = '';
+
+    if (viewMode === 'monthly') {
+      const reversed = [...dailySnapshots].reverse();
+      const months: string[] = [];
+      const seen = new Set<string>();
+      for (const s of reversed) {
+        const m = toMonthKey(s.date);
+        if (!seen.has(m)) { seen.add(m); months.push(m); }
+      }
+      for (const month of months) {
+        const monthPerHolding: Record<string, number> = {};
+        let monthTotal = 0;
+        for (const snap of dailySnapshots) {
+          if (toMonthKey(snap.date) !== month) continue;
+          const di = todayInvLookup[toDateKey(snap.date)];
+          if (di) {
+            for (const [name, val] of Object.entries(di)) {
+              monthPerHolding[name] = (monthPerHolding[name] ?? 0) + val;
+            }
+            monthTotal += Object.values(di).reduce((a, b) => a + b, 0);
+          }
+        }
+        const monthLabel = new Date(month + '-15').toLocaleDateString('en-IN', {
+          month: 'long', year: 'numeric',
+        });
+        rows.push([
+          <span key="m" style={monthRowStyle}>{monthLabel}</span>,
+          <span key="mi" style={{ ...right, ...monthRowStyle }}>
+            {monthTotal !== 0 ? formatDelta(monthTotal) : ' '}
+          </span>,
+          <span key="mv" style={{ ...right, ...monthRowStyle }}>{' '}</span>,
+          <span key="mx" style={{ ...right, ...monthRowStyle }}>{' '}</span>,
+          ...holdingNames.map((name) => {
+            const val = monthPerHolding[name] ?? 0;
+            return (
+              <span key={name} style={{ ...right, ...monthRowStyle }}>
+                {val !== 0 ? formatDelta(val) : ' '}
+              </span>
+            );
+          }),
+        ]);
+      }
+      return rows;
+    }
 
     for (const s of filteredSnapshots) {
       const dk = toDateKey(s.date);
@@ -151,29 +203,29 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     }
 
     return rows;
-  }, [filteredSnapshots, transactionDateKeys, holdingNames, todayInvLookup]);
+  }, [filteredSnapshots, transactionDateKeys, holdingNames, todayInvLookup, viewMode, dailySnapshots]);
 
   return (
     <Block>
       <Block
         display="flex"
         alignItems="center"
-        justifyContent="space-between"
+        justifyContent="flex-end"
         paddingLeft="scale400"
         paddingRight="scale400"
         paddingTop="scale300"
         paddingBottom="scale300"
       >
-        <HeadingXSmall marginTop="0" marginBottom="0">
-          {showAllDays ? 'All Days' : 'Transaction Days'}
-        </HeadingXSmall>
-        <Button
-          size={SIZE.mini}
-          kind={KIND.secondary}
-          onClick={() => setShowAllDays((v) => !v)}
-        >
-          {showAllDays ? 'Show Transaction Days Only' : 'Show All Days'}
-        </Button>
+        <Block width="200px">
+          <Select
+            size="mini"
+            clearable={false}
+            searchable={false}
+            options={VIEW_OPTIONS}
+            value={[{ id: viewMode }]}
+            onChange={({ value }) => setViewMode(value[0].id as ViewMode)}
+          />
+        </Block>
       </Block>
 
       {isCapped && (
@@ -184,7 +236,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         </Block>
       )}
 
-      {filteredSnapshots.length === 0 ? (
+      {tableData.length === 0 ? (
         <Block padding="scale600">
           <LabelSmall color="contentSecondary">No transactions found.</LabelSmall>
         </Block>
