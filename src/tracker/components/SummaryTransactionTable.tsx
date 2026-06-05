@@ -103,23 +103,36 @@ export const SummaryTransactionTable: React.FC<SummaryTransactionTableProps> = (
       const month = toMonthKey(dateKey);
       if (month !== lastMonth) {
         lastMonth = month;
-        // Compute month total across all goals
         const monthDates = filteredDateKeys.filter((dk) => toMonthKey(dk) === month);
-        const monthTotal = monthDates.reduce((sum, dk) => {
+        const monthPerGoal: Record<number, number> = {};
+        let monthTotal = 0;
+        for (const dk of monthDates) {
           const di = dayInvLookup[dk];
-          return sum + (di ? Object.values(di).reduce((a, b) => a + b, 0) : 0);
-        }, 0);
+          if (di) {
+            for (const [idx, val] of Object.entries(di)) {
+              monthPerGoal[+idx] = (monthPerGoal[+idx] ?? 0) + val;
+            }
+            monthTotal += Object.values(di).reduce((a, b) => a + b, 0);
+          }
+        }
         const monthLabel = new Date(month + '-15').toLocaleDateString('en-IN', {
           month: 'long',
           year: 'numeric',
         });
-        const colCount = 3 + goalNames.length; // Date + Invested + Total Value + goals
         rows.push([
           <span key="m" style={monthRowStyle}>{monthLabel}</span>,
           <span key="mi" style={{ ...right, ...monthRowStyle }}>
-            {monthTotal !== 0 ? formatDelta(monthTotal) : ''}
+            {monthTotal !== 0 ? formatDelta(monthTotal) : ' '}
           </span>,
-          ...Array.from({ length: colCount - 2 }, (_, i) => <span key={i} />),
+          <span key="mv" style={{ ...right, ...monthRowStyle }}>{' '}</span>,
+          ...goalNames.map((_, idx) => {
+            const val = monthPerGoal[idx] ?? 0;
+            return (
+              <span key={idx} style={{ ...right, ...monthRowStyle }}>
+                {val !== 0 ? formatDelta(val) : ' '}
+              </span>
+            );
+          }),
         ]);
       }
 

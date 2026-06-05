@@ -85,23 +85,37 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
       if (month !== lastMonth) {
         lastMonth = month;
-        const monthTotal = filteredSnapshots
-          .filter((snap) => toMonthKey(snap.date) === month)
-          .reduce((sum, snap) => {
-            const di = todayInvLookup[toDateKey(snap.date)];
-            return sum + (di ? Object.values(di).reduce((a, b) => a + b, 0) : 0);
-          }, 0);
+        const monthSnaps = filteredSnapshots.filter((snap) => toMonthKey(snap.date) === month);
+        const monthPerHolding: Record<string, number> = {};
+        let monthTotal = 0;
+        for (const snap of monthSnaps) {
+          const di = todayInvLookup[toDateKey(snap.date)];
+          if (di) {
+            for (const [name, val] of Object.entries(di)) {
+              monthPerHolding[name] = (monthPerHolding[name] ?? 0) + val;
+            }
+            monthTotal += Object.values(di).reduce((a, b) => a + b, 0);
+          }
+        }
         const monthLabel = new Date(month + '-15').toLocaleDateString('en-IN', {
           month: 'long',
           year: 'numeric',
         });
-        const colCount = 4 + holdingNames.length; // Date + Invested + Value + XIRR + holdings
         rows.push([
           <span key="m" style={monthRowStyle}>{monthLabel}</span>,
           <span key="mi" style={{ ...right, ...monthRowStyle }}>
-            {monthTotal !== 0 ? formatDelta(monthTotal) : ''}
+            {monthTotal !== 0 ? formatDelta(monthTotal) : ' '}
           </span>,
-          ...Array.from({ length: colCount - 2 }, (_, i) => <span key={i} />),
+          <span key="mv" style={{ ...right, ...monthRowStyle }}>{' '}</span>,
+          <span key="mx" style={{ ...right, ...monthRowStyle }}>{' '}</span>,
+          ...holdingNames.map((name) => {
+            const val = monthPerHolding[name] ?? 0;
+            return (
+              <span key={name} style={{ ...right, ...monthRowStyle }}>
+                {val !== 0 ? formatDelta(val) : ' '}
+              </span>
+            );
+          }),
         ]);
       }
 
