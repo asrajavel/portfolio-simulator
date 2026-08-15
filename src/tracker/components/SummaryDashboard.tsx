@@ -11,6 +11,7 @@ import { ComputedGoalData, GoalData } from '../../types/tracker';
 import { formatNumber } from '../../utils/numberFormat';
 import { CHART_STYLES, COLORS } from '../../constants';
 import { SummaryTransactionTable } from './SummaryTransactionTable';
+import { TotalChart } from './TotalChart';
 
 interface SummaryDashboardProps {
   goals: GoalData[];
@@ -70,6 +71,31 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache
     latestValue: g.summary!.totalValue,
   }));
   const goalData = [...goalDataUnsorted].sort((a, b) => b.latestValue - a.latestValue);
+
+  const totalsByDate = new Map<number, { totalInv: number; totalValue: number }>();
+  for (const goal of goalSummaries) {
+    for (const snapshot of goal.snapshots || []) {
+      const time = snapshot.date.getTime();
+      const total = totalsByDate.get(time) || { totalInv: 0, totalValue: 0 };
+      total.totalInv += snapshot.totalInv;
+      total.totalValue += snapshot.totalValue;
+      totalsByDate.set(time, total);
+    }
+  }
+  const totalSnapshots = [...totalsByDate.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([time, total]) => ({ date: new Date(time), ...total }));
+
+  const savingsByYear = new Map<string, number>();
+  for (const goal of goals) {
+    for (const holding of goal.holdings) {
+      for (const transaction of holding.transactions) {
+        const year = transaction.date.slice(0, 4);
+        savingsByYear.set(year, (savingsByYear.get(year) || 0) + transaction.amount);
+      }
+    }
+  }
+  const yearlySavings = [...savingsByYear.entries()].sort(([a], [b]) => a.localeCompare(b));
 
   const chartSeries: Highcharts.SeriesOptionsType[] = goalData.map((g) => ({
     type: 'area' as const,
@@ -285,6 +311,78 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache
               return html + '</div>';
             },
           },
+        }} />
+      </Block>
+
+      <Block marginTop="scale800" overrides={{ Block: { style: cardStyle } }}>
+        <TotalChart snapshots={totalSnapshots} />
+      </Block>
+
+      <Block marginTop="scale800" overrides={{ Block: { style: cardStyle } }}>
+        <HeadingXSmall marginTop="scale300" marginBottom="0" paddingLeft="scale400">
+          Net Saved Each Year
+        </HeadingXSmall>
+        <HighchartsReact highcharts={Highcharts} options={{
+          title: { text: undefined },
+          credits: { enabled: false },
+          chart: {
+            type: 'column',
+            height: 350,
+            backgroundColor: CHART_STYLES.colors.background,
+            borderRadius: 8,
+            spacing: [20, 20, 20, 20],
+          },
+          xAxis: {
+            categories: yearlySavings.map(([year]) => year),
+            labels: { style: CHART_STYLES.axisLabels },
+            lineColor: CHART_STYLES.colors.line,
+            tickColor: CHART_STYLES.colors.tick,
+          },
+          yAxis: {
+            title: { text: '' },
+            labels: {
+              style: CHART_STYLES.axisLabels,
+              formatter: function (this: Highcharts.AxisLabelsFormatterContextObject) {
+                return formatNumber(this.value as number);
+              },
+            },
+            gridLineColor: CHART_STYLES.colors.gridLine,
+          },
+          tooltip: {
+            useHTML: true,
+            backgroundColor: CHART_STYLES.colors.tooltipBackground,
+            borderColor: CHART_STYLES.colors.tooltipBackground,
+            style: CHART_STYLES.tooltip,
+            formatter: function (this: any) {
+              return `<strong>${this.key}</strong><br/>Net saved: <strong>${formatNumber(Math.round(this.y))}</strong>`;
+            },
+          },
+          plotOptions: {
+            column: {
+              borderWidth: 0,
+              borderRadius: 3,
+              dataLabels: {
+                enabled: true,
+                formatter: function (this: any) {
+                  return formatNumber(Math.round(this.y));
+                },
+                style: {
+                  color: CHART_STYLES.axisLabels.color,
+                  fontWeight: '400',
+                  textOutline: 'none',
+                },
+              },
+            },
+          },
+          series: [{
+            type: 'column',
+            name: 'Net saved',
+            showInLegend: false,
+            data: yearlySavings.map(([, value]) => ({
+              y: value,
+              color: returnColor(value),
+            })),
+          }],
         }} />
       </Block>
     </Block>

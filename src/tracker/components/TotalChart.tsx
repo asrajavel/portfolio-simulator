@@ -3,12 +3,11 @@ import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { HeadingXSmall } from 'baseui/typography';
-import { DailyGoalSnapshot } from '../../types/tracker';
 import { CHART_STYLES, COLORS } from '../../constants';
 import { formatNumber } from '../../utils/numberFormat';
 
 interface TotalChartProps {
-  snapshots: DailyGoalSnapshot[];
+  snapshots: Array<{ date: Date; totalInv: number; totalValue: number }>;
 }
 
 export const TotalChart: React.FC<TotalChartProps> = ({ snapshots }) => {
