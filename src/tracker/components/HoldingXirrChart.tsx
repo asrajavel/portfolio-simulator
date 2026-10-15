@@ -35,7 +35,8 @@ export const HoldingXirrChart: React.FC<HoldingXirrChartProps> = ({ name, snapsh
     },
     yAxis: {
       title: { text: '' },
-      labels: { style: CHART_STYLES.axisLabels, format: '{value:.0f}%' },
+      minRange: 1,
+      labels: { style: CHART_STYLES.axisLabels, format: '{text}%' },
       gridLineColor: CHART_STYLES.colors.gridLine,
       opposite: false,
     },
