@@ -300,8 +300,16 @@ export const MultiAssetCharts: React.FC<MultiAssetChartsProps> = ({
   const { funds } = useMutualFundsContext();
 
   // Use the appropriate data source based on mode
-  const portfolioXirrData = isLumpsum ? lumpsumPortfolioXirrData : sipPortfolioXirrData;
   const portfolios = isLumpsum ? lumpsumPortfolios : sipPortfolios;
+  const rawXirrData = isLumpsum ? lumpsumPortfolioXirrData : sipPortfolioXirrData;
+  // Label single-asset portfolios as "Portfolio 1 (Nifty 50)". The "Portfolio N" prefix is kept
+  // because colors and click handling parse the index back out of the name.
+  const portfolioXirrData = rawXirrData && Object.fromEntries(
+    Object.entries(rawXirrData).map(([name, data]) => {
+      const assets = getPortfolioAssets(name, portfolios || [], funds);
+      return [assets.length === 1 ? `${name} (${assets[0].schemeName})` : name, data];
+    })
+  );
 
   const handlePointClick = (portfolioName: string, pointDate: string) => {
     const xirrEntry = (portfolioXirrData?.[portfolioName] || []).find((row: any) => formatDate(row.date) === pointDate);
