@@ -20,8 +20,18 @@ export function getSortedDates(fund: NavEntry[]): Date[] {
     .map(entry => entry.date);
 }
 
+// The rolling loop asks for the same few thousand days millions of times, so cache by timestamp.
+// ponytail: unbounded cache, one entry per distinct timestamp; fine for daily NAV data, cap it if keys ever get intraday.
+const dateKeyCache = new Map<number, string>();
+
 export function toDateKey(date: Date): string {
-  return date.toISOString().split('T')[0];
+  const time = date.getTime();
+  let key = dateKeyCache.get(time);
+  if (key === undefined) {
+    key = date.toISOString().split('T')[0];
+    dateKeyCache.set(time, key);
+  }
+  return key;
 }
 
 // ────────────── SIP Date Generation ────────────── //
