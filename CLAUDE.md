@@ -40,7 +40,7 @@ Four tabs rendered in `App.tsx` via React Router, each kept mounted (shown/hidde
 All investable assets share the `Asset` union type (`src/types/asset.ts`):
 - `mutual_fund` — fetched via `api.mfapi.in`
 - `index_fund` — fetched from `raw.githubusercontent.com/asrajavel/mf-index-data`
-- `yahoo_finance` — fetched via `api.allorigins.win` CORS proxy (for stocks, ETFs)
+- `yahoo_finance` — fetched from Yahoo Finance via the `CORS_PROXY_URL` proxy (for stocks, ETFs)
 - `fixed_return` — synthetic NAV computed from a fixed annual percentage
 - `gov_scheme` — synthetic NAV for PPF/EPF using historical rate tables
 - `inflation` — synthetic NAV for CPI inflation data
@@ -91,10 +91,10 @@ The site must fit a 375px-wide phone with no horizontal page scroll.
 | API | Used for | Constant |
 |---|---|---|
 | `api.mfapi.in/mf/{schemeCode}` | Mutual fund NAV | `API_ENDPOINTS.MFAPI_BASE` |
-| `api.mfapi.in/mf` | Fund list search | `API_ENDPOINTS.MFAPI_BASE` |
+| `api.mfapi.in/mf` | Fund list search (via `CORS_PROXY_URL`) | `API_ENDPOINTS.MFAPI_BASE` |
 | `raw.githubusercontent.com/asrajavel/mf-index-data` | Index data (Nifty, Sensex, etc.) | `API_ENDPOINTS.INDEX_DATA_BASE` |
-| `api.allorigins.win` + Yahoo Finance | Yahoo Finance stock data | `API_ENDPOINTS.YAHOO_FINANCE_PROXY` |
-| `cors-proxy-lake-omega.vercel.app/api/proxy` | CORS proxy for some requests | `CORS_PROXY_URL` |
+| `query1.finance.yahoo.com/v8/finance/chart/{symbol}` | Yahoo Finance stock data (via `CORS_PROXY_URL`) | — |
+| `cors-proxy-lake-omega.vercel.app/api/proxy` | CORS proxy for Yahoo Finance and the fund list | `CORS_PROXY_URL` |
 
 ### Help System
 

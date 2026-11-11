@@ -6,7 +6,6 @@ export const DEFAULT_REBALANCING_THRESHOLD = 5;
 export const CORS_PROXY_URL = 'https://cors-proxy-lake-omega.vercel.app/api/proxy';
 export const API_ENDPOINTS = {
   MFAPI_BASE: 'https://api.mfapi.in',
-  YAHOO_FINANCE_PROXY: 'https://api.allorigins.win/get?url=',
   INDEX_DATA_BASE: 'https://raw.githubusercontent.com/asrajavel/mf-index-data/main'
 } as const;
 

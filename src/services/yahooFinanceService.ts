@@ -57,17 +57,6 @@ interface YahooFinanceResponse {
   };
 }
 
-interface ProxyResponse {
-  contents: string;
-  status?: {
-    url: string;
-    content_type: string;
-    http_code: number;
-    response_time: number;
-    content_length: number;
-  };
-}
-
 class YahooFinanceService {
   private stockDataCache: Record<string, ProcessedIndexData[]> = {};
   private currencyCache: Record<string, string> = {};
