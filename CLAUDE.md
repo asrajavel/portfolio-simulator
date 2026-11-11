@@ -10,11 +10,13 @@ npm run build        # Build for production
 npm run preview      # Preview production build
 npm test             # Run all tests
 npm run test:watch   # Run tests in watch mode
-npm run deploy       # Build and deploy to GitHub Pages
+npm run deploy       # Manual deploy to GitHub Pages (normally automatic on push to main via .github/workflows/deploy.yml)
 
 # Run a single test file
 npx jest src/utils/calculations/sipRollingXirr/__tests__/basic.test.ts
 ```
+
+The dev server serves under the base path: `http://localhost:5173/portfolio-simulator/<route>` (not `/<route>`). Commits go straight to `main`.
 
 ## Architecture Overview
 
@@ -31,6 +33,8 @@ Four tabs rendered in `App.tsx` via React Router, each kept mounted (shown/hidde
 | `/historical` | `HistoricalValuesTab` | Raw NAV history for a single asset |
 | `/tracker` | `TrackerTab` | Portfolio tracker with goals and XIRR |
 
+`/tracker` is not in the nav menu; it is reached by URL only.
+
 ### Asset Types
 
 All investable assets share the `Asset` union type (`src/types/asset.ts`):
@@ -45,7 +49,7 @@ All investable assets share the `Asset` union type (`src/types/asset.ts`):
 
 1. User selects assets and parameters in controls
 2. NAV data is fetched from external APIs (see `src/services/`)
-3. Calculations run in the same thread (heavy calcs logged with timing in console)
+3. Calculations run client-side; the SIP calc uses a web worker (`sipRollingXirr/worker.ts`) and can take over a minute in dev. Timings are logged in the console.
 4. Results are displayed via Highcharts
 
 For SIP and Lumpsum tabs, portfolios and query params are two-way synced via `src/utils/browser/queryParams.ts` — state is URL-shareable.
@@ -72,6 +76,15 @@ Lumpsum equivalent lives in `src/utils/calculations/lumpSumRollingXirr/`.
 ### UI Framework
 
 Uses **Base Web** (`baseui`) with Styletron for styling. Avoid custom CSS — use Base Web's component props and overrides. Refer to Base Web docs for available components.
+
+### Mobile / Responsive
+
+The site must fit a 375px-wide phone with no horizontal page scroll.
+
+- Phone breakpoint is **600px**. Prefer Base Web responsive arrays on `Block` props: `[phone, phone, desktop]` — index 1 applies from 320px, index 2 from 600px, so repeat the phone value. For style overrides use `'@media (max-width: 599px)'`.
+- No fixed widths wider than a phone. Use `flexWrap` on rows, `minWidth: 'min(Npx, 100%)'`, and wrap tables in an `overflowX: 'auto'` box.
+- Charts: use `CHART_SPACING` from `src/constants` for side spacing; never give a chart a fixed pixel width.
+- When checking a UI change on mobile, also open: the transaction modal (click a point on a rolling chart), the help drawer, and the Tracker with data (`/tracker#src=<gist-url>` — ask the user for a sample gist).
 
 ### External APIs
 
