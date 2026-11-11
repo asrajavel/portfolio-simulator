@@ -9,13 +9,6 @@ export const initializeAnalytics = () => {
   }
 };
 
-// Page view tracking
-export const trackPageView = (page: string) => {
-  if (MEASUREMENT_ID) {
-    ReactGA.send({ hitType: 'pageview', page });
-  }
-};
-
 // Tracker events
 export const trackTracker = (action: 'ImportData' | 'LoadGoal' | 'ImportRemote') => {
   if (MEASUREMENT_ID) {

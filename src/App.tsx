@@ -11,7 +11,6 @@ import { SipSimulatorTab } from './pages/SipSimulatorTab';
 import { HistoricalValuesTab } from './pages/HistoricalValuesTab';
 import { BottomBar } from './components/layout/BottomBar';
 import { HelpProvider, HelpDrawer, useHelp } from './components/help';
-import { trackPageView } from './utils/analytics';
 import { ToasterContainer } from 'baseui/toast';
 import { setGlobalOpenHelp } from './services/yahooFinanceService';
 import { TrackerTab } from './pages/TrackerTab';
@@ -23,10 +22,6 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { openHelp } = useHelp();
-
-  useEffect(() => {
-    trackPageView(location.pathname);
-  }, [location.pathname]);
 
   useEffect(() => {
     setGlobalOpenHelp(openHelp);
