@@ -49,7 +49,7 @@ All investable assets share the `Asset` union type (`src/types/asset.ts`):
 
 1. User selects assets and parameters in controls
 2. NAV data is fetched from external APIs (see `src/services/`)
-3. Calculations run client-side; the SIP calc uses a web worker (`sipRollingXirr/worker.ts`) and can take over a minute in dev. Timings are logged in the console.
+3. Calculations run client-side; the SIP calc uses a web worker (`sipRollingXirr/worker.ts`) and takes a few seconds. Timings are logged in the console.
 4. Results are displayed via Highcharts
 
 For SIP and Lumpsum tabs, portfolios and query params are two-way synced via `src/utils/browser/queryParams.ts` — state is URL-shareable.
