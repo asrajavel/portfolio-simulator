@@ -12,6 +12,7 @@
     <meta property="og:description" content="Simulate and backtest Indian mutual fund SIP & lumpsum investments with real historical data.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://asrajavel.github.io/portfolio-simulator/">
+    <meta property="og:image" content="https://asrajavel.github.io/portfolio-simulator/logo.png">
 
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Portfolio Simulator - Backtest Mutual Fund Returns">
@@ -60,7 +61,27 @@
     </script>
 </head>
 <body>
-    <div id='root'></div>
+    <div id='root'>
+      <!-- Static content for crawlers and agents that don't run JavaScript; React replaces it on mount. -->
+      <main style="max-width: 720px; margin: 0 auto; padding: 16px; font-family: system-ui, sans-serif; line-height: 1.5">
+        <h1>Portfolio Simulator</h1>
+        <p>Free, no-login tool to backtest Indian investments on real historical data. Compare portfolios of mutual funds, NSE indices (Nifty 50, Nifty Next 50 and over 100 more), stocks and ETFs, PPF, EPF, fixed-return assets and inflation, using rolling returns (XIRR) and volatility.</p>
+        <ul>
+          <li><a href="/portfolio-simulator/lumpsum">Lumpsum simulator</a>: rolling returns of a one-time investment, for one or more portfolios.</li>
+          <li><a href="/portfolio-simulator/sip">SIP simulator</a>: rolling XIRR of a monthly SIP, with optional rebalancing and annual step-up.</li>
+          <li><a href="/portfolio-simulator/historical">Historical values</a>: NAV or price history of any asset, compared on one chart.</li>
+        </ul>
+        <h2>Link straight to a simulation</h2>
+        <p>Every simulation is defined by its URL, so a link reproduces it exactly. Examples:</p>
+        <ul>
+          <li><a href="/portfolio-simulator/sip?portfolios=idx:NIFTY_50:100|0|5|0|5;mf:122639:100|0|5|0|5&amp;years=5&amp;sipAmount=10000">5-year rolling SIP returns: Nifty 50 vs Parag Parikh Flexi Cap Fund</a></li>
+          <li><a href="/portfolio-simulator/lumpsum?lumpsumPortfolios=idx:NIFTY_50:100;idx:NIFTY_50:60,gov:ppf:40&amp;years=10&amp;lumpsumAmount=100000">10-year rolling lumpsum returns: Nifty 50 vs a 60/40 Nifty 50 and PPF mix</a></li>
+          <li><a href="/portfolio-simulator/historical?assets=idx:NIFTY_50;inflation:IND&amp;logScale=1">Nifty 50 against Indian inflation</a></li>
+        </ul>
+        <p>The URL format is documented in <a href="/portfolio-simulator/llms.txt">llms.txt</a>. Source code: <a href="https://github.com/asrajavel/portfolio-simulator">github.com/asrajavel/portfolio-simulator</a>.</p>
+        <p>Loading the simulator needs JavaScript.</p>
+      </main>
+    </div>
     <script type='module' src='/src/main.tsx'></script>
 </body>
 </html>
