@@ -47,7 +47,7 @@ export const YahooFinanceSelector: React.FC<YahooFinanceSelectorProps> = ({
       overrides={{
         Block: {
           style: {
-            minWidth: '400px',
+            minWidth: 'min(400px, 100%)',
             flexGrow: 1,
             flexShrink: 1
           }

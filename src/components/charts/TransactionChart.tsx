@@ -3,7 +3,7 @@ import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
-import { CHART_STYLES, getPortfolioColor } from '../../constants';
+import { CHART_SPACING, CHART_STYLES, getPortfolioColor } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 import { Transaction } from '../../utils/calculations/sipRollingXirr/types';
 import { buildTransactionChartData, FundSeries } from './transactionChartData';
@@ -103,7 +103,7 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
     chart: {
       backgroundColor: CHART_STYLES.colors.background,
       borderRadius: 8,
-      spacing: [20, 20, 20, 20],
+      spacing: CHART_SPACING,
       height: 600,
     },
     title: { text: undefined },
@@ -178,7 +178,7 @@ export const TransactionChart: React.FC<TransactionChartProps> = ({
   }), [combinedSeries]);
 
   return (
-    <Block width="50%" margin="0 auto">
+    <Block width={['100%', '100%', '50%']} margin="0 auto">
       {/* Chart Title and Subtitle */}
       <Block marginBottom="scale400" $style={{ textAlign: 'center' }}>
         <HeadingSmall marginTop="0" marginBottom="scale200">Investment vs Value</HeadingSmall>

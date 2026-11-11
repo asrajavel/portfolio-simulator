@@ -77,7 +77,7 @@ const AppContent: React.FC = () => {
           }}
         />
 
-        <Block position="relative" backgroundColor="white" padding="1.5rem" flex="1" display="flex" flexDirection="column">
+        <Block position="relative" backgroundColor="white" padding={['scale500', 'scale500', '1.5rem']} flex="1" display="flex" flexDirection="column">
           <Routes>
             <Route path="/" element={<Navigate to="/lumpsum" replace />} />
             <Route path="/lumpsum" element={null} />

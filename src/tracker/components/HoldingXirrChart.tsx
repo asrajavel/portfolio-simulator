@@ -4,7 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { HeadingXSmall } from 'baseui/typography';
 import { DailyHoldingSnapshot } from '../../types/tracker';
-import { CHART_STYLES, COLORS } from '../../constants';
+import { CHART_SPACING, CHART_STYLES, COLORS } from '../../constants';
 
 interface HoldingXirrChartProps {
   name: string;
@@ -22,7 +22,7 @@ export const HoldingXirrChart: React.FC<HoldingXirrChartProps> = ({ name, snapsh
     chart: {
       backgroundColor: CHART_STYLES.colors.background,
       borderRadius: 8,
-      spacing: [10, 20, 20, 20],
+      spacing: [10, CHART_SPACING[1], 20, CHART_SPACING[3]],
       height: 250,
       zooming: { mouseWheel: false },
     },

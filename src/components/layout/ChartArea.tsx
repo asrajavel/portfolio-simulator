@@ -60,7 +60,7 @@ export const ChartArea: React.FC<ChartAreaProps> = ({
     )}
     <Block 
       position="relative" 
-      maxWidth="90%"
+      maxWidth={['100%', '100%', '90%']}
       margin="0 auto"
     >
       {hasPlotted && Object.keys(navDatas).length > 0 && (

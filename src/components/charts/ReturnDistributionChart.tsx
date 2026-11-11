@@ -5,7 +5,7 @@ import { Block } from 'baseui/block';
 import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
 import { Table } from 'baseui/table-semantic';
 import { useHelp } from '../help';
-import { CHART_STYLES, getPortfolioColor } from '../../constants';
+import { CHART_SPACING, CHART_STYLES, getPortfolioColor } from '../../constants';
 import { formatCurrency } from '../../utils/numberFormat';
 
 interface ReturnDistributionChartProps {
@@ -166,7 +166,7 @@ export const ReturnDistributionChart: React.FC<ReturnDistributionChartProps> = (
     chart: {
       backgroundColor: CHART_STYLES.colors.background,
       borderRadius: 8,
-      spacing: [20, 20, 20, 20],
+      spacing: CHART_SPACING,
       height: 450
     },
     title: { text: undefined },

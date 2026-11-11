@@ -94,6 +94,9 @@ My instrument codes (I looked these up already — use these exact codes in the 
 My holdings (dates and amounts):
 `;
 
+// Tab panels have their own side padding; drop it on phones so charts get the width.
+const tabOverrides = { TabPanel: { style: { '@media (max-width: 599px)': { paddingLeft: 0, paddingRight: 0 } } } };
+
 export const TrackerTab: React.FC = () => {
   const initialSrc = getHashParam('src');
   const [trackerData, setTrackerData] = useState<TrackerData | null>(null);
@@ -293,7 +296,7 @@ export const TrackerTab: React.FC = () => {
           </Button>
         )}
       >
-        <Tab key={0} title="Summary">
+        <Tab key={0} title="Summary" overrides={tabOverrides}>
           {loading ? (
             <Block display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="400px">
               <Spinner />
@@ -308,7 +311,7 @@ export const TrackerTab: React.FC = () => {
           ) : null}
         </Tab>
         {goals.map((goal, idx) => (
-          <Tab key={idx + 1} title={goal.name}>
+          <Tab key={idx + 1} title={goal.name} overrides={tabOverrides}>
             {loading && goalIdx === idx ? (
               <Block display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="400px">
                 <Spinner />

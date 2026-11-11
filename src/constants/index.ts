@@ -34,6 +34,12 @@ export const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
 export const MONTHS_PER_YEAR = 12;
 
 
+// Chart outer spacing [top, right, bottom, left]: tighter sides on phones so the plot gets the width.
+// ponytail: read once at load, so rotating a phone past 600px keeps the old spacing until reload;
+// move to Highcharts `responsive.rules` per chart if that matters.
+export const CHART_SPACING: [number, number, number, number] =
+  typeof window !== 'undefined' && window.innerWidth < 600 ? [20, 8, 20, 4] : [20, 20, 20, 20];
+
 // Chart Styling Configuration
 export const CHART_STYLES = {
   title: {

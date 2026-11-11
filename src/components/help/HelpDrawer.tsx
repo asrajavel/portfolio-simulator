@@ -60,10 +60,11 @@ export const HelpDrawer: React.FC = () => {
         },
       }}
     >
-      <Block display="flex" height="100%">
-        {/* Left sidebar navigation */}
+      <Block display="flex" flexDirection={['column', 'column', 'row']} height="100%">
+        {/* Sidebar navigation: left on desktop, stacked on top on phones */}
         <Block
-          width="220px"
+          width={['100%', '100%', '220px']}
+          flex="0 0 auto"
           backgroundColor="backgroundSecondary"
           paddingTop="scale600"
           paddingBottom="scale600"
@@ -75,6 +76,12 @@ export const HelpDrawer: React.FC = () => {
                 borderRight: '1px solid #e0e0e0',
                 overflowY: 'auto',
                 minHeight: '100%',
+                boxSizing: 'border-box',
+                '@media (max-width: 599px)': {
+                  minHeight: 0,
+                  maxHeight: '35%',
+                  borderBottom: '1px solid #e0e0e0',
+                },
               },
             },
           }}

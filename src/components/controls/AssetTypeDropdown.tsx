@@ -101,7 +101,8 @@ export const AssetTypeDropdown: React.FC<AssetTypeDropdownProps> = ({ value, onC
         Block: {
           style: {
             width: '175px',
-            flexShrink: 0
+            flexShrink: 0,
+            '@media (max-width: 599px)': { width: 'auto', flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0 }
           }
         }
       }}

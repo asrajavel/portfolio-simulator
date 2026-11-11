@@ -55,7 +55,7 @@ export const InflationSelector: React.FC<InflationSelectorProps> = ({ onSelect, 
       overrides={{
         Block: {
           style: {
-            minWidth: '400px',
+            minWidth: 'min(400px, 100%)',
             flexGrow: 1,
             flexShrink: 1
           }

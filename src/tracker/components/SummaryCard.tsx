@@ -179,7 +179,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
 
         </Block>
 
-        <Block flex="1" overrides={{ Block: { style: { overflowX: 'auto' } } }}>
+        <Block flex="1" overrides={{ Block: { style: { overflowX: 'auto', minWidth: 0, maxWidth: '100%' } } }}>
           <Table
             columns={tableColumns}
             data={tableData}

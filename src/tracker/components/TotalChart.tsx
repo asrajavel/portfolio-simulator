@@ -3,7 +3,7 @@ import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { HeadingXSmall } from 'baseui/typography';
-import { CHART_STYLES, COLORS } from '../../constants';
+import { CHART_SPACING, CHART_STYLES, COLORS } from '../../constants';
 import { formatNumber } from '../../utils/numberFormat';
 
 interface TotalChartProps {
@@ -20,7 +20,7 @@ export const TotalChart: React.FC<TotalChartProps> = ({ snapshots }) => {
     chart: {
       backgroundColor: CHART_STYLES.colors.background,
       borderRadius: 8,
-      spacing: [10, 20, 20, 20],
+      spacing: [10, CHART_SPACING[1], 20, CHART_SPACING[3]],
       height: 450,
       zooming: { mouseWheel: false },
     },

@@ -111,7 +111,7 @@ export const LumpsumControlsPanel: React.FC<LumpsumControlsPanelProps> = ({
         </Block>
         
         {/* Chart View and Lumpsum Amount on same line */}
-        <Block display="flex" alignItems="center" justifyContent="space-between" marginBottom="scale500">
+        <Block display="flex" flexWrap alignItems="center" justifyContent="space-between" marginBottom="scale500" gridGap="scale500">
           <Block display="flex" alignItems="center" gridGap="scale300">
             <LabelMedium>Chart View:</LabelMedium>
             <Block display="flex">

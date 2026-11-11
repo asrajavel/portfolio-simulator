@@ -203,7 +203,7 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
                 }
               }}
             >
-              <Block display="flex" alignItems="center" gridGap="scale300">
+              <Block display="flex" flexWrap alignItems="center" gridGap="scale300">
                 <AssetTypeDropdown
                   value={entry.assetType}
                   onChange={(type) => handleAssetTypeChange(idx, type)}
@@ -310,7 +310,7 @@ export const HistoricalValuesPanel: React.FC<HistoricalValuesPanelProps> = ({
 
       {/* Chart Display - 90% width, centered */}
       {plottedAssets.length > 0 && (
-        <Block maxWidth="90%" margin="0 auto">
+        <Block maxWidth={['100%', '100%', '90%']} margin="0 auto">
           <HistoricalValuesChart 
             navDatas={navDatas}
             assets={plottedAssets}

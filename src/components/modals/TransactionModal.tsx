@@ -201,10 +201,11 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
         </Block>
       </ModalHeader>
       
-      <ModalBody>
-        <Block $style={{ overflowY: 'auto', maxHeight: 'calc(90vh - 150px)' }}>
+      {/* Body takes whatever height the header leaves, so a wrapped (taller) header can't push it out of the dialog */}
+      <ModalBody $style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto' }}>
+        <Block>
           {/* Controls row */}
-          <Block display="flex" alignItems="center" justifyContent="space-between" marginBottom="scale600">
+          <Block display="flex" flexWrap alignItems="center" justifyContent="space-between" marginBottom="scale600" gridGap="scale300">
             {/* Checkbox to exclude nil transactions */}
             {hasDetailedTransactions && (
               <Checkbox

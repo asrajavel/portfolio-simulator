@@ -3,7 +3,7 @@ import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { Asset } from '../../types/asset';
-import { CHART_STYLES } from '../../constants';
+import { CHART_SPACING, CHART_STYLES } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR } from '../../utils/stockChartConfig';
 
 interface HistoricalValuesChartProps {
@@ -37,7 +37,7 @@ export const HistoricalValuesChart: React.FC<HistoricalValuesChartProps> = ({
     chart: {
       backgroundColor: CHART_STYLES.colors.background,
       borderRadius: 8,
-      spacing: [20, 20, 20, 20],
+      spacing: CHART_SPACING,
       height: 500,
       zooming: { mouseWheel: false },
     },

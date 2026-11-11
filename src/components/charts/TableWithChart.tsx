@@ -3,7 +3,7 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { LabelSmall } from 'baseui/typography';
-import { CHART_STYLES } from '../../constants';
+import { CHART_SPACING, CHART_STYLES } from '../../constants';
 import { HelpButton } from '../help';
 
 interface Column<T> {
@@ -59,7 +59,7 @@ export function TableWithChart<T>({
           chart: {
             backgroundColor: CHART_STYLES.colors.background,
             borderRadius: 8,
-            spacing: [20, 20, 20, 20],
+            spacing: CHART_SPACING,
             height: 350
           },
           legend: { enabled: false },

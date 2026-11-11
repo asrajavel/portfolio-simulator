@@ -55,7 +55,8 @@ export const SipAssetControls: React.FC<SipAssetControlsProps> = ({
       defaultSchemeCode={defaultSchemeCode}
     >
       {/* SIP-specific controls */}
-      <Block display="flex" alignItems="center" marginTop="scale300" gridGap="scale800">
+      <Block display="flex" flexWrap alignItems="center" marginTop="scale300" gridColumnGap="scale800" gridRowGap="scale300">
+       <Block display="flex" alignItems="center" gridGap="scale800">
         <Block display="flex" alignItems="center" gridGap="scale100">
           <Checkbox
             checked={rebalancingEnabled}
@@ -97,6 +98,8 @@ export const SipAssetControls: React.FC<SipAssetControlsProps> = ({
             id="rebal-threshold-input"
           />
         </Block>
+       </Block>
+       <Block display="flex" alignItems="center" gridGap="scale800">
         <Block display="flex" alignItems="center" gridGap="scale100">
           <Checkbox
             checked={stepUpEnabled}
@@ -143,6 +146,7 @@ export const SipAssetControls: React.FC<SipAssetControlsProps> = ({
             id="stepup-input"
           />
         </Block>
+       </Block>
       </Block>
     </BaseAssetControls>
   );

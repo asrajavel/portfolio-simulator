@@ -59,7 +59,7 @@ export const IndexSelector: React.FC<IndexSelectorProps> = ({
       overrides={{
         Block: {
           style: {
-            minWidth: '400px',
+            minWidth: 'min(400px, 100%)',
             flexGrow: 1,
             flexShrink: 1
           }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Block } from 'baseui/block';
 import { AssetType, Asset } from '../../types/asset';
 import { MutualFundSelector } from './MutualFundSelector';
 import { IndexSelector } from './IndexSelector';
@@ -15,7 +16,24 @@ interface AssetDropdownProps {
   excludeSchemeCodes?: number[];
 }
 
-export const AssetDropdown: React.FC<AssetDropdownProps> = ({ 
+// Wrapper is the flex child of the asset row: on phones it drops to its own full-width line.
+export const AssetDropdown: React.FC<AssetDropdownProps> = (props) => (
+  <Block
+    overrides={{
+      Block: {
+        style: {
+          flexGrow: 1,
+          minWidth: 'min(400px, 100%)',
+          '@media (max-width: 599px)': { order: 1 }
+        }
+      }
+    }}
+  >
+    <AssetSelector {...props} />
+  </Block>
+);
+
+const AssetSelector: React.FC<AssetDropdownProps> = ({
   assetType, 
   onSelect, 
   value,

@@ -8,7 +8,7 @@ import { Block } from 'baseui/block';
 import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
 import { useHelp } from '../help';
 import { TransactionModal } from '../modals/TransactionModal';
-import { CHART_STYLES, getPortfolioColor } from '../../constants';
+import { CHART_SPACING, CHART_STYLES, getPortfolioColor } from '../../constants';
 import { VolatilityChart } from './VolatilityChart';
 import { ReturnDistributionChart } from './ReturnDistributionChart';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
@@ -128,7 +128,7 @@ const getBaseChartOptions = () => ({
   chart: {
     backgroundColor: CHART_STYLES.colors.background,
     borderRadius: 8,
-    spacing: [20, 20, 20, 20],
+    spacing: CHART_SPACING,
     events: {
       click: () => {} // Will be overridden in component
     }

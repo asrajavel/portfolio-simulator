@@ -4,7 +4,7 @@ import HighchartsReact from 'highcharts-react-official';
 import { Block } from 'baseui/block';
 import { HeadingSmall, ParagraphSmall } from 'baseui/typography';
 import { useHelp } from '../help';
-import { CHART_STYLES, getPortfolioColor } from '../../constants';
+import { CHART_SPACING, CHART_STYLES, getPortfolioColor } from '../../constants';
 import { STOCK_CHART_NAVIGATOR, STOCK_CHART_SCROLLBAR, formatDate, getAllDates } from '../../utils/stockChartConfig';
 
 interface VolatilityChartProps {
@@ -48,7 +48,7 @@ const getChartOptions = (years: number, sipPortfolioXirrData: Record<string, any
   chart: {
     backgroundColor: CHART_STYLES.colors.background,
     borderRadius: 8,
-    spacing: [20, 20, 20, 20],
+    spacing: CHART_SPACING,
     height: 500,
     zooming: { mouseWheel: false }
   },

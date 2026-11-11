@@ -9,7 +9,7 @@ import { Modal, ModalHeader, ModalBody, SIZE } from 'baseui/modal';
 import { Button, KIND } from 'baseui/button';
 import { ComputedGoalData, GoalData } from '../../types/tracker';
 import { formatNumber } from '../../utils/numberFormat';
-import { CHART_STYLES, COLORS } from '../../constants';
+import { CHART_SPACING, CHART_STYLES, COLORS } from '../../constants';
 import { SummaryTransactionTable } from './SummaryTransactionTable';
 import { TotalChart } from './TotalChart';
 
@@ -121,7 +121,7 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache
     chart: {
       backgroundColor: CHART_STYLES.colors.background,
       borderRadius: 8,
-      spacing: [10, 20, 20, 20],
+      spacing: [10, CHART_SPACING[1], 20, CHART_SPACING[3]],
       height: 400,
       zooming: { mouseWheel: false },
     },
@@ -251,11 +251,10 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache
       </Modal>
 
       <Block marginTop="scale800" display="flex" justifyContent="center">
-        <HighchartsReact highcharts={Highcharts} options={{
+        <HighchartsReact highcharts={Highcharts} containerProps={{ style: { width: '100%', maxWidth: '400px' } }} options={{
           chart: {
             type: 'pie',
             height: 280,
-            width: 400,
             backgroundColor: 'transparent',
           },
           title: { text: '' },
@@ -330,7 +329,7 @@ export const SummaryDashboard: React.FC<SummaryDashboardProps> = ({ goals, cache
             height: 350,
             backgroundColor: CHART_STYLES.colors.background,
             borderRadius: 8,
-            spacing: [20, 20, 20, 20],
+            spacing: CHART_SPACING,
           },
           xAxis: {
             categories: yearlySavings.map(([year]) => year),

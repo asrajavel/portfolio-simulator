@@ -110,7 +110,7 @@ export const BaseAssetControls: React.FC<BaseAssetControlsProps> = ({
   return (
     <>
       {selectedAssets?.map((item, idx) => (
-        <Block key={idx} display="flex" alignItems="center" marginBottom="scale200" gridGap="scale300">
+        <Block key={idx} display="flex" flexWrap alignItems="center" marginBottom="scale200" gridGap="scale300">
           <AssetTypeDropdown
             value={assetTypes[idx] || 'mutual_fund'}
             onChange={(type) => handleAssetTypeChange(idx, type)}
